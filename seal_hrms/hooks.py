@@ -8,7 +8,7 @@ app_license = "gpl-3.0"
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["frappe", "erpnext", "hrms"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -27,6 +27,7 @@ app_license = "gpl-3.0"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/seal_hrms/css/seal_hrms.css"
 # app_include_js = "/assets/seal_hrms/js/seal_hrms.js"
+app_include_js = "/assets/seal_hrms/js/seal_hrms.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/seal_hrms/css/seal_hrms.css"
@@ -47,7 +48,12 @@ app_license = "gpl-3.0"
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
-
+doctype_js = {
+    "Company" : "public/js/company.js",
+    "Supplier" : "public/js/supplier.js",   
+    "Employee" : "public/js/employee.js",
+    "Employee Advance" : "public/js/employee_advance.js",
+}
 # Svg Icons
 # ------------------
 # include app icons in desk
@@ -144,7 +150,11 @@ app_license = "gpl-3.0"
 # 		"on_trash": "method"
 # 	}
 # }
-
+doc_events = {
+    "Employee Advance": {
+        "validate": "seal_hrms.seal_hrms.overrides.employee_advance.validate",
+    },
+}
 # Scheduled Tasks
 # ---------------
 

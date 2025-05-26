@@ -1,0 +1,200 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2024-06-10 15:43:10.493205",
+ "default_view": "List",
+ "description": "Employee Advance Detail",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "sb0",
+  "invoice",
+  "invoice_date",
+  "invoice_no",
+  "invoice_amount",
+  "cb0_column",
+  "invoice_image",
+  "sb1",
+  "expense_date",
+  "cb0",
+  "expense_type",
+  "default_account",
+  "sb2",
+  "description",
+  "sb3",
+  "amount",
+  "cb1",
+  "sanctioned_amount",
+  "sb4",
+  "cost_center",
+  "cb2",
+  "project"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "expense_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Expense Date",
+   "oldfieldname": "expense_date",
+   "oldfieldtype": "Date",
+   "print_width": "150px",
+   "width": "150px"
+  },
+  {
+   "fieldname": "expense_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Expense Type",
+   "oldfieldname": "expense_type",
+   "oldfieldtype": "Link",
+   "options": "Expense Claim Type",
+   "print_width": "150px",
+   "reqd": 1,
+   "width": "150px"
+  },
+  {
+   "depends_on": "expense_type",
+   "fieldname": "default_account",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Default Account",
+   "options": "Account",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "expense_type.description",
+   "fetch_if_empty": 1,
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Description",
+   "oldfieldname": "description",
+   "oldfieldtype": "Small Text",
+   "print_width": "300px",
+   "reqd": 1,
+   "width": "300px"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "non_negative": 1,
+   "oldfieldname": "claim_amount",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "precision": "2",
+   "print_width": "150px",
+   "reqd": 1,
+   "width": "150px"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sb0",
+   "fieldtype": "Section Break",
+   "label": "Invoice Details"
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sb2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sanctioned_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Sanctioned Amount",
+   "non_negative": 1,
+   "oldfieldname": "claim_amount",
+   "oldfieldtype": "Currency",
+   "options": "Company:company:default_currency",
+   "permlevel": 1,
+   "print_width": "150px",
+   "width": "150px"
+  },
+  {
+   "fieldname": "invoice",
+   "fieldtype": "Attach",
+   "label": "Invoice"
+  },
+  {
+   "fieldname": "invoice_date",
+   "fieldtype": "Date",
+   "label": "Invoice Date"
+  },
+  {
+   "fieldname": "invoice_no",
+   "fieldtype": "Data",
+   "label": "Invoice No"
+  },
+  {
+   "fieldname": "invoice_amount",
+   "fieldtype": "Data",
+   "label": "Invoice Amount"
+  },
+  {
+   "fieldname": "cb0_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "invoice_image",
+   "fieldtype": "Image",
+   "label": "Invoice Image",
+   "options": "invoice"
+  },
+  {
+   "fieldname": "sb3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "sb4",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2025-05-26 10:32:37.025823",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Employee Advance Detail",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
