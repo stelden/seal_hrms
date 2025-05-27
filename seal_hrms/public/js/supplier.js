@@ -49,7 +49,7 @@ frappe.ui.form.on('Supplier', {
   },
 
   custom_create_payment_contact: function(frm) {
-    create_contact(frm, 'supplier_name', false, function(contact) {
+    create_contact(frm, 'supplier_name', '', false, function(contact) {
       frm.set_value('custom_payment_contact', contact.name);
     });
   },

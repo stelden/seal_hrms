@@ -36,7 +36,7 @@ frappe.ui.form.on("Employee"    , {
             return;
         }
 
-        create_contact(frm, 'employee_name', true, function(contact) {
+        create_contact(frm, 'employee_name', 'prefered_email', true, function(contact) {
             frm.set_value('custom_contact', contact.name);
         });
     },

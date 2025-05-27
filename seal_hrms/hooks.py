@@ -8,7 +8,7 @@ app_license = "gpl-3.0"
 # Apps
 # ------------------
 
-required_apps = ["frappe", "erpnext", "hrms"]
+required_apps = ["frappe", "erpnext", "hrms", "seal_common"]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -27,7 +27,7 @@ required_apps = ["frappe", "erpnext", "hrms"]
 # include js, css files in header of desk.html
 # app_include_css = "/assets/seal_hrms/css/seal_hrms.css"
 # app_include_js = "/assets/seal_hrms/js/seal_hrms.js"
-app_include_js = "/assets/seal_hrms/js/seal_hrms.js"
+app_include_js = "/assets/seal_hrms/js/common.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/seal_hrms/css/seal_hrms.css"
