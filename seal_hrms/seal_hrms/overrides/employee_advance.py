@@ -13,7 +13,6 @@ from erpnext.accounts.doctype.payment_entry.payment_entry import (
 )
 from hrms.payroll.doctype.salary_structure_assignment.salary_structure_assignment import get_employee_currency
 
-#TODO Test this function
 def validate(doc, method=None):
 	max_advance_days, block_new_advances = frappe.db.get_value("Company", doc.company, ["custom_max_advance_days", "custom_block_new_advances"])
 
@@ -45,7 +44,6 @@ def validate(doc, method=None):
 #TODO Test this function
 @frappe.whitelist()
 def recover_overdue_advances():
-	
 	companies = frappe.get_list("Company", fields=["name","custom_max_advance_days", "custom_auto_recover_advances_from_salary", "custom_salary_component_for_recovery"])
 
 	for company in companies:

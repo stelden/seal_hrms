@@ -161,110 +161,115 @@ def split_name(full_name: str):
     else:
         return parts[0], ' '.join(parts[1:-1]), parts[-1]
 
-def get_field_values(source_doc, field_map):
-    return {
-        "custom_account_name": source_doc.get(field_map.get("account_name")),
-        "custom_account_no": source_doc.get(field_map.get("account_no")),
-        "custom_account_provider": source_doc.get(field_map.get("account_provider"))
-    }
-
 @frappe.whitelist()
-def get_payee_account_details(mop_type: str, doctype: str, docname: str):
-    doc = frappe.get_doc(doctype, docname)
+def get_payee_account_details(moptype: str, doctype: str, docname: str):
+    def get_field_label(fieldname: str, meta) -> str:
+        """Helper function to get proper field label from fieldname"""
+        # Try to get label from meta first
+        df = meta.get_field(fieldname)
+        if df and df.label:
+            return df.label
+        
+        # Clean up custom field names
+        if fieldname.startswith('custom_'):
+            fieldname = fieldname[7:]  # Remove 'custom_' prefix
+        
+        # Convert to title case with spaces
+        return fieldname.replace('_', ' ').title()
 
-    if not mop_type or not doctype or not docname:
-        frappe.throw(_("Required parameters are missing: mop_type, doctype, or docname"))
-
-    # Map of fields based on Doctype and MoP Type
-    field_configs = {
+    # Validate input parameters
+    if not moptype or not doctype or not docname:
+        frappe.throw(_("Missing required parameters: moptype, doctype, or docname"))
+    
+    if moptype not in ("Bank", "Phone", "Cash"):
+        frappe.throw(_("Unsupported Mode of Payment Type: {0}. Must be 'Bank', 'Phone', or 'Cash'").format(moptype))
+    
+    if doctype not in ("Employee", "Supplier"):
+        frappe.throw(_("Unsupported DocType: {0}. Must be 'Employee' or 'Supplier'").format(doctype))
+    
+    # Get the payee document
+    try:
+        payee_doc = frappe.get_doc(doctype, docname)
+    except frappe.DoesNotExistError:
+        frappe.throw(_("{0} {1} not found").format(doctype, docname))
+    
+    # Define field mapping based on doctype and mode of payment
+    field_mapping = {
         "Employee": {
-            "Phone": {
-                "account_name": "employee_name",
-                "account_no": "cell_number",
-                "account_provider": "custom_cell_number_provider"
-            },
             "Bank": {
                 "account_name": "employee_name",
                 "account_no": "bank_ac_no",
                 "account_provider": "bank_name"
             },
+            "Phone": {
+                "account_name": "employee_name",
+                "account_no": "cell_number",
+                "account_provider": "custom_cell_number_provider"
+            },
+            "Cash": {
+                "account_name": "employee_name",
+                "account_no": "custom_national_id",
+                "account_provider": "Cashier"
+            }
         },
         "Supplier": {
-            "Phone": {
-                "account_name": "custom_payment_contact_name",
-                "account_no": "custom_payment_contact_no",
-                "account_provider": "custom_custom_payment_contact_no_provider"
-            },
             "Bank": {
                 "account_name": "custom_payment_bank_account_name",
                 "account_no": "custom_payment_bank_account_no",
                 "account_provider": "custom_payment_bank_name"
             },
+            "Phone": {
+                "account_name": "custom_payment_contact_name",
+                "account_no": "custom_payment_contact_no",
+                "account_provider": "custom_custom_payment_contact_no_provider"
+            },
+            "Cash": {
+                "account_name": "supplier_name",
+                "account_no": "tax_id",
+                "account_provider": "Cashier"
+            }
         }
     }
+    
+    # Get the field names for the specific doctype and mop_type
+    fields = field_mapping.get(doctype, {}).get(moptype, {})
+    if not fields:
+        frappe.throw(_("No field mapping found for {0} with Mode of Payment {1}").format(doctype, moptype))
 
-    if mop_type == "Cash" or mop_type == "General":
-        return {
-            "custom_account_name": doc.get("employee_name" if doctype == "Employee" else doc.get("supplier_name")),
-            "custom_account_no": doc.get("custom_national_id") or doc.get("custom_passport_no"),
-            "custom_account_provider": "Cashier"
-        }
-
-    config = field_configs.get(doctype, {}).get(mop_type)
-    if not config:
-        frappe.throw(_(f"Unsupported Mode of Payment Type '{mop_type}' for doctype '{doctype}'"))
-
-    result = get_field_values(doc, config)
-
-    if not all(result.values()):
-        missing = [k for k, v in result.items() if not v]
-        frappe.throw(_(f"Missing required field(s) for disbursement: {', '.join(missing)}"))
-
-    return result
-
-
-
-# @frappe.whitelist()
-# def get_preferred_payment_method(custom_payee_type, custom_payee):
-#     if not custom_payee_type or not custom_payee:
-#         return None
-
-#     custom_preferred_payment_method = None
-#     contact_name = None
-#     bank_account_name = None
-
-#     if custom_payee_type == 'Supplier':
-#         payee_doc = frappe.get_doc('Supplier', custom_payee, ['custom_preferred_payment_method', 'custom_mpesa_contact', 'custom_bank_account'])
-#         custom_preferred_payment_method = payee_doc.get('custom_preferred_payment_method')
-#         contact_name = payee_doc.get('custom_mpesa_contact')
-#         bank_account_name = payee_doc.get('custom_bank_account')
-
-#     elif custom_payee_type == 'Employee':
-#         payee_doc = frappe.get_doc('Employee', custom_payee, ['custom_preferred_payment_method', 'custom_mpesa_contact', 'custom_bank_account'])
-#         custom_preferred_payment_method = payee_doc.get('custom_preferred_payment_method')
-#         contact_name = payee_doc.get('custom_mpesa_contact')
-#         bank_account_name = payee_doc.get('custom_bank_account')
-
-#     if not custom_preferred_payment_method:
-#         return None
-
-#     if custom_preferred_payment_method == 'Mpesa' and contact_name:
-#         contact_doc = frappe.get_doc('Contact', contact_name)
-
-#         if contact_doc.full_name and (contact_doc.mobile_no or contact_doc.phone):
-#             return contact_doc.as_dict()
-#         else:
-#             frappe.throw(frappe._(
-#             "Contact '{0}' for {1} '{2}' has no Name or valid phone number."
-#             ).format(contact_name, custom_payee_type, custom_payee))
-
-#     elif custom_preferred_payment_method == 'Cheque' and bank_account_name:
-#         bank_account_doc = frappe.get_doc('Bank Account', bank_account_name)
-#         if not bank_account_doc.account_name or not bank_account_doc.bank_account_no:
-#             frappe.throw(frappe._(
-#                 "Bank Account '{0}' for {1} '{2}' has no Account Name or Account Number."
-#             ).format(bank_account_name, custom_payee_type, custom_payee))
-        
-#         return bank_account_doc.as_dict()
-
-#     return None
+    # Prepare result and track missing fields
+    result = {}
+    missing_fields = []
+    meta = frappe.get_meta(doctype)
+    
+    # Get field values
+    for target_field, source_field in fields.items():
+        if source_field == "Cashier":  # Static value
+            result[target_field] = "Cashier"
+            continue
+            
+        # Check if field exists in the doctype
+        if not meta.has_field(source_field):
+            field_label = get_field_label(source_field, meta)
+            missing_fields.append(field_label)
+            continue
+            
+        value = payee_doc.get(source_field)
+        if value is None or value == "":
+            field_label = get_field_label(source_field, meta)
+            missing_fields.append(field_label)
+            continue
+            
+        result[target_field] = value
+    
+    # Check for missing fields
+    if missing_fields:
+        frappe.throw(_("{0} <b>{1}</b> is missing the following required for <b>{2}</b> disbursement:<br><br><b>{3}</b><br><br>Please update the {4} record.").format(
+            doctype, docname, moptype, "<br>".join(missing_fields), doctype
+        ))
+    
+    # Return the result in the expected format
+    return {
+        "custom_account_name": result.get("account_name"),
+        "custom_account_no": result.get("account_no"),
+        "custom_account_provider": result.get("account_provider")
+    }
