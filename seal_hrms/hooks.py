@@ -1,7 +1,7 @@
 app_name = "seal_hrms"
 app_title = "SEAL HRMS"
 app_publisher = "Stelden EA Ltd"
-app_description = "SEAL Customizations for Frappe HRMS"
+app_description = "SEAL Customizations for ERPNext HRMS"
 app_email = "dev@stelden.com"
 app_license = "gpl-3.0"
 
