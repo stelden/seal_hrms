@@ -1,14 +1,14 @@
 app_name = "seal_hrms"
 app_title = "SEAL HRMS"
 app_publisher = "Stelden EA Ltd"
-app_description = "SEAL Customizations for Frappe HRMS"
+app_description = "SEAL Customizations for ERPNext HRMS"
 app_email = "dev@stelden.com"
 app_license = "gpl-3.0"
 
 # Apps
 # ------------------
 
-required_apps = ["frappe", "erpnext", "hrms", "seal_common", "seal_accounts"]
+required_apps = ["frappe", "erpnext", "hrms"] #, "seal_common", "seal_accounts"
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
