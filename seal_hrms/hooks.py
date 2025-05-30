@@ -154,6 +154,14 @@ doc_events = {
     "Employee Advance": {
         "validate": "seal_hrms.seal_hrms.overrides.employee_advance.validate",
     },
+    "Leave Type": {
+        "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
+    },
+    "Leave Application": {
+		"validate": "seal_hrms.seal_hrms.overrides.leave_application.validate",
+		"on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
+		"on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
+	}
 }
 # Scheduled Tasks
 # ---------------
