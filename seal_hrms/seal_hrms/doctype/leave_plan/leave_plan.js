@@ -3,45 +3,36 @@
 
 frappe.ui.form.on('Leave Plan', {
 	refresh: function(frm) {
-		// Set query for Leave Period
-		frm.set_query('leave_period', function() {
-			return {
-				filters: [
-					['to_date', '>=', frappe.datetime.get_today()]
-					['is_active', '=', 1]
-				]
-			};
-		});
+		frm.set_query("employee", () => {
+            return {
+                filters: {
+                    status: "Active",
+                    company: frm.doc.company
+                }
+            };
+        });
+
+        // Filter leave period: active, matching company, and in future
+        frm.set_query("leave_period", () => {
+            return {
+                filters: {
+                    is_active: 1,
+                    company: frm.doc.company,
+                    to_date: [">", frappe.datetime.now_date()]
+                }
+            };
+        });
 
 		if (frm.doc.employee) {
 			set_leave_type_filter(frm);
 		}
 	},
-	employee: function(frm) {
-		if (frm.doc.employee) {
-			set_leave_type_filter(frm);
-		} else {
-            if (frm.fields_dict['leave_plan_slots']) {
-                frm.fields_dict['leave_plan_slots'].grid.update_docfield_property(
-                    'leave_type', 'only_select', false
-                );
-                 frm.fields_dict['leave_plan_slots'].grid.update_docfield_property(
-                    'leave_type', 'get_query', null
-                );
-            }
-		}
-	}
-});
+	company(frm) {
+        frm.set_value("employee", null);
+        frm.set_value("leave_period", null);
+    },
 
-frappe.ui.form.on('Leave Plan Slot', {
-	// If you need to set the filter specifically when a new row is added:
-	leave_plan_slots_add: function(frm, cdt, cdn) {
-		set_leave_type_filter_for_row(frm, cdt, cdn);
-	},
-});
-
-function set_leave_type_filter(frm) {
-	if (frm.fields_dict['leave_plan_slots']) {
+    leave_plan_slots_add: function(frm, cdt, cdn) {
 		frm.set_query('leave_type', 'leave_plan_slots', function(doc, cdt, cdn) {
 			return {
 				filters: [
@@ -49,24 +40,33 @@ function set_leave_type_filter(frm) {
 				]
 			};
 		});
-	}
-}
 
-// // Helper function to set query for a specific row, useful if called from row-specific events
-// // This might be redundant if the main grid set_query works effectively for all rows.
-// function set_leave_type_filter_for_row(frm, cdt, cdn) {
-//     let row = locals[cdt][cdn];
-//     frm.fields_dict['leave_plan_slots'].grid.update_docfield_property(
-//         'leave_type', 'get_query', function() {
-//             return {
-//                 filters: [
-//                     ['custom_is_plannable', '=', 1]
-//                 ]
-//             };
-//         },
-//         cdn // Apply to specific row
-//     );
-//     // It's often better to set it on the grid level as in set_leave_type_filter
-//     // This ensures consistency. The above is an example if row-specific dynamic query is needed.
-//     // For this particular filter (is_plannable), the grid-level set_query is usually sufficient.
-// }
+		const row = frappe.get_doc(cdt, cdn);
+        frappe.model.set_value(cdt, cdn, "slot_status", "Open");
+
+	},
+});
+
+frappe.ui.form.on('Leave Plan Slot', {
+	from_date: update_slot_days,
+    to_date: update_slot_days
+});
+
+function update_slot_days(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    if (row.from_date && row.to_date) {
+        frappe.call({
+            method: "seal_hrms.seal_hrms.doctype.leave_plan.leave_plan.calculate_slot_days",
+            args: {
+                employee: frm.doc.employee,
+                from_date: row.from_date,
+                to_date: row.to_date
+            },
+            callback: function(r) {
+                if (r.message !== undefined) {
+                    frappe.model.set_value(cdt, cdn, "days", r.message);
+                }
+            }
+        });
+    }
+}

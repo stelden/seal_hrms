@@ -11,7 +11,6 @@
   "enable_leave_planning",
   "planning_submission_max_future_days",
   "planning_overlap_scope",
-  "allow_plan_amendment_after_approval",
   "auto_create_leave_application_reminder_days",
   "planning_submission_timing_method",
   "cb0",
@@ -57,13 +56,6 @@
    "label": "Max Concurrent Planned Leaves Percent",
    "mandatory_depends_on": "eval:doc.enable_leave_planning==1 && doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Percent'",
    "non_negative": 1
-  },
-  {
-   "default": "0",
-   "depends_on": "eval:doc.enable_leave_planning==1",
-   "fieldname": "allow_plan_amendment_after_approval",
-   "fieldtype": "Check",
-   "label": "Allow Plan Ammendment After Approval"
   },
   {
    "default": "7",
@@ -148,7 +140,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-30 03:40:32.686805",
+ "modified": "2025-05-31 12:15:22.723760",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "SEAL HRMS Settings",
