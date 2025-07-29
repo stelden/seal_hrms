@@ -1,10 +1,16 @@
 frappe.ui.form.on("Employee"    , {
     refresh: function(frm) {
-        if (!frm.doc.__islocal && (!frm.doc.custom_contact || !frm.doc.custom_salary_bank_account)) {
-          let message = __('Please setup the Contact and/or Bank Account used for payments to this Employee.');
+        const fullName = frm.doc.employee_name;
+
+        if (!frm.doc.__islocal && !frm.doc.custom_contact) {
+          let message = __('Please setup the Contact used for Email communications to {0}.', [fullName]);
           frm.dashboard.add_comment(message, 'orange', true);
         }
-    
+        if (!frm.doc.__islocal && !frm.doc.custom_salary_bank_account) {
+          let message = __('Please setup the Bank Account used for Bank payments to {0}.', [fullName]);
+          frm.dashboard.add_comment(message, 'orange', true);
+        }
+
         frm.set_query('custom_salary_bank_account', function() {
             return {
                 filters: {
@@ -21,6 +27,21 @@ frappe.ui.form.on("Employee"    , {
                 email: frm.doc.prefered_email
             }
           };
+        });
+
+        frappe.call({
+            method: "seal_hrms.seal_hrms.api.contact_exists",
+            args: {
+                phone_number: frm.doc.cell_number,
+                email_id: frm.doc.prefered_email
+            },
+            callback: function(r) {
+                if (!r.exc) {
+                    const contactExists = !!r.message;
+
+                    frm.toggle_display("custom_create_contact", !contactExists);
+                }
+            }
         });
     },
 

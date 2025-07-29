@@ -1,0 +1,165 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2025-05-29 19:05:43.801613",
+ "description": "SEAL HRMS Settings",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb0",
+  "enable_leave_planning",
+  "planning_submission_max_future_days",
+  "planning_overlap_scope",
+  "auto_create_leave_application_reminder_days",
+  "planning_submission_timing_method",
+  "cb0",
+  "leave_plan_concurrency_based_on",
+  "max_concurrent_planned_leaves_percentage",
+  "max_concurrent_planned_leaves_absolute",
+  "planning_submission_lead_days",
+  "planning_submission_deadline_month",
+  "planning_submission_deadline_day"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb0",
+   "fieldtype": "Section Break",
+   "label": "Leave Planning"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_leave_planning",
+   "fieldtype": "Check",
+   "label": "Enable Leave Planning"
+  },
+  {
+   "default": "Department",
+   "depends_on": "eval:doc.enable_leave_planning==1",
+   "description": "Scope for Leave Plan concurrency check.",
+   "fieldname": "planning_overlap_scope",
+   "fieldtype": "Select",
+   "label": "Planning Overlap Scope",
+   "options": "\nNone\nDepartment\nEmployee Group\nBranch\nCompany"
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "20",
+   "depends_on": "eval:doc.enable_leave_planning==1 && doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Percent'",
+   "description": "Max <b>percentage</b> of overlapping planned leaves in scope.",
+   "fieldname": "max_concurrent_planned_leaves_percentage",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Max Concurrent Planned Leaves Percent",
+   "mandatory_depends_on": "eval:doc.enable_leave_planning==1 && doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Percent'",
+   "non_negative": 1
+  },
+  {
+   "default": "7",
+   "depends_on": "eval:doc.enable_leave_planning==1",
+   "description": "Days before slot start to send Leave Application reminder (0 to disable).",
+   "fieldname": "auto_create_leave_application_reminder_days",
+   "fieldtype": "Int",
+   "label": "Auto Create Leave Application Reminder Days"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.enable_leave_planning==1 && doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Absolute'",
+   "description": "Absolute maximum <b>number</b> of overlapping planned leaves in scope.",
+   "fieldname": "max_concurrent_planned_leaves_absolute",
+   "fieldtype": "Int",
+   "label": "Max Concurrent Planned Leaves Absolute",
+   "mandatory_depends_on": "eval:doc.enable_leave_planning==1 && doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Absolute'"
+  },
+  {
+   "default": "Lead Days Before Slot",
+   "depends_on": "eval:doc.enable_leave_planning==1",
+   "description": "Method to use for Leave Plan submission deadline.",
+   "fieldname": "planning_submission_timing_method",
+   "fieldtype": "Select",
+   "label": "Planning Submission Timing Method",
+   "mandatory_depends_on": "eval:doc.enable_leave_planning==1",
+   "options": "Lead Days Before Slot\nFixed Deadline for Period",
+   "reqd": 1
+  },
+  {
+   "default": "30",
+   "depends_on": "eval:doc.planning_submission_timing_method=='Lead Days Before Slot'",
+   "description": "Minimum Leave Plan submission days before the slot's start.",
+   "fieldname": "planning_submission_lead_days",
+   "fieldtype": "Int",
+   "label": "Planning Submission Lead Days",
+   "mandatory_depends_on": "eval:doc.planning_submission_timing_method=='Lead Days Before Slot'",
+   "non_negative": 1
+  },
+  {
+   "default": "365",
+   "depends_on": "eval:doc.enable_leave_planning==1",
+   "description": "Maximum days in advance a Leave Plan can be submitted.",
+   "fieldname": "planning_submission_max_future_days",
+   "fieldtype": "Int",
+   "label": "Leave Planning Cycle (Days)",
+   "mandatory_depends_on": "eval:doc.enable_leave_planning==1",
+   "non_negative": 1
+  },
+  {
+   "default": "January",
+   "depends_on": "eval:doc.enable_leave_planning==1 && doc.planning_submission_timing_method=='Fixed Deadline for Period'",
+   "description": "Month for the fixed submission deadline.",
+   "fieldname": "planning_submission_deadline_month",
+   "fieldtype": "Select",
+   "label": "Planning Submission Deadline Month",
+   "mandatory_depends_on": "eval:doc.planning_submission_timing_method=='Fixed Deadline for Period'",
+   "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+  },
+  {
+   "default": "28",
+   "depends_on": "eval:doc.enable_leave_planning==1 && doc.enable_leave_planning==1 && doc.planning_submission_timing_method=='Fixed Deadline for Period'",
+   "description": "Day of the month for the fixed submission deadline.",
+   "fieldname": "planning_submission_deadline_day",
+   "fieldtype": "Select",
+   "label": "Planning Submission Deadline Day",
+   "mandatory_depends_on": "eval:doc.planning_submission_timing_method=='Fixed Deadline for Period'",
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28"
+  },
+  {
+   "default": "Absolute",
+   "depends_on": "eval:doc.enable_leave_planning==1",
+   "fieldname": "leave_plan_concurrency_based_on",
+   "fieldtype": "Select",
+   "label": "Leave Plan Concurrency Based On",
+   "mandatory_depends_on": "eval:doc.enable_leave_planning==1",
+   "options": "Absolute\nPercentage",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-05-31 12:15:22.723760",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "SEAL HRMS Settings",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
