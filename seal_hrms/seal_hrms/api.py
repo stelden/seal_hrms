@@ -20,6 +20,7 @@ def get_user_for_employee(employee_id):
             user = frappe.get_doc('User', user_id)
             
             return user
+        
 
 @frappe.whitelist()
 def get_employee_contacts(doctype, txt, searchfield, start, page_len, filters):
@@ -65,18 +66,23 @@ def get_contacts_with_mobile(doctype, txt, searchfield, start, page_len, filters
         LIMIT %s OFFSET %s
     """, (link_doctype, link_name, f"%{txt}%", page_len, start))
 
-
 @frappe.whitelist()
-def contact_exists(phone_number):
-    if not phone_number:
+def contact_exists(phone_number=None, email_id=None):
+    phone_number = phone_number.strip() if phone_number else None
+    email_id = email_id.strip().lower() if email_id else None
+
+    if not phone_number and not email_id:
         return False
 
-    phone_number = phone_number.strip()
+    phone_match = email_match = False
 
-    mobile_exists = frappe.db.exists("Contact", {"mobile_no": phone_number})
-    phone_exists = frappe.db.exists("Contact", {"phone": phone_number})
+    if phone_number:
+        phone_match = frappe.db.exists("Contact Phone", {"phone": phone_number})
 
-    return bool(mobile_exists or phone_exists)
+    if email_id:
+        email_match = frappe.db.exists("Contact Email", {"email_id": email_id})
+
+    return bool(phone_match or email_match)
 
 
 @frappe.whitelist()
@@ -101,15 +107,18 @@ def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=N
         "last_name": last_name,
         "is_billing_contact": 1,
         "is_primary_contact": 1,
-        "links": [{
-            "link_doctype": ref_doctype,
-            "link_name": ref_name
-        }],
         "phone_nos": [{
             "phone": normalized,
             "is_primary_mobile_no": 1
         }]
     }
+
+    # Only add link if not Employee
+    if ref_doctype.lower() != "employee":
+        contact_doc["links"] = [{
+            "link_doctype": ref_doctype,
+            "link_name": ref_name
+        }]
 
     if email_id:
         contact_doc["email_ids"] = [{
@@ -118,8 +127,49 @@ def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=N
         }]
 
     contact = frappe.get_doc(contact_doc).insert()
-    
+
     return contact
+
+# def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=None):
+#     normalized = normalize_kenya_mobile_no(phone_number)
+
+#     if not normalized or not is_valid_kenya_mobile_no(normalized):
+#         frappe.throw(_("Invalid Kenyan mobile number."))
+
+#     if email_id and not validate_email_address(email_id):
+#         frappe.throw(_("Invalid email address."))
+
+#     if contact_exists(normalized):
+#         frappe.throw(_("A contact with this phone number already exists."))
+
+#     first_name, middle_name, last_name = split_name(contact_name)
+
+#     contact_doc = {
+#         "doctype": "Contact",
+#         "first_name": first_name,
+#         "middle_name": middle_name,
+#         "last_name": last_name,
+#         "is_billing_contact": 1,
+#         "is_primary_contact": 1,
+#         "links": [{
+#             "link_doctype": ref_doctype,
+#             "link_name": ref_name
+#         }],
+#         "phone_nos": [{
+#             "phone": normalized,
+#             "is_primary_mobile_no": 1
+#         }]
+#     }
+
+#     if email_id:
+#         contact_doc["email_ids"] = [{
+#             "email_id": email_id,
+#             "is_primary": 1
+#         }]
+
+#     contact = frappe.get_doc(contact_doc).insert()
+    
+#     return contact
 
 @frappe.whitelist()
 def bank_account_exists(account_number):

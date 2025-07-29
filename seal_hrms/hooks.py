@@ -151,6 +151,9 @@ doctype_js = {
 # 	}
 # }
 doc_events = {
+    "Contact": {
+        "on_update": "seal_hrms.seal_hrms.overrides.contact.on_update",
+    },
     "Employee Advance": {
         "validate": "seal_hrms.seal_hrms.overrides.employee_advance.validate",
     },
