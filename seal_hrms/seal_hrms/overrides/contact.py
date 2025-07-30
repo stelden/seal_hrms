@@ -31,3 +31,6 @@ def on_update(doc, method=None):
                 ),
                 alert=True
             )
+    elif doc.phone or doc.mobile_no:
+        pass
+        #TODO: How to reassign contact to employees if phone or mobile number is set?

@@ -270,7 +270,7 @@
    "creation": "2025-05-26 11:53:16.557031",
    "default": null,
    "depends_on": null,
-   "description": "The contact whose mobile number is used for monetary transactions. A <b>Primary Mobile</b> or <b>Phone</b> is required.",
+   "description": "The contact whose <b>Primary Mobile</b> number is used for monetary transactions.",
    "docstatus": 0,
    "dt": "Employee",
    "fetch_from": null,
