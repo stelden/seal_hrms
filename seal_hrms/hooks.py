@@ -11,8 +11,8 @@ app_license = "gpl-3.0"
 required_apps = [
     "frappe/erpnext", 
     "hrms", 
-    ".../apps/seal_common",
-    ".../apps/seal_accounts"
+    "https://github.com/stelden/seal_common",
+    "https://github.com/stelden/seal_accounts"
 ]
 
 # Each item in the list will be shown as an app in the apps page
