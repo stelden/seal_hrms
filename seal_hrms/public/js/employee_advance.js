@@ -73,35 +73,35 @@ frappe.ui.form.on("Employee Advance", {
       };
     });
 
-    frm.set_query("custom_payee_type", function () {
-      return {
-        filters: [
-          ['DocType', 'name', 'in', ['Employee', 'Supplier']],
-        ],
-      };
-    });
+    // frm.set_query("custom_payee_type", function () {
+    //   return {
+    //     filters: [
+    //       ['DocType', 'name', 'in', ['Employee', 'Supplier']],
+    //     ],
+    //   };
+    // });
 
     //TODO: Enforce same department rule
-    frm.set_query("custom_payee", function () {
-      if (frm.doc.custom_payee_type == "Employee") {
-        return {
-          filters: [
-            ["name", "!=", frm.doc.employee],
-            ["status", "=", "active"],
-            //["department", "=", frm.doc.department],
-          ],
-        };
-      } else if (frm.doc.custom_payee_type == "Supplier") {
-        return {
-          filters: [
-            ["disabled", "=", 0],
-            ["is_frozen", "=", 0],
-            ["on_hold", "=", 0],
-            ["is_internal_supplier", "=", 0],
-          ],
-        };
-      }
-    });
+    // frm.set_query("custom_payee", function () {
+    //   if (frm.doc.custom_payee_type == "Employee") {
+    //     return {
+    //       filters: [
+    //         ["name", "!=", frm.doc.employee],
+    //         ["status", "=", "active"],
+    //         //["department", "=", frm.doc.department],
+    //       ],
+    //     };
+    //   } else if (frm.doc.custom_payee_type == "Supplier") {
+    //     return {
+    //       filters: [
+    //         ["disabled", "=", 0],
+    //         ["is_frozen", "=", 0],
+    //         ["on_hold", "=", 0],
+    //         ["is_internal_supplier", "=", 0],
+    //       ],
+    //     };
+    //   }
+    // });
 
     //Override Create Payment Entry to pass payee details
     if (frm.custom_buttons && frm.custom_buttons["Payment"]) {
@@ -179,7 +179,7 @@ frappe.ui.form.on("Employee Advance", {
 
   employee: function (frm, cdt, cdn) {
     if (!frm.doc.employee || frm.doc.custom_direct_disbursement) {
-      reset_payee_details(frm);
+      //reset_payee_details(frm);
       reset_expenses(frm);
       reset_account_details(frm);
       return;
@@ -232,7 +232,7 @@ frappe.ui.form.on("Employee Advance", {
   },
 
   custom_advance_type: function (frm) {
-    reset_payee_details(frm);
+    //reset_payee_details(frm);
     reset_expenses(frm);
     reset_account_details(frm);
     
@@ -244,69 +244,69 @@ frappe.ui.form.on("Employee Advance", {
     frm.trigger("employee");
   },
 
-  custom_direct_disbursement: function (frm, cdt, cdn) {
-    frm.set_value("custom_payee_type", null);
-    frm.set_value("custom_payee", null);
+  // custom_direct_disbursement: function (frm, cdt, cdn) {
+  //   frm.set_value("custom_payee_type", null);
+  //   frm.set_value("custom_payee", null);
 
-    reset_account_details(frm);
+  //   reset_account_details(frm);
 
-    if (!frm.doc.custom_direct_disbursement && frm.doc.employee)
-      frm.set_value("employee", null);
-  },
+  //   if (!frm.doc.custom_direct_disbursement && frm.doc.employee)
+  //     frm.set_value("employee", null);
+  // },
 
-  custom_payee_type: function (frm) {
-    frm.set_value("custom_payee", null);
+  // custom_payee_type: function (frm) {
+  //   frm.set_value("custom_payee", null);
 
-    reset_account_details(frm);
-  },
+  //   reset_account_details(frm);
+  // },
 
-  custom_payee: function (frm) {
-    if (!frm.doc.custom_direct_disbursement)
-      return;
+  // custom_payee: function (frm) {
+  //   if (!frm.doc.custom_direct_disbursement)
+  //     return;
 
-    if (!frm.doc.custom_payee_type || !frm.doc.custom_payee) {
-      reset_account_details(frm);
-      return;
-    }
+  //   if (!frm.doc.custom_payee_type || !frm.doc.custom_payee) {
+  //     reset_account_details(frm);
+  //     return;
+  //   }
 
-    reset_account_details(frm);
+  //   reset_account_details(frm);
 
-    const moptype = frm.doc.custom_mode_of_payment_type;
-    const doctype = frm.doc.custom_payee_type;
-    const docname = frm.doc.custom_payee;
+  //   const moptype = frm.doc.custom_mode_of_payment_type;
+  //   const doctype = frm.doc.custom_payee_type;
+  //   const docname = frm.doc.custom_payee;
 
-    if (!moptype || !doctype || !docname) {
-      frappe.msgprint(__("Please select Payee Type, Payee, and Mode of Payment Type."));
-      return;
-    }
+  //   if (!moptype || !doctype || !docname) {
+  //     frappe.msgprint(__("Please select Payee Type, Payee, and Mode of Payment Type."));
+  //     return;
+  //   }
 
-    frappe.call({
-      method: "seal_hrms.seal_hrms.api.get_payee_account_details",
-      args: {
-        moptype: moptype,
-        doctype: doctype,
-        docname: docname
-      },
-      callback: function (r) {
-        if (r.message) {
-          frm.set_value("custom_account_name", r.message.custom_account_name);
-          frm.set_value("custom_account_no", r.message.custom_account_no);
-          frm.set_value("custom_account_provider", r.message.custom_account_provider);
+  //   frappe.call({
+  //     method: "seal_hrms.seal_hrms.api.get_payee_account_details",
+  //     args: {
+  //       moptype: moptype,
+  //       doctype: doctype,
+  //       docname: docname
+  //     },
+  //     callback: function (r) {
+  //       if (r.message) {
+  //         frm.set_value("custom_account_name", r.message.custom_account_name);
+  //         frm.set_value("custom_account_no", r.message.custom_account_no);
+  //         frm.set_value("custom_account_provider", r.message.custom_account_provider);
 
-          frm.refresh_fields(["custom_account_name", "custom_account_no", "custom_account_provider"]);
-        } else {
-          frappe.msgprint(__("<b>{0}</b> has no payment information. Please update the <b>{1}</b> record.", [docname, doctype]));
-        }
-      },
-      error: function (error) {
-        frappe.msgprint({
-          title: __('Error'),
-          indicator: 'red',
-          message: __(error.message)
-        });
-      }
-    });
-  },
+  //         frm.refresh_fields(["custom_account_name", "custom_account_no", "custom_account_provider"]);
+  //       } else {
+  //         frappe.msgprint(__("<b>{0}</b> has no payment information. Please update the <b>{1}</b> record.", [docname, doctype]));
+  //       }
+  //     },
+  //     error: function (error) {
+  //       frappe.msgprint({
+  //         title: __('Error'),
+  //         indicator: 'red',
+  //         message: __(error.message)
+  //       });
+  //     }
+  //   });
+  // },
 
   custom_cost_center: function (frm, cdt, cdn) {
     frm.doc.custom_expenses.forEach((e) => {
@@ -390,11 +390,11 @@ frappe.ui.form.on("Employee Advance Detail", {
   },
 });
 
-function reset_payee_details(frm) {
-  frm.set_value("custom_direct_disbursement", 0);
-  frm.set_value("custom_payee_type", null);
-  frm.set_value("custom_payee", null);
-}
+// function reset_payee_details(frm) {
+//   frm.set_value("custom_direct_disbursement", 0);
+//   frm.set_value("custom_payee_type", null);
+//   frm.set_value("custom_payee", null);
+// }
 
 function reset_expenses(frm) {
   frm.set_value("custom_expenses", []);
