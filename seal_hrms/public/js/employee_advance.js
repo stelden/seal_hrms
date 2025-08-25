@@ -189,7 +189,7 @@ frappe.ui.form.on("Employee Advance", {
     const moptype = frm.doc.custom_mode_of_payment_type;
 
     if (!mop || !moptype) {
-      frappe.msgprint(__("Mode of Payment is required. Please select or set a default mode of payment for <b>{0}</b>.", [frm.doc.company]));
+      frappe.msgprint(__("Mode of Payment is required. Please select or set <b>'Default Expense Claim Mode of Payment'</b> for <b>{0}</b> in Company.", [frm.doc.company]));
       return;
     }
 

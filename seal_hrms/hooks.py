@@ -8,7 +8,12 @@ app_license = "gpl-3.0"
 # Apps
 # ------------------
 
-#required_apps = ["frappe", "erpnext", "hrms"] #, "seal_common", "seal_accounts"
+required_apps = [
+    "frappe/erpnext", 
+    "hrms", 
+    ".../apps/seal_common",
+    ".../apps/seal_accounts"
+]
 
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
@@ -53,6 +58,10 @@ doctype_js = {
     "Supplier" : "public/js/supplier.js",   
     "Employee" : "public/js/employee.js",
     "Employee Advance" : "public/js/employee_advance.js",
+}
+
+doctype_list_js = {
+    "Employee Advance": "public/js/employee_advance_list.js"
 }
 # Svg Icons
 # ------------------
@@ -157,6 +166,9 @@ doc_events = {
     "Employee Advance": {
         "validate": "seal_hrms.seal_hrms.overrides.employee_advance.validate",
     },
+    "Expense Claim": {
+        "on_submit": "seal_hrms.seal_hrms.overrides.expense_claim.on_submit",
+    },
     "Leave Type": {
         "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
     },
@@ -169,23 +181,25 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"seal_hrms.tasks.all"
-# 	],
-# 	"daily": [
-# 		"seal_hrms.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"seal_hrms.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"seal_hrms.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"seal_hrms.tasks.monthly"
-# 	],
-# }
+
+scheduler_events = {
+	# "all": [
+	# 	"seal_hrms.tasks.all"
+	# ],
+	"daily": [
+        "seal_hrms.seal_hrms.overrides.employee_advance.recover_overdue_advances",
+        "seal_hrms.seal_hrms.overrides.employee_advance.notify_overdue_advances"
+    ],
+	# "hourly": [
+	# 	"seal_hrms.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"seal_hrms.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"seal_hrms.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------

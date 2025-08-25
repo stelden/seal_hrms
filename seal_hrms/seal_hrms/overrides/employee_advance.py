@@ -4,8 +4,10 @@
 import json
 import frappe
 from frappe import _
-from frappe.utils import add_years, add_days, cint, get_link_to_form, getdate, flt, nowdate, now_datetime, nowtime, today, time_diff_in_hours
+from frappe.utils import add_years, add_days, cint, get_link_to_form, getdate, flt, nowdate, now_datetime, nowtime, today, date_diff, time_diff_in_hours, format_date
+from frappe.utils.background_jobs import enqueue
 from erpnext.accounts.utils import get_account_currency
+from frappe.core.doctype.user.user import STANDARD_USERS
 from erpnext.accounts.doctype.payment_entry.payment_entry import (
 	PaymentEntry,
 	get_bank_cash_account,
@@ -40,44 +42,113 @@ def validate(doc, method=None):
 				_(f"<b>{employee.first_name} {employee.last_name}</b> has {len(advances)} Unclaimed Advances that are <b>older than {max_advance_days} day(s)</b>. Make sure to claim outstanding advances before requesting a new advance.\n{advances_info}")
 			)
 
-
-#TODO Test this function
 @frappe.whitelist()
 def recover_overdue_advances():
-	companies = frappe.get_list("Company", fields=["name","custom_max_advance_days", "custom_auto_recover_advances_from_salary", "custom_salary_component_for_recovery"])
+    """Queue the advance recovery process in background"""
+    enqueue(
+        method="seal_hrms.seal_hrms.overrides.employee_advance.process_overdue_advance_recovery",
+        queue="default",  # or "long" for longer-running tasks
+        timeout=1800,  # 30 minutes timeout
+        is_async=True,
+        job_name="Employee Advance Recovery"
+    )
+    
+def process_overdue_advance_recovery():
+	companies = frappe.get_list("Company", fields=[
+			"name", 
+			"custom_max_advance_days", 
+			"custom_auto_recover_advances_from_salary", 
+			"custom_salary_component_for_recovery"
+		])
+
+	# Track processing results
+	processing_results = {
+		"total_companies": len(companies),
+		"processed_companies": 0,
+		"total_advances_processed": 0,
+		"successful_recoveries": 0,
+		"errors": [],
+		"companies_processed": []
+	}
 
 	for company in companies:
-		auto_recover_advances_from_salary = company.custom_auto_recover_advances_from_salary 
-		salary_component_for_recovery = company.custom_salary_component_for_recovery
-		max_advance_days = company.custom_max_advance_days
+		try:
+			auto_recover_advances_from_salary = company.custom_auto_recover_advances_from_salary 
+			salary_component_for_recovery = company.custom_salary_component_for_recovery
+			max_advance_days = company.custom_max_advance_days or 30
 
-		if auto_recover_advances_from_salary == 0:
-			continue
+			# Skip if auto recovery is disabled
+			if not auto_recover_advances_from_salary:
+				continue
 
-		if not salary_component_for_recovery:
-			frappe.log_error(f"Cannot create Additional Salary (Deduction) to recover Employee Advances because Salary Component for Advance Recovery in Company Settings for {company.name} has not been set.", "Overdue Employee Advance Recovery")
-			continue
+			processing_results["processed_companies"] += 1
+			company_result = {
+				"name": company.name,
+				"advances_found": 0,
+				"recoveries_created": 0,
+				"errors": []
+			}
 
-		#get list of advances in company where status is Paid and posting date is older than max_advance_days
-		advances =  frappe.get_list("Employee Advance", fields=["*"], filters=[["company", "=", company.name], ["docstatus", "=", '1'], ["status", "=", 'Paid'], ["posting_date", "<", add_days(today(), -max_advance_days)]])
-
-		if advances:
-			for advance in advances:
-				if not frappe.db.exists("Salary Structure Assignment", {"employee": advance.employee}):
-					frappe.log_error(f"Cannot create Additional Salary (Deduction) to recover {advance.name} for {advance.employee} in {advance.company} because there is no Salary Structure assigned.")
-					continue
+			# Check if salary component is configured
+			if not salary_component_for_recovery:
+				error_msg = f"Cannot create Additional Salary (Deduction) to recover Employee Advances because Salary Component for Advance Recovery in Company Settings for {company.name} has not been set."
+				frappe.log_error(message=error_msg, title="Overdue Employee Advance Recovery")
 				
-				additional_salary = frappe.db.exists({"doctype": "Additional Salary", "company": advance.company, "ref_doctype": "Employee Advance", "ref_docname": advance.name})
+				processing_results["errors"].append(error_msg)
+				company_result["errors"].append(error_msg)
+				processing_results["companies_processed"].append(company_result)
+				continue
 
-				if not additional_salary:
+			# Get overdue advances
+			cutoff_date = add_days(today(), -max_advance_days)
+			advances = frappe.get_list("Employee Advance", 
+				fields=[
+					"name", "employee", "company", "advance_amount", 
+					"posting_date", "currency"
+				], 
+				filters=[
+					["company", "=", company.name], 
+					["docstatus", "=", 1],  # Submitted
+					["status", "=", "Paid"], 
+					["posting_date", "<", cutoff_date]
+				]
+			)
+
+			company_result["advances_found"] = len(advances)
+			processing_results["total_advances_processed"] += len(advances)
+	
+			if not advances:
+				processing_results["companies_processed"].append(company_result)
+				continue
+
+			for advance in advances:
+				try:
+					# Check if employee has salary structure assignment
+					if not frappe.db.exists("Salary Structure Assignment", {"employee": advance.employee}):
+						frappe.log_error(message=f"Cannot create Additional Salary (Deduction) to recover {advance.name} for {advance.employee} in {advance.company} because there is no Salary Structure assigned.", title="Overdue Employee Advance Recovery")
+						processing_results["errors"].append(error_msg)
+						company_result["errors"].append(error_msg)
+						continue	
+
+					# Check if Additional Salary already exists for this advance
+					existing_additional_salary = frappe.db.exists("Additional Salary", {
+						"company": advance.company, 
+						"ref_doctype": "Employee Advance", 
+						"ref_docname": advance.name,
+						"docstatus": ["!=", 2]  # Not cancelled
+					})
+
+					if existing_additional_salary:
+						continue		
+
+					# Create Additional Salary for recovery
 					additional_salary = frappe.new_doc("Additional Salary")
-
 					additional_salary.employee = advance.employee
 					additional_salary.company = advance.company
 					additional_salary.is_recurring = 0
 					additional_salary.salary_component = salary_component_for_recovery
 					additional_salary.amount = advance.advance_amount
-					additional_salary.currency = get_employee_currency(advance.employee);
+					additional_salary.currency = advance.currency or get_employee_currency(advance.employee)
 					additional_salary.ref_doctype = "Employee Advance"
 					additional_salary.ref_docname = advance.name
 					additional_salary.payroll_date = add_days(advance.posting_date, max_advance_days)
@@ -86,6 +157,1187 @@ def recover_overdue_advances():
 					additional_salary.insert()
 					additional_salary.submit()
 
+					company_result["recoveries_created"] += 1
+					processing_results["successful_recoveries"] += 1
+				except Exception as e:
+					frappe.log_error(message=f"Error creating Additional Salary for advance {advance.name}: {str(e)}", title="Overdue Employee Advance Recovery")
+					continue
+
+			processing_results["companies_processed"].append(company_result)
+
+		except Exception as e:
+				frappe.log_error(message=f"Error processing company {company.name}: {str(e)}", title="Overdue Employee Advance Recovery")
+				continue
+
+	# Send comprehensive notification to HR
+	send_hr_notification(processing_results)
+
+@frappe.whitelist()
+def get_global_recovery_status():
+    """
+    Get global status of advance recovery across all companies
+    """
+    try:
+        # Get companies with auto-recovery enabled
+        enabled_companies = frappe.get_list("Company", 
+            filters={"custom_auto_recover_advances_from_salary": 1},
+            fields=["name", "custom_max_advance_days", "custom_salary_component_for_recovery"]
+        )
+        
+        total_overdue_advances = 0
+        total_outstanding_amount = 0
+        company_breakdown = []
+        configuration_issues = []
+        
+        for company in enabled_companies:
+            try:
+                max_advance_days = company.custom_max_advance_days or 30
+                cutoff_date = add_days(today(), -max_advance_days)
+                
+                # Check configuration
+                if not company.custom_salary_component_for_recovery:
+                    configuration_issues.append(f"{company.name}: Missing salary component for recovery")
+                
+                # Get overdue advances for this company
+                overdue_data = frappe.db.sql("""
+                    SELECT 
+                        COUNT(*) as count,
+                        COALESCE(SUM(advance_amount), 0) as total_amount
+                    FROM `tabEmployee Advance`
+                    WHERE company = %s 
+                        AND docstatus = 1 
+                        AND status = 'Paid'
+                        AND posting_date < %s
+                """, (company.name, cutoff_date), as_dict=True)
+                
+                if overdue_data:
+                    company_count = overdue_data[0].count
+                    company_amount = overdue_data[0].total_amount
+                    
+                    total_overdue_advances += company_count
+                    total_outstanding_amount += company_amount
+                    
+                    if company_count > 0:
+                        company_breakdown.append({
+                            "company": company.name,
+                            "overdue_count": company_count,
+                            "outstanding_amount": company_amount
+                        })
+                        
+            except Exception as e:
+                configuration_issues.append(f"{company.name}: Error checking status - {str(e)}")
+        
+        # Get pending recovery records
+        pending_recoveries = frappe.db.sql("""
+            SELECT COUNT(*) as count
+            FROM `tabAdditional Salary`
+            WHERE ref_doctype = 'Employee Advance'
+                AND docstatus = 1
+        """, as_dict=True)
+        
+        # Get last recovery run from logs
+        last_run = frappe.db.sql("""
+            SELECT MAX(creation) as last_run
+            FROM `tabError Log`
+            WHERE error LIKE %s
+        """, ("%advance recovery%",), as_dict=True)
+        
+        # Check for active recovery jobs
+        active_jobs = 0
+        try:
+            from frappe.utils.background_jobs import get_jobs
+            jobs = get_jobs()
+            active_jobs = len([job for job in jobs if 
+                            job.get('job_name') == 'Employee Advance Recovery' and 
+                            job.get('status') in ['queued', 'started']])
+        except:
+            pass
+        
+        return {
+            "enabled_companies": len(enabled_companies),
+            "total_overdue_advances": total_overdue_advances,
+            "total_outstanding_amount": total_outstanding_amount,
+            "pending_recoveries": pending_recoveries[0].count if pending_recoveries else 0,
+            "last_run": last_run[0].last_run if last_run and last_run[0].last_run else None,
+            "active_recovery_jobs": active_jobs,
+            "company_breakdown": company_breakdown,
+            "configuration_issues": configuration_issues
+        }
+        
+    except Exception as e:
+        frappe.log_error(f"Error getting global recovery status: {str(e)}", "Global Status Error")
+        return {"error": str(e)}
+
+def send_hr_notification(processing_results):
+    """Send comprehensive email notification to HR users about advance recovery processing"""
+    try:
+        # Get HR users
+        hr_users = frappe.get_list("User", 
+            filters={
+                "enabled": 1,
+                "name": ["in", [
+                    user.parent for user in frappe.get_list("Has Role", 
+                        filters={"role": "HR User"}, 
+                        fields=["parent"]
+                    )
+                ]]
+            },
+            fields=["email", "full_name"]
+        )
+        
+        if not hr_users:
+            return
+            
+        recipients = [user.email for user in hr_users if user.email]
+        if not recipients:
+            return
+
+        # Determine subject and message type
+        has_errors = len(processing_results["errors"]) > 0
+        has_successes = processing_results["successful_recoveries"] > 0
+        
+        if has_errors and has_successes:
+            subject = f"Employee Advance Recovery - Partial Success ({today()})"
+            status_color = "orange"
+        elif has_errors:
+            subject = f"Employee Advance Recovery - Issues Found ({today()})"
+            status_color = "red"
+        elif has_successes:
+            subject = f"Employee Advance Recovery - Completed Successfully ({today()})"
+            status_color = "green"
+        else:
+            subject = f"Employee Advance Recovery - No Actions Needed ({today()})"
+            status_color = "blue"
+
+        # Build detailed message
+        message = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 800px;">
+            <h2 style="color: {status_color};">Employee Advance Recovery Report</h2>
+            <p><strong>Date:</strong> {today()}</p>
+            
+            <h3>Summary</h3>
+            <table style="border-collapse: collapse; width: 100%; margin: 10px 0;">
+                <tr style="background-color: #f5f5f5;">
+                    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Total Companies</strong></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{processing_results["total_companies"]}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Companies Processed</strong></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{processing_results["processed_companies"]}</td>
+                </tr>
+                <tr style="background-color: #f5f5f5;">
+                    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Total Advances Found</strong></td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{processing_results["total_advances_processed"]}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px; color: green;"><strong>Successful Recoveries</strong></td>
+                    <td style="border: 1px solid #ddd; padding: 8px; color: green;">{processing_results["successful_recoveries"]}</td>
+                </tr>
+                <tr style="background-color: #f5f5f5;">
+                    <td style="border: 1px solid #ddd; padding: 8px; color: red;"><strong>Errors</strong></td>
+                    <td style="border: 1px solid #ddd; padding: 8px; color: red;">{len(processing_results["errors"])}</td>
+                </tr>
+            </table>
+        """
+
+        # Add company-wise details
+        if processing_results["companies_processed"]:
+            message += "<h3>Company-wise Details</h3>"
+            for company_result in processing_results["companies_processed"]:
+                message += f"""
+                <div style="margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    <h4>{company_result["name"]}</h4>
+                    <ul>
+                        <li>Overdue Advances Found: {company_result["advances_found"]}</li>
+                        <li>Recovery Records Created: {company_result["recoveries_created"]}</li>
+                """
+                if company_result["errors"]:
+                    message += f"<li style='color: red;'>Errors: {len(company_result['errors'])}</li>"
+                message += "</ul>"
+                
+                if company_result["errors"]:
+                    message += "<p><strong>Error Details:</strong></p><ul>"
+                    for error in company_result["errors"]:
+                        message += f"<li style='color: red; font-size: 12px;'>{error}</li>"
+                    message += "</ul>"
+                message += "</div>"
+
+        # Add global errors if any
+        if processing_results["errors"]:
+            message += """
+            <h3 style="color: red;">Issues Requiring Attention</h3>
+            <div style="background-color: #fff2f2; padding: 10px; border-radius: 5px; border-left: 4px solid red;">
+                <ul>
+            """
+            for error in processing_results["errors"]:
+                message += f"<li style='margin: 5px 0;'>{error}</li>"
+            message += "</ul></div>"
+
+        # Add action items
+        if has_errors:
+            message += """
+            <h3>Required Actions</h3>
+            <div style="background-color: #fffacd; padding: 10px; border-radius: 5px; border-left: 4px solid orange;">
+                <ul>
+                    <li>Review and configure missing salary components for advance recovery</li>
+                    <li>Ensure all employees have valid salary structure assignments</li>
+                    <li>Check system logs for detailed error information</li>
+                </ul>
+            </div>
+            """
+
+        message += """
+            <br>
+            <p style="font-size: 12px; color: #666;">
+                This is an automated report from the Employee Advance Recovery system. 
+                For technical support, please contact your system administrator.
+            </p>
+        </div>
+        """
+
+        frappe.sendmail(
+            recipients=recipients,
+            subject=subject,
+            message=message,
+            now=True
+        )        
+    except Exception as e:
+        frappe.log_error(message=f"Failed to send HR notification: {str(e)}", title="HR Notification Error")
+
+@frappe.whitelist()
+def notify_overdue_advances():
+    """Queue the advance notification process in background"""
+    enqueue(
+        method="seal_hrms.seal_hrms.overrides.employee_advance.process_notify_overdue_advance",
+        queue="default",  # or "long" for longer-running tasks
+        timeout=1800,  # 30 minutes timeout
+        is_async=True,
+        job_name="Employee Advance Notification"
+    )
+
+def process_notify_overdue_advance():
+    """
+    PRE-DUE REMINDERS (simplified policy):
+      - Urgent: send when due is tomorrow (days_to_due == 1).
+      - Custom (daily): send on every day where 2 <= days_to_due <= notice_days.
+      - Do not send both on the same day; urgent outranks custom.
+      - Skip overdue (days_to_due < 0).
+    One email max per (Company, Employee) per day; include all triggered advances in that email.
+    """
+    LOGNS = "ADV Notify"
+
+    try:
+        frappe.log_error("START process_notify_overdue_advance()", f"{LOGNS}: Start")
+
+        results = {
+            "total_companies": 0,
+            "processed_companies": 0,
+            "total_employees_notified": 0,
+            "total_advances_expiring": 0,   # count of advances matched today
+            "notifications_sent": 0,        # set by send_advance_notification
+            "errors": [],
+            # Key: f"{company}::{employee}"
+            "employee_notifications": {},
+        }
+
+        # --- Companies with notifications enabled
+        companies = frappe.get_list(
+            "Company",
+            fields=["name", "custom_notify_outstanding_advance",
+                    "custom_advance_notification_days", "custom_max_advance_days"],
+            filters={"custom_notify_outstanding_advance": 1},
+        )
+        results["total_companies"] = len(companies)
+        frappe.log_error(
+            f"Companies enabled={len(companies)}; { [c.name for c in companies] }",
+            f"{LOGNS}: Companies"
+        )
+
+        # Cache for Employee metadata to avoid repeated lookups
+        emp_cache = {}
+        def get_emp_meta(emp_id: str):
+            if not emp_id:
+                return {"employee_name": None, "employee_email": None}
+            if emp_id not in emp_cache:
+                row = frappe.db.get_value(
+                    "Employee", emp_id, ["employee_name", "prefered_email"], as_dict=True
+                ) or {}
+                emp_cache[emp_id] = {
+                    "employee_name": row.get("employee_name"),
+                    "employee_email": row.get("prefered_email"),
+                }
+                frappe.log_error(
+                    f"Cached employee meta [{emp_id}] -> {emp_cache[emp_id]}",
+                    f"{LOGNS}: Emp Cache"
+                )
+            return emp_cache[emp_id]
+
+        # --- Per company
+        for company in companies:
+            try:
+                # Coerce settings
+                notice_days = cint(company.custom_advance_notification_days) or 7
+                max_days    = cint(company.custom_max_advance_days) or 30
+                if notice_days < 0:
+                    notice_days = 0  # keep sane
+                if max_days < 1:
+                    max_days = 30
+                frappe.log_error(
+                    f"[{company.name}] Config notice_days={notice_days}, max_days={max_days}",
+                    f"{LOGNS}: Company Config"
+                )
+
+                # Fetch candidate advances and classify in Python
+                advances = frappe.get_all(
+                    "Employee Advance",
+                    filters={
+                        "company": company.name,
+                        "docstatus": 1,
+                        "status": ["in", ["Paid", "Partly Claimed and Returned"]],
+                        # Optional: prevent future-dated posts
+                        # "posting_date": ("<=", today()),
+                    },
+                    fields=["name", "employee", "company", "advance_amount", "currency", "posting_date"],
+                )
+                frappe.log_error(
+                    f"[{company.name}] Candidate advances={len(advances)}; sample={ [a['name'] for a in advances[:10]] }",
+                    f"{LOGNS}: Candidates"
+                )
+
+                # One email per employee per day (urgent > custom)
+                per_emp = {}
+                prio = {"custom": 1, "urgent": 2}
+
+                for adv in advances:
+                    due_date    = add_days(adv["posting_date"], max_days)
+                    d           = date_diff(due_date, today())  # >0 future; 0 due today; <0 overdue
+
+                    # Skip overdue in pre-due policy
+                    if d < 0:
+                        frappe.log_error(
+                            f"[{company.name}] ADV {adv['name']} skipped: overdue (days_to_due={d})",
+                            f"{LOGNS}: Skip"
+                        )
+                        continue
+
+                    trigger, trigger_days = None, None
+
+                    # Urgent: tomorrow only
+                    if d == 1:
+                        trigger, trigger_days = "urgent", 1
+
+                    # Custom daily window: 2..notice_days
+                    elif 2 <= d <= notice_days:
+                        trigger, trigger_days = "custom", d
+
+                    # Optional: enable due-day notice by uncommenting
+                    # elif notice_days == 0 and d == 0:
+                    #     trigger, trigger_days = "custom", 0
+
+                    if not trigger:
+                        frappe.log_error(
+                            f"[{company.name}] ADV {adv['name']} no-trigger today: "
+                            f"days_to_due={d}, notice_days={notice_days} "
+                            f"(rules: urgent if 1; custom if 2..{notice_days})",
+                            f"{LOGNS}: No Trigger"
+                        )
+                        continue
+
+                    frappe.log_error(
+                        f"[{company.name}] ADV {adv['name']} -> trigger={trigger}, days_to_due={d}, "
+                        f"posting={adv['posting_date']}, due={due_date}",
+                        f"{LOGNS}: Decision"
+                    )
+
+                    meta = get_emp_meta(adv["employee"])
+                    if not meta.get("employee_email"):
+                        msg = f"No preferred email for employee {adv['employee']} in {company.name}; skipping {adv['name']}"
+                        results["errors"].append(msg)
+                        frappe.log_error(msg, f"{LOGNS}: Missing Email")
+                        continue
+
+                    key = f"{company.name}::{adv['employee']}"
+                    bucket = per_emp.get(key)
+                    if not bucket:
+                        bucket = per_emp[key] = {
+                            "employee_name": meta["employee_name"],
+                            "employee_email": meta["employee_email"],
+                            "company": company.name,
+                            "advances": [],
+                            "notification_type": trigger,      # may upgrade to urgent
+                            "notification_days": trigger_days, # display-friendly (min for custom)
+                        }
+                        frappe.log_error(
+                            f"[{company.name}] New bucket for {key}: type={trigger}, notif_days={trigger_days}",
+                            f"{LOGNS}: Bucket New"
+                        )
+                    else:
+                        # Upgrade email type to urgent if any advance is urgent today
+                        if prio.get(trigger, 0) > prio.get(bucket["notification_type"], 0):
+                            old_type = bucket["notification_type"]
+                            bucket["notification_type"] = trigger
+                            bucket["notification_days"] = trigger_days
+                            frappe.log_error(
+                                f"[{company.name}] Bucket {key} type upgrade {old_type} -> {trigger}",
+                                f"{LOGNS}: Bucket Upgrade"
+                            )
+                        # If both custom, keep the smallest d for cleaner text
+                        elif bucket["notification_type"] == "custom" and trigger == "custom":
+                            prev = bucket["notification_days"]
+                            if trigger_days is not None and prev is not None and trigger_days < prev:
+                                bucket["notification_days"] = trigger_days
+                                frappe.log_error(
+                                    f"[{company.name}] Bucket {key} custom notif_days minimized {prev} -> {trigger_days}",
+                                    f"{LOGNS}: Bucket Minimize"
+                                )
+
+                    bucket["advances"].append({
+                        "name": adv["name"],
+                        "advance_amount": adv["advance_amount"],
+                        "currency": adv["currency"],
+                        "posting_date": adv["posting_date"],
+                        "recovery_due_date": due_date,
+                        "days_until_recovery": d,               # used by templates
+                        "notification_type": bucket["notification_type"],
+                    })
+                    frappe.log_error(
+                        f"[{company.name}] Bucket {key} appended adv {adv['name']} (total now {len(bucket['advances'])})",
+                        f"{LOGNS}: Bucket Append"
+                    )
+
+                # Merge tallies for this company
+                emp_count = len(per_emp)
+                adv_count = sum(len(v["advances"]) for v in per_emp.values())
+                results["processed_companies"] += 1
+                results["total_employees_notified"] += emp_count
+                results["total_advances_expiring"] += adv_count
+                results["employee_notifications"].update(per_emp)
+
+                # Type breakdown for visibility
+                type_counts = {"custom": 0, "urgent": 0}
+                for v in per_emp.values():
+                    type_counts[v["notification_type"]] += 1
+
+                frappe.log_error(
+                    f"[{company.name}] Grouped employees={emp_count}, advances={adv_count}, types={type_counts}",
+                    f"{LOGNS}: Group Summary"
+                )
+
+            except Exception as e:
+                msg = f"Company {company.name} processing error: {e}"
+                results["errors"].append(msg)
+                frappe.log_error(msg, f"{LOGNS}: Company Error")
+                continue
+
+        # Pre-send summary
+        total_emp = len(results["employee_notifications"])
+        total_adv = results["total_advances_expiring"]
+        frappe.log_error(
+            f"Pre-Send: employees={total_emp}, advances={total_adv}, processed_companies={results['processed_companies']}",
+            f"{LOGNS}: Pre-Send"
+        )
+
+        # Send emails
+        if results["employee_notifications"]:
+            try:
+                sent = send_advance_notification(results)  # your Email Template–aware sender
+                if isinstance(sent, int):
+                    results["notifications_sent"] = sent
+                frappe.log_error(
+                    f"Post-Send: notifications_sent={results['notifications_sent']}",
+                    f"{LOGNS}: Post-Send"
+                )
+            except Exception as e:
+                err = f"Send phase error: {e}"
+                results["errors"].append(err)
+                frappe.log_error(err, f"{LOGNS}: Send Error")
+        else:
+            frappe.log_error("No employee notifications to send today.", f"{LOGNS}: Pre-Send")
+
+        # Final summary
+        frappe.log_error(
+            (
+                f"COMPLETE processed_companies={results['processed_companies']}, "
+                f"total_employees_notified={results['total_employees_notified']}, "
+                f"total_advances_expiring={results['total_advances_expiring']}, "
+                f"notifications_sent={results.get('notifications_sent', 0)}, "
+                f"errors={len(results['errors'])}"
+            ),
+            f"{LOGNS}: Complete"
+        )
+
+        return results
+
+    except Exception as e:
+        err = f"Critical error in process_notify_overdue_advance: {e}"
+        frappe.log_error(err, f"{LOGNS}: Critical")
+        return {"status": "error", "message": err}
+    
+# def process_notify_overdue_advance():
+#     """
+#     PRE-DUE REMINDERS ONLY (with catch-up):
+#       - custom: send when `days_to_due == notice_days`
+#       - urgent (default 1 day): send when `days_to_due == 1`
+#       - catch-up: if `1 < days_to_due < notice_days`, send a custom reminder today
+#       - skip overdue (`days_to_due < 0`)
+#     Per-day de-dupe:
+#       - For each (company, employee), send at most ONE email per day.
+#       - If any advance is urgent today, the email for that employee is 'urgent'; else 'custom'.
+#     """
+#     # Collect results for downstream sender + summary
+#     processing_results = {
+#         "total_companies": 0,
+#         "processed_companies": 0,
+#         "total_employees_notified": 0,
+#         "total_advances_expiring": 0,  # count of advances that matched any rule today
+#         "notifications_sent": 0,       # populated by send_advance_notification
+#         "errors": [],
+#         "employee_notifications": {},  # merged across companies: { employee_id: {...} } per loop
+#     }
+
+#     # Companies that have notifications enabled
+#     companies = frappe.get_list(
+#         "Company",
+#         fields=[
+#             "name",
+#             "custom_notify_outstanding_advance",
+#             "custom_advance_notification_days",
+#             "custom_max_advance_days",
+#         ],
+#         filters={"custom_notify_outstanding_advance": 1},
+#     )
+#     processing_results["total_companies"] = len(companies)
+
+#     # tiny cache for Employee metadata to avoid repeated lookups
+#     employee_cache = {}
+
+#     def get_employee_meta(emp_id: str):
+#         """Return {'employee_name': str|None, 'employee_email': str|None} (cached)."""
+#         if not emp_id:
+#             return {"employee_name": None, "employee_email": None}
+#         if emp_id not in employee_cache:
+#             row = frappe.db.get_value(
+#                 "Employee",
+#                 emp_id,
+#                 ["employee_name", "prefered_email"],
+#                 as_dict=True,
+#             ) or {}
+#             employee_cache[emp_id] = {
+#                 "employee_name": row.get("employee_name"),
+#                 "employee_email": row.get("prefered_email"),
+#             }
+#         return employee_cache[emp_id]
+
+#     # Evaluate daily per company
+#     for company in companies:
+#         notice_days = cint(company.custom_advance_notification_days) or 7
+#         max_days    = cint(company.custom_max_advance_days) or 30
+#         # Note: we DO NOT clamp notice_days here because catch-up handles infeasible values.
+#         # (If notice_days >= max_days, catch-up allows a pre-due send on the closest valid day.)
+
+#         # Fetch all candidate advances; we classify in Python
+#         advances = frappe.get_all(
+#             "Employee Advance",
+#             filters={
+#                 "company": company.name,
+#                 "docstatus": 1,
+#                 "status": ["in", ["Paid", "Partly Claimed and Returned"]],
+#                 # Optional: uncomment to exclude future-dated posts
+#                 # "posting_date": ("<=", today()),
+#             },
+#             fields=["name", "employee", "company", "advance_amount", "currency", "posting_date"],
+#         )
+
+#         # Per-company, per-employee grouping for today's email (at most one per employee)
+#         per_emp = {}
+#         # Priority for the email **type** chosen per employee for today: urgent > custom
+#         priority = {"custom": 1, "urgent": 2}
+
+#         for adv in advances:
+#             # Compute due date and distance to due (integer days)
+#             due_date = add_days(adv["posting_date"], max_days)
+#             days_to_due = date_diff(due_date, today())  # >0 future; 0 due today; <0 overdue
+
+#             # Pre-due only policy:
+#             if days_to_due < 0:
+#                 continue  # overdue -> skip (handled elsewhere if needed)
+
+#             # Decide today's trigger for THIS advance
+#             trigger = None
+#             trigger_days = None  # for display
+
+#             if days_to_due == 1:
+#                 trigger, trigger_days = "urgent", 1
+#             elif days_to_due == notice_days:
+#                 trigger, trigger_days = "custom", notice_days
+#             elif (notice_days > days_to_due) and (days_to_due > 1):
+#                 # Catch-up: notice_days is greater than remaining time; send a custom reminder today
+#                 trigger, trigger_days = "custom", days_to_due
+#             elif notice_days == 0 and days_to_due == 0:
+#                 # Optional: allow "0-day" custom notice (on due date) if someone sets notice_days=0
+#                 trigger, trigger_days = "custom", 0
+
+#             if not trigger:
+#                 continue  # nothing to send for this advance today
+
+#             # Resolve employee contact info
+#             meta = get_employee_meta(adv["employee"])
+#             if not meta.get("employee_email"):
+#                 processing_results["errors"].append(
+#                     f"No preferred email for employee {adv['employee']} in company {company.name}"
+#                 )
+#                 continue
+
+#             # Start or merge the employee bucket for today's single email
+#             bucket = per_emp.get(adv["employee"])
+#             if not bucket:
+#                 bucket = per_emp[adv["employee"]] = {
+#                     "employee_name": meta["employee_name"],
+#                     "employee_email": meta["employee_email"],
+#                     "company": company.name,
+#                     "advances": [],
+#                     # The email TYPE to send for this employee today; may be upgraded to 'urgent'
+#                     "notification_type": trigger,
+#                     # For 'custom', we keep the most relevant days value; if upgraded to urgent, becomes 1
+#                     "notification_days": trigger_days,
+#                 }
+#             else:
+#                 # If any advance is urgent today, upgrade the employee's email to urgent
+#                 if priority.get(trigger, 0) > priority.get(bucket["notification_type"], 0):
+#                     bucket["notification_type"] = trigger
+#                     bucket["notification_days"] = trigger_days
+#                 # If both are custom but trigger_days is smaller (closer), you can choose to keep the smallest
+#                 elif bucket["notification_type"] == "custom" and trigger == "custom":
+#                     # Keep the minimal days_to_due as the displayed "custom in X days"
+#                     if trigger_days is not None and bucket["notification_days"] is not None:
+#                         if trigger_days < bucket["notification_days"]:
+#                             bucket["notification_days"] = trigger_days
+
+#             # Record this advance under the employee's single email for today
+#             bucket["advances"].append({
+#                 "name": adv["name"],
+#                 "advance_amount": adv["advance_amount"],
+#                 "currency": adv["currency"],
+#                 "posting_date": adv["posting_date"],
+#                 "recovery_due_date": due_date,
+#                 # days_until_recovery used by templates; for custom catch-up we pass today's residual
+#                 "days_until_recovery": days_to_due,
+#                 "notification_type": bucket["notification_type"],  # will reflect any upgrade to 'urgent'
+#             })
+
+#         # Update overall tallies
+#         processing_results["processed_companies"] += 1
+#         processing_results["total_employees_notified"] += len(per_emp)
+#         processing_results["total_advances_expiring"] += sum(len(v["advances"]) for v in per_emp.values())
+#         processing_results["employee_notifications"].update(per_emp)
+
+#     # Send emails (your Email Template–aware sender with inline fallback)
+#     if processing_results["employee_notifications"]:
+#         send_advance_notification(processing_results)
+
+#     return processing_results
+    
+# def process_notify_overdue_advance():
+#     """
+#     Processes all companies and employees with advances that are almost overdue.
+#     Checks those due in both custom_advance_notification_days and in 1 day (default notification).
+#     """
+#     try:
+#         companies = frappe.get_list(
+#             "Company",
+#             fields=[
+#                 "name",
+#                 "custom_notify_outstanding_advance",
+#                 "custom_advance_notification_days",
+#                 "custom_max_advance_days",
+#             ],
+#             filters={"custom_notify_outstanding_advance": 1},
+#         )
+		
+#         processing_results = {
+#             "total_companies": len(companies),
+#             "processed_companies": 0,
+#             "total_employees_notified": 0,
+#             "total_advances_expiring": 0,
+#             "notifications_sent": 0,
+#             "errors": [],
+#             "employee_notifications": {},  # {employee: {...}}
+#         }
+
+#         # cache employee lookups to avoid N extra roundtrips for repeated employees
+#         employee_cache = {}
+
+#         def get_employee_meta(emp_id: str):
+#             """Return {'employee_name': str|None, 'employee_email': str|None} from cache/db."""
+#             if not emp_id:
+#                 return {"employee_name": None, "employee_email": None}
+#             if emp_id not in employee_cache:
+#                 meta = frappe.db.get_value(
+#                     "Employee", emp_id, ["employee_name", "prefered_email"], as_dict=True
+#                 ) or {}
+#                 employee_cache[emp_id] = {
+#                     "employee_name": meta.get("employee_name"),
+#                     "employee_email": meta.get("prefered_email"),
+#                 }
+#             return employee_cache[emp_id]
+
+#         for company in companies:
+#             try:
+#                 notice_days = cint(company.custom_advance_notification_days) or 7
+#                 max_days = cint(company.custom_max_advance_days) or 30
+#                 if notice_days < 0:
+#                     notice_days = 0
+#                 if max_days < 1:
+#                     max_days = 30
+
+#                 target_custom_posting_date = add_days(today(), notice_days - max_days)
+#                 target_default_posting_date = add_days(today(), 1 - max_days)
+
+#                 fields = ["name", "employee", "company", "advance_amount", "currency", "posting_date"]
+#                 base_filters = {
+#                     "company": company.name,
+#                     "docstatus": 1,
+#                     "status": ["in", ["Paid", "Partly Claimed and Returned"]],
+#                 }
+
+#                 custom_advances = frappe.get_all(
+#                     "Employee Advance",
+#                     filters={**base_filters, "posting_date": target_custom_posting_date},
+#                     fields=fields,
+#                 )
+#                 default_advances = frappe.get_all(
+#                     "Employee Advance",
+#                     filters={**base_filters, "posting_date": target_default_posting_date},
+#                     fields=fields,
+#                 )
+
+#                 employee_advances = {}
+
+#                 # --- custom (N-day) notices
+#                 for adv in custom_advances:
+#                     meta = get_employee_meta(adv.employee)
+#                     if not meta.get("employee_email"):
+#                         processing_results["errors"].append(
+#                             f"No email for employee {adv.employee} in company {company.name}"
+#                         )
+#                         continue
+
+#                     if adv.employee not in employee_advances:
+#                         employee_advances[adv.employee] = {
+#                             "employee_name": meta["employee_name"],
+#                             "employee_email": meta["employee_email"],
+#                             "company": company.name,
+#                             "advances": [],
+#                             "notification_type": "custom",
+#                             "notification_days": notice_days,
+#                         }
+
+#                     employee_advances[adv.employee]["advances"].append(
+#                         {
+#                             "name": adv.name,
+#                             "advance_amount": adv.advance_amount,
+#                             "currency": adv.currency,
+#                             "posting_date": adv.posting_date,
+#                             "days_until_recovery": notice_days,
+#                             "recovery_due_date": add_days(adv.posting_date, max_days),
+#                             "notification_type": "custom",
+#                         }
+#                     )
+
+#                 # --- default (urgent, 1 day) notices
+#                 for adv in default_advances:
+#                     meta = get_employee_meta(adv.employee)
+#                     if not meta.get("employee_email"):
+#                         processing_results["errors"].append(
+#                             f"No email for employee {adv.employee} in company {company.name}"
+#                         )
+#                         continue
+
+#                     if adv.employee not in employee_advances:
+#                         employee_advances[adv.employee] = {
+#                             "employee_name": meta["employee_name"],
+#                             "employee_email": meta["employee_email"],
+#                             "company": company.name,
+#                             "advances": [],
+#                             "notification_type": "urgent",
+#                             "notification_days": 1,
+#                         }
+#                     else:
+#                         # upgrade any existing employee to urgent
+#                         employee_advances[adv.employee]["notification_type"] = "urgent"
+#                         employee_advances[adv.employee]["notification_days"] = 1
+
+#                     # de-dupe if the same advance is already appended
+#                     exists = next(
+#                         (a for a in employee_advances[adv.employee]["advances"] if a["name"] == adv.name),
+#                         None,
+#                     )
+#                     if not exists:
+#                         employee_advances[adv.employee]["advances"].append(
+#                             {
+#                                 "name": adv.name,
+#                                 "advance_amount": adv.advance_amount,
+#                                 "currency": adv.currency,
+#                                 "posting_date": adv.posting_date,
+#                                 "days_until_recovery": 1,
+#                                 "recovery_due_date": add_days(adv.posting_date, max_days),
+#                                 "notification_type": "urgent",
+#                             }
+#                         )
+#                     else:
+#                         exists["notification_type"] = "urgent"
+#                         exists["days_until_recovery"] = 1
+
+#                 processing_results["total_employees_notified"] += len(employee_advances)
+#                 processing_results["total_advances_expiring"] += len(custom_advances) + len(default_advances)
+#                 processing_results["processed_companies"] += 1
+#                 processing_results["employee_notifications"].update(employee_advances)
+
+#             except Exception as e:
+#                 msg = f"Error processing notifications for company {company.name}: {e}"
+#                 frappe.log_error(message=msg, title="Advance Notification Error")
+#                 processing_results["errors"].append(msg)
+#                 continue
+
+#         # Send notifications to employees if any found
+#         if processing_results["employee_notifications"]:
+#             send_advance_notification(processing_results)  # uses template/inline fallback
+
+#         return processing_results
+
+#     except Exception as e:
+#         err = f"Critical error in advance notification process: {e}"
+#         frappe.log_error(message=err, title="Advance Notification Critical Error")
+#         return {"status": "error", "message": err}
+    
+# def process_notify_overdue_advance():
+# 	"""
+# 	Processes all companies and employees with advances that are almost overdue.
+# 	Checks those due in both custom_advance_notification_days and in 1 day (default notification).
+# 	"""
+# 	try:
+# 		# Get companies with notification enabled
+# 		companies = frappe.get_list("Company", 
+# 			fields=[
+# 				"name", 
+# 				"custom_notify_outstanding_advance", 
+# 				"custom_advance_notification_days",
+# 				"custom_max_advance_days"
+# 			],
+# 			filters={"custom_notify_outstanding_advance": 1}
+# 		)
+
+# 		# Track processing results
+# 		processing_results = {
+# 			"total_companies": len(companies),
+# 			"processed_companies": 0,
+# 			"total_employees_notified": 0,
+# 			"total_advances_expiring": 0,
+# 			"notifications_sent": 0,
+# 			"errors": [],
+# 			"employee_notifications": {}  # {employee: {advances: [], notification_type: '', company: ''}}
+# 		}
+
+# 		for company in companies:
+# 			try:
+# 				advance_notification_days = cint(company.custom_advance_notification_days) or 7  # Default 7 days
+# 				max_advance_days = cint(company.custom_max_advance_days) or 30
+				
+# 				# Calculate the posting dates we need to look for
+# 				# If an advance posted on date X will be recovered on date X + max_advance_days,
+# 				# then to notify N days before recovery, we need advances posted on (today + N - max_advance_days)
+# 				target_custom_posting_date = add_days(today(), advance_notification_days - max_advance_days)
+# 				target_default_posting_date = add_days(today(), 1 - max_advance_days)  # 1 day before recovery
+				
+# 				# Get advances that need CUSTOM notification (e.g., 7 days before recovery)
+# 				# Look for advances posted on target_custom_posting_date
+# 				custom_advances = frappe.db.sql("""
+# 					SELECT 
+# 						ea.name,
+# 						ea.employee,
+# 						emp.employee_name,
+# 						emp.prefered_email as employee_email,
+# 						ea.company,
+# 						ea.advance_amount,
+# 						ea.currency,
+# 						ea.posting_date
+# 					FROM `tabEmployee Advance` ea
+# 					LEFT JOIN `tabEmployee` emp ON ea.employee = emp.name
+# 					WHERE ea.company = %s 
+# 						AND ea.docstatus = 1 
+# 						AND ea.status IN ('Paid', 'Partly Claimed and Returned')
+# 						AND ea.posting_date = %s
+# 						AND emp.status = 'Active'
+# 						AND emp.prefered_email IS NOT NULL
+# 						AND emp.prefered_email != ''
+# 				""", (company.name, target_custom_posting_date), as_dict=True)
+				
+# 				frappe.log_error(message=f"Custom advances for {company.name} on {target_custom_posting_date}: {len(custom_advances)}", title="Advance Notification Debug")
+# 				# Get advances that need DEFAULT notification (1 day before recovery)
+# 				# Look for advances posted on target_default_posting_date
+# 				default_advances = frappe.db.sql("""
+# 					SELECT 
+# 						ea.name,
+# 						ea.employee,
+# 						emp.employee_name,
+# 						emp.prefered_email as employee_email,
+# 						ea.company,
+# 						ea.advance_amount,
+# 						ea.currency,
+# 						ea.posting_date
+# 					FROM `tabEmployee Advance` ea
+# 					LEFT JOIN `tabEmployee` emp ON ea.employee = emp.name
+# 					WHERE ea.company = %s 
+# 						AND ea.docstatus = 1 
+# 						AND ea.status IN ('Paid', 'Partly Claimed and Returned')
+# 						AND ea.posting_date = %s
+# 						AND emp.status = 'Active'
+# 						AND emp.prefered_email IS NOT NULL
+# 						AND emp.prefered_email != ''
+# 				""", (company.name, target_default_posting_date), as_dict=True)
+
+# 				frappe.log_error(message=f"Default advances for {company.name} on {target_default_posting_date}: {len(default_advances)}", title="Advance Notification Debug")
+# 				# Group advances by employee
+# 				employee_advances = {}
+
+# 				# Process custom notification advances
+# 				for advance in custom_advances:
+# 					if advance.employee not in employee_advances:
+# 						employee_advances[advance.employee] = {
+# 							"employee_name": advance.employee_name,
+# 							"employee_email": advance.employee_email,
+# 							"company": company.name,
+# 							"advances": [],
+# 							"notification_type": "custom",
+# 							"notification_days": advance_notification_days
+# 						}
+					
+# 					advance_info = {
+# 						"name": advance.name,
+# 						"advance_amount": advance.advance_amount,
+# 						"currency": advance.currency,
+# 						"posting_date": advance.posting_date,
+# 						"days_until_recovery": advance_notification_days,
+# 						"recovery_due_date": add_days(advance.posting_date, max_advance_days),
+# 						"notification_type": "custom"
+# 					}
+# 					employee_advances[advance.employee]["advances"].append(advance_info)
+
+# 				# Process default notification advances (1 day before)
+# 				for advance in default_advances:
+# 					if advance.employee not in employee_advances:
+# 						employee_advances[advance.employee] = {
+# 							"employee_name": advance.employee_name,
+# 							"employee_email": advance.employee_email,
+# 							"company": company.name,
+# 							"advances": [],
+# 							"notification_type": "urgent",
+# 							"notification_days": 1
+# 						}
+# 					else:
+# 						# Upgrade to urgent if not already
+# 						employee_advances[advance.employee]["notification_type"] = "urgent"
+					
+# 					# Check if this advance is already in the list
+# 					existing_advance = next((a for a in employee_advances[advance.employee]["advances"] if a["name"] == advance.name), None)
+					
+# 					if not existing_advance:
+# 						advance_info = {
+# 							"name": advance.name,
+# 							"advance_amount": advance.advance_amount,
+# 							"currency": advance.currency,
+# 							"posting_date": advance.posting_date,
+# 							"days_until_recovery": 1,
+# 							"recovery_due_date": add_days(advance.posting_date, max_advance_days),
+# 							"notification_type": "urgent"
+# 						}
+# 						employee_advances[advance.employee]["advances"].append(advance_info)
+# 					else:
+# 						# Update existing advance to urgent
+# 						existing_advance["notification_type"] = "urgent"
+
+# 				# Update processing results for this company
+# 				processing_results["total_employees_notified"] += len(employee_advances)
+# 				processing_results["total_advances_expiring"] += len(custom_advances) + len(default_advances)
+# 				processing_results["processed_companies"] += 1
+
+# 				# Add to global employee notifications
+# 				processing_results["employee_notifications"].update(employee_advances)
+				
+# 			except Exception as e:
+# 				error_msg = f"Error processing notifications for company {company.name}: {str(e)}"
+# 				frappe.log_error(message=error_msg, title="Advance Notification Error")
+# 				processing_results["errors"].append(error_msg)
+# 				continue
+
+# 		# Send notifications to employees if any found
+# 		if processing_results["employee_notifications"]:
+# 			frappe.log_error(message=f"Total employees to notify: {len(processing_results['employee_notifications'])}", title="Advance Notification Debug")
+# 			send_advance_notification(processing_results)
+
+# 		return processing_results
+
+# 	except Exception as e:
+# 		error_msg = f"Critical error in advance notification process: {str(e)}"
+# 		frappe.log_error(
+# 			message=error_msg, 
+# 			title="Advance Notification Critical Error"
+# 		)
+# 		return {"status": "error", "message": error_msg}
+
+def send_advance_notification(processing_results):
+    """
+    Sends employee emails using Company.custom_advance_expiry_email_template if set,
+    otherwise plain text. Also sends a simplified HR summary.
+    """
+    notifications_sent = 0
+    logger = frappe.logger("advance_notify")
+
+    # cache: company -> template doc
+    company_template_cache = {}
+
+    for employee, notification_data in processing_results.get("employee_notifications", {}).items():
+        try:
+            if not notification_data.get("employee_email"):
+                processing_results["errors"].append(f"No email address for employee {employee}")
+                continue
+
+            employee_name = notification_data["employee_name"]
+            company = notification_data["company"]
+            advances = notification_data["advances"]
+            notification_type = notification_data["notification_type"]
+            notification_days = notification_data["notification_days"]
+
+            total_amount = sum(flt(a["advance_amount"]) for a in advances)
+            currency = advances[0]["currency"] if advances else ""
+
+            sender = None
+            if frappe.session.user not in STANDARD_USERS:
+                sender = frappe.session.user
+
+            # doc_args to feed into template
+            doc_args = {
+                "employee": {
+                    "name": employee,
+                    "full_name": employee_name,
+                    "email": notification_data["employee_email"],
+                },
+                "company": {"name": company},
+                "notification": {
+                    "type": notification_type,
+                    "days": notification_days,
+                    "date": format_date(today()),
+                    "urgency_badge": "URGENT - 1 DAY REMAINING" if notification_type == "urgent" else f"{notification_days} DAYS NOTICE",
+                },
+                "totals": {
+                    "count": len(advances),
+                    "amount": total_amount,
+                    "currency": currency,
+                },
+                "advances": [
+                    {
+                        "name": a["name"],
+                        "amount": a["advance_amount"],
+                        "currency": a["currency"],
+                        "posting_date": format_date(a["posting_date"]),
+                        "recovery_due_date": format_date(a["recovery_due_date"]),
+                    } for a in advances
+                ],
+            }
+
+            # resolve company template
+            if company not in company_template_cache:
+                tmpl_name = frappe.get_cached_value("Company", company, "custom_advance_expiry_email_template")
+                tmpl_doc = frappe.get_doc("Email Template", tmpl_name) if tmpl_name else None
+                company_template_cache[company] = tmpl_doc
+
+            tmpl = company_template_cache[company]
+
+            if tmpl:
+                try:
+                    subject = frappe.render_template(tmpl.subject or "Advance Recovery Notice", doc_args)
+                    message = frappe.render_template(tmpl.response or "", doc_args)
+                except Exception as re:
+                    frappe.log_error(f"Template rendering failed for {company}: {re}", "Advance Notify Template Error")
+                    # --- fallback inline ---
+                    notif, totals = doc_args["notification"], doc_args["totals"]
+                    subject = f"Employee Advance Recovery — {notif['urgency_badge']}"
+                    lines = [
+                        f"Dear {doc_args['employee']['full_name']},",
+                        f"This is a reminder about your outstanding employee advance(s) with {company}.",
+                        f"Notice: {notif['urgency_badge']}",
+                        f"Total advances: {totals['count']}",
+                        f"Total amount: {totals['amount']} {totals['currency']}",
+                        "",
+                        "Details:",
+                    ]
+                    for a in doc_args["advances"]:
+                        lines.append(f"- {a['name']}: {a['amount']} {a['currency']} | Issue: {a['posting_date']} | Due: {a['recovery_due_date']}")
+                    lines.append("")
+                    lines.append("This is an automated notice. Please contact HR if you have any questions.")
+                    lines.append(f"{company} | {notif['date']}")
+                    message = "\n".join(lines)
+            else:
+                # --- fallback inline ---
+                notif, totals = doc_args["notification"], doc_args["totals"]
+                subject = f"Employee Advance Recovery — {notif['urgency_badge']}"
+                lines = [
+                    f"Dear {doc_args['employee']['full_name']},",
+                    f"This is a reminder about your outstanding employee advance(s) with {company}.",
+                    f"Notice: {notif['urgency_badge']}",
+                    f"Total advances: {totals['count']}",
+                    f"Total amount: {totals['amount']} {totals['currency']}",
+                    "",
+                    "Details:",
+                ]
+                for a in doc_args["advances"]:
+                    lines.append(f"- {a['name']}: {a['amount']} {a['currency']} | Issue: {a['posting_date']} | Due: {a['recovery_due_date']}")
+                lines.append("")
+                lines.append("This is an automated notice. Please contact HR if you have any questions.")
+                lines.append(f"{company} | {notif['date']}")
+                message = "\n".join(lines)
+
+            frappe.sendmail(
+                recipients=[notification_data["employee_email"]],
+                subject=subject,
+                message=message,
+                sender=sender,
+                delayed=True,
+                reference_doctype="Employee",
+                reference_name=employee,
+            )
+
+            notifications_sent += 1
+            logger.info(f"Sent advance notice to {employee} <{notification_data['employee_email']}> ({len(advances)} advances)")
+
+        except Exception as e:
+            err = f"Error sending notification to {employee}: {e}"
+            frappe.log_error(message=err, title="Advance Notification Send Error")
+            processing_results["errors"].append(err)
+
+    processing_results["notifications_sent"] = notifications_sent
+
+    # --- HR summary ---
+    try:
+        hr_users = frappe.get_list("Has Role", filters={"role": "HR User"}, fields=["parent"])
+        hr_emails = [u.email for u in frappe.get_list("User",
+                          filters={"enabled": 1, "name": ["in", [x["parent"] for x in hr_users]]},
+                          fields=["email"]) if u.email]
+        if hr_emails:
+            sub = f"Advance Notices: {notifications_sent} sent — {format_date(today())}"
+            body = (
+                f"<p><b>Date:</b> {format_date(today())}</p>"
+                f"<p><b>Companies processed:</b> {processing_results.get('processed_companies', 0)}<br>"
+                f"<b>Employees notified:</b> {processing_results.get('total_employees_notified', 0)}<br>"
+                f"<b>Advances expiring soon:</b> {processing_results.get('total_advances_expiring', 0)}<br>"
+                f"<b>Emails sent:</b> {notifications_sent}<br>"
+                f"<b>Errors:</b> {len(processing_results.get('errors', []))}</p>"
+            )
+            frappe.sendmail(recipients=hr_emails, subject=sub, message=body, delayed=True)
+    except Exception as e:
+        frappe.log_error(message=f"Error sending HR summary: {e}", title="HR Notification Summary Error")
+
+    return notifications_sent
 
 @frappe.whitelist()
 def get_expense_claim(
@@ -186,15 +1438,18 @@ def get_payment_entry_for_employee(dt, dn, party_amount=None, bank_account=None,
 	pe.paid_to_account_currency = party_account_currency
 	pe.paid_amount = paid_amount
 	pe.received_amount = received_amount
+	pe.reference_date = nowdate()
+	
 	pe.project =  doc.custom_project
 	pe.cost_center = doc.custom_cost_center
 
+	#TODO: Support Third Party Payments
 	# if (doc.custom_direct_payment):
-	pe.custom_third_party_payee = 1
-	pe.custom_payee_type = doc.custom_payee_type
-	pe.custom_account_name = doc.custom_account_name
-	pe.custom_account_no = doc.custom_account_no
-	pe.custom_payment_method = doc.custom_payment_method
+	# pe.custom_third_party_payee = 1
+	# pe.custom_payee_type = doc.custom_payee_type
+	# pe.custom_account_name = doc.custom_account_name
+	# pe.custom_account_no = doc.custom_account_no
+	#pe.custom_payment_method = doc.custom_payment_method
 
 	pe.custom_remarks = 1
 	pe.remarks = doc.purpose
