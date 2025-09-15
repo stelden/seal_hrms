@@ -54,8 +54,7 @@ app_include_js = "/assets/seal_hrms/js/common.js"
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 doctype_js = {
-    "Company" : "public/js/company.js",
-    #"Supplier" : "public/js/supplier.js",   
+    "Company" : "public/js/company.js", 
     "Employee" : "public/js/employee.js",
     "Employee Advance" : "public/js/employee_advance.js",
 }

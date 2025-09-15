@@ -403,42 +403,42 @@ function format_currency(amount, currency = null) {
     }).format(amount);
 }
 
-// Add refresh indicator when jobs are running
-function add_job_status_indicator(listview) {
-    // Check if recovery or notification jobs are currently running
-    frappe.call({
-        method: 'frappe.core.doctype.rq_job.rq_job.get_jobs',
-        args: {
-            start: 0,
-            limit: 20
-        },
-        callback: function(r) {
-            if (r.message) {
-                const active_jobs = r.message.filter(job => 
-                    (job.job_name === 'Employee Advance Recovery' || 
-                     job.job_name === 'Employee Advance Notifications') && 
-                    job.status === 'started'
-                );
+// // Add refresh indicator when jobs are running
+// function add_job_status_indicator(listview) {
+//     // Check if recovery or notification jobs are currently running
+//     frappe.call({
+//         method: 'frappe.core.doctype.rq_job.rq_job.get_jobs',
+//         args: {
+//             start: 0,
+//             limit: 20
+//         },
+//         callback: function(r) {
+//             if (r.message) {
+//                 const active_jobs = r.message.filter(job => 
+//                     (job.job_name === 'Employee Advance Recovery' || 
+//                      job.job_name === 'Employee Advance Notifications') && 
+//                     job.status === 'started'
+//                 );
                 
-                if (active_jobs.length > 0) {
-                    let job_names = active_jobs.map(job => job.job_name).join(', ');
-                    listview.page.set_indicator(`${job_names} Running`, 'blue');
+//                 if (active_jobs.length > 0) {
+//                     let job_names = active_jobs.map(job => job.job_name).join(', ');
+//                     listview.page.set_indicator(`${job_names} Running`, 'blue');
                     
-                    // Auto-refresh every 30 seconds while jobs are running
-                    setTimeout(function() {
-                        if (cur_list && cur_list.doctype === 'Employee Advance') {
-                            add_job_status_indicator(listview);
-                        }
-                    }, 30000);
-                }
-            }
-        }
-    });
-}
+//                     // Auto-refresh every 30 seconds while jobs are running
+//                     setTimeout(function() {
+//                         if (cur_list && cur_list.doctype === 'Employee Advance') {
+//                             add_job_status_indicator(listview);
+//                         }
+//                     }, 30000);
+//                 }
+//             }
+//         }
+//     });
+// }
 
-// Initialize job status checking when list loads
-$(document).ready(function() {
-    if (cur_list && cur_list.doctype === 'Employee Advance') {
-        add_job_status_indicator(cur_list);
-    }
-});
+// // Initialize job status checking when list loads
+// $(document).ready(function() {
+//     if (cur_list && cur_list.doctype === 'Employee Advance') {
+//         add_job_status_indicator(cur_list);
+//     }
+// });
