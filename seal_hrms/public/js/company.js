@@ -54,10 +54,6 @@ frappe.ui.form.on("Company", {
     },
 
     validate: function(frm) {
-        // if ((frm.doc.custom_auto_recover_advances_from_salary || frm.doc.custom_block_new_advances) && (frm.doc.custom_max_advance_days < 1 || frm.doc.custom_max_advance_days > 360)) {
-        //     frappe.msgprint(__('Maximum Advance Days must be between 1 and 360 days.'));
-        //     frappe.validated = false;
-        // }
         if ((frm.doc.custom_auto_recover_advances_from_salary || frm.doc.custom_block_new_advances) && (frm.doc.custom_max_advance_days > 360)) {
             frappe.msgprint(__('Maximum Advance Days must less than 360 days.'));
             frappe.validated = false;

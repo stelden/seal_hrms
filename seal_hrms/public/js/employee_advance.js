@@ -73,34 +73,14 @@ frappe.ui.form.on("Employee Advance", {
       };
     });
 
-    frm.set_query("custom_payee_type", function () {
+    frm.set_query("custom_travel_request", function () {
       return {
-        filters: [
-          ['DocType', 'name', 'in', ['Employee', 'Supplier']],
-        ],
-      };
-    });
-
-    //TODO: Enforce same department rule
-    frm.set_query("custom_payee", function () {
-      if (frm.doc.custom_payee_type == "Employee") {
-        return {
           filters: [
-            ["name", "!=", frm.doc.employee],
-            ["status", "=", "active"],
-            //["department", "=", frm.doc.department],
+            ["employee", "=", frm.doc.employee],
+            ["company", "=", frm.doc.company],
+            ["docstatus", "=", 1], // Submitted
           ],
         };
-      } else if (frm.doc.custom_payee_type == "Supplier") {
-        return {
-          filters: [
-            ["disabled", "=", 0],
-            ["is_frozen", "=", 0],
-            ["on_hold", "=", 0],
-            ["is_internal_supplier", "=", 0],
-          ],
-        };
-      }
     });
 
     //Override Create Payment Entry to pass payee details
@@ -179,7 +159,6 @@ frappe.ui.form.on("Employee Advance", {
 
   employee: function (frm, cdt, cdn) {
     if (!frm.doc.employee || frm.doc.custom_direct_disbursement) {
-      reset_payee_details(frm);
       reset_expenses(frm);
       reset_account_details(frm);
       return;
@@ -189,7 +168,7 @@ frappe.ui.form.on("Employee Advance", {
     const moptype = frm.doc.custom_mode_of_payment_type;
 
     if (!mop || !moptype) {
-      frappe.msgprint(__("Mode of Payment is required. Please select or set a default mode of payment for <b>{0}</b>.", [frm.doc.company]));
+      frappe.msgprint(__("Mode of Payment is required. Please select or set <b>'Default Expense Claim Mode of Payment'</b> for <b>{0}</b> in Company.", [frm.doc.company]));
       return;
     }
 
@@ -216,7 +195,6 @@ frappe.ui.form.on("Employee Advance", {
       error: function (err) {
         // Handle specific error cases if needed
         if (err.exc_type === 'ValidationError') {
-          reset_payee_details(frm);
           reset_account_details(frm);
 
           frappe.msgprint({
@@ -232,7 +210,6 @@ frappe.ui.form.on("Employee Advance", {
   },
 
   custom_advance_type: function (frm) {
-    reset_payee_details(frm);
     reset_expenses(frm);
     reset_account_details(frm);
     
@@ -242,70 +219,6 @@ frappe.ui.form.on("Employee Advance", {
       frm.set_value("custom_auto_generate_purpose", 1);
 
     frm.trigger("employee");
-  },
-
-  custom_direct_disbursement: function (frm, cdt, cdn) {
-    frm.set_value("custom_payee_type", null);
-    frm.set_value("custom_payee", null);
-
-    reset_account_details(frm);
-
-    if (!frm.doc.custom_direct_disbursement && frm.doc.employee)
-      frm.set_value("employee", null);
-  },
-
-  custom_payee_type: function (frm) {
-    frm.set_value("custom_payee", null);
-
-    reset_account_details(frm);
-  },
-
-  custom_payee: function (frm) {
-    if (!frm.doc.custom_direct_disbursement)
-      return;
-
-    if (!frm.doc.custom_payee_type || !frm.doc.custom_payee) {
-      reset_account_details(frm);
-      return;
-    }
-
-    reset_account_details(frm);
-
-    const moptype = frm.doc.custom_mode_of_payment_type;
-    const doctype = frm.doc.custom_payee_type;
-    const docname = frm.doc.custom_payee;
-
-    if (!moptype || !doctype || !docname) {
-      frappe.msgprint(__("Please select Payee Type, Payee, and Mode of Payment Type."));
-      return;
-    }
-
-    frappe.call({
-      method: "seal_hrms.seal_hrms.api.get_payee_account_details",
-      args: {
-        moptype: moptype,
-        doctype: doctype,
-        docname: docname
-      },
-      callback: function (r) {
-        if (r.message) {
-          frm.set_value("custom_account_name", r.message.custom_account_name);
-          frm.set_value("custom_account_no", r.message.custom_account_no);
-          frm.set_value("custom_account_provider", r.message.custom_account_provider);
-
-          frm.refresh_fields(["custom_account_name", "custom_account_no", "custom_account_provider"]);
-        } else {
-          frappe.msgprint(__("<b>{0}</b> has no payment information. Please update the <b>{1}</b> record.", [docname, doctype]));
-        }
-      },
-      error: function (error) {
-        frappe.msgprint({
-          title: __('Error'),
-          indicator: 'red',
-          message: __(error.message)
-        });
-      }
-    });
   },
 
   custom_cost_center: function (frm, cdt, cdn) {
@@ -343,6 +256,65 @@ frappe.ui.form.on("Employee Advance", {
 
     frm.set_value("advance_amount", total_amount);
     frm.set_value("custom_sanctioned_amount", total_sanctioned_amount);
+  },
+
+  custom_travel_request: function (frm) {
+    if (frm.doc.custom_travel_request) {
+      // Clear existing custom_expenses entries
+      frm.clear_table('custom_expenses');
+
+      // Fetch the selected Travel Request document
+      frappe.call({
+        method: 'frappe.client.get',
+        args: {
+          doctype: 'Travel Request',
+          name: frm.doc.custom_travel_request
+        },
+        callback: function (response) {
+          tr = response.message;
+          tr_costings = tr.costings;
+
+          if (tr && tr_costings) {
+            // Populate custom_expenses with costings data
+            tr_costings.forEach(function (costing) {
+              let expense_row = frm.add_child('custom_expenses');
+
+              // Map fields from Travel Request Costing to Employee Advance Detail
+              expense_row.expense_type = costing.expense_type;
+              expense_row.expense_date = frappe.datetime.get_today();
+
+              let amount_to_use = 0;
+              if (costing.total_amount) {
+                amount_to_use = costing.total_amount;
+              } else if (costing.funded_amount) {
+                amount_to_use = costing.funded_amount;
+              } else if (costing.sponsored_amount) {
+                amount_to_use = costing.sponsored_amount;
+              }
+
+              expense_row.sanctioned_amount = amount_to_use;
+              expense_row.amount = amount_to_use;
+              expense_row.description = costing.comments || '';
+            });
+
+            // Refresh the child table to show the populated data
+            frm.refresh_field('custom_expenses');
+          }
+        },
+        error: function (error) {
+          frappe.show_alert({
+            message: __('Failed to fetch Travel Request data. Please check the console for details.'),
+            indicator: 'red'
+          });
+          
+          console.error('Error fetching Travel Request:', error);
+        }
+      });
+    } else {
+      // Clear the table if no travel request is selected
+      frm.clear_table('custom_expenses');
+      frm.refresh_field('custom_expenses');
+    }
   },
 });
 
@@ -389,12 +361,6 @@ frappe.ui.form.on("Employee Advance Detail", {
     });
   },
 });
-
-function reset_payee_details(frm) {
-  frm.set_value("custom_direct_disbursement", 0);
-  frm.set_value("custom_payee_type", null);
-  frm.set_value("custom_payee", null);
-}
 
 function reset_expenses(frm) {
   frm.set_value("custom_expenses", []);

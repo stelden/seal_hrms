@@ -95,7 +95,7 @@ def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=N
     if email_id and not validate_email_address(email_id):
         frappe.throw(_("Invalid email address."))
 
-    if contact_exists(normalized):
+    if contact_exists(phone_number=normalized):
         frappe.throw(_("A contact with this phone number already exists."))
 
     first_name, middle_name, last_name = split_name(contact_name)
@@ -130,46 +130,48 @@ def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=N
 
     return contact
 
-# def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=None):
-#     normalized = normalize_kenya_mobile_no(phone_number)
 
-#     if not normalized or not is_valid_kenya_mobile_no(normalized):
-#         frappe.throw(_("Invalid Kenyan mobile number."))
-
-#     if email_id and not validate_email_address(email_id):
-#         frappe.throw(_("Invalid email address."))
-
-#     if contact_exists(normalized):
-#         frappe.throw(_("A contact with this phone number already exists."))
-
-#     first_name, middle_name, last_name = split_name(contact_name)
-
-#     contact_doc = {
-#         "doctype": "Contact",
-#         "first_name": first_name,
-#         "middle_name": middle_name,
-#         "last_name": last_name,
-#         "is_billing_contact": 1,
-#         "is_primary_contact": 1,
-#         "links": [{
-#             "link_doctype": ref_doctype,
-#             "link_name": ref_name
-#         }],
-#         "phone_nos": [{
-#             "phone": normalized,
-#             "is_primary_mobile_no": 1
-#         }]
-#     }
-
-#     if email_id:
-#         contact_doc["email_ids"] = [{
-#             "email_id": email_id,
-#             "is_primary": 1
-#         }]
-
-#     contact = frappe.get_doc(contact_doc).insert()
+@frappe.whitelist()
+def update_contact(phone_number, email_id):
+    # Validate inputs
+    normalized = normalize_kenya_mobile_no(phone_number)
+    if not normalized or not is_valid_kenya_mobile_no(normalized):
+        frappe.throw(_("Invalid Kenyan mobile number."))
     
-#     return contact
+    if email_id and not validate_email_address(email_id):
+        frappe.throw(_("Invalid email address."))
+    
+    if not contact_exists(email_id=email_id):
+        frappe.throw(_("No contact found with this email address."))
+    
+    # Fetch the most recently modified contact with the given email. We expect only one
+    contacts = frappe.get_all("Contact", filters={"email_id": email_id}, order_by="modified desc", limit=1)
+    
+    contact = contacts and frappe.get_doc("Contact", contacts[0].name) or None
+
+    if contact:
+        existing_phones = [phone.phone for phone in contact.phone_nos]
+
+        if normalized not in existing_phones:
+            # If adding a new phone, mark all existing as non-primary
+            for phone in contact.phone_nos:
+                phone.is_primary_mobile_no = 0
+
+            contact.append("phone_nos", {
+                "phone": normalized,
+                "is_primary_mobile_no": 1
+            })
+        else:
+            # If the phone already exists, ensure it's marked as primary
+            for phone in contact.phone_nos:
+                if phone.phone == normalized:
+                    phone.is_primary_mobile_no = 1
+                else:
+                    phone.is_primary_mobile_no = 0
+
+        contact.save(ignore_permissions=True)
+                
+    return contact
 
 @frappe.whitelist()
 def bank_account_exists(account_number):
@@ -234,8 +236,8 @@ def get_payee_account_details(moptype: str, doctype: str, docname: str):
     if moptype not in ("Bank", "Phone", "Cash"):
         frappe.throw(_("Unsupported Mode of Payment Type: {0}. Must be 'Bank', 'Phone', or 'Cash'").format(moptype))
     
-    if doctype not in ("Employee", "Supplier"):
-        frappe.throw(_("Unsupported DocType: {0}. Must be 'Employee' or 'Supplier'").format(doctype))
+    if doctype not in ("Employee"):
+        frappe.throw(_("Unsupported DocType: {0}. Must be 'Employee'").format(doctype))
     
     # Get the payee document
     try:
@@ -262,23 +264,6 @@ def get_payee_account_details(moptype: str, doctype: str, docname: str):
                 "account_provider": "Cashier"
             }
         },
-        "Supplier": {
-            "Bank": {
-                "account_name": "custom_payment_bank_account_name",
-                "account_no": "custom_payment_bank_account_no",
-                "account_provider": "custom_payment_bank_name"
-            },
-            "Phone": {
-                "account_name": "custom_payment_contact_name",
-                "account_no": "custom_payment_contact_no",
-                "account_provider": "custom_custom_payment_contact_no_provider"
-            },
-            "Cash": {
-                "account_name": "supplier_name",
-                "account_no": "tax_id",
-                "account_provider": "Cashier"
-            }
-        }
     }
     
     # Get the field names for the specific doctype and mop_type
