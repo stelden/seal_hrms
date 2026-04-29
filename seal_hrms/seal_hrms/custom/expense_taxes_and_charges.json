@@ -41,7 +41,7 @@
    "mandatory_depends_on": null,
    "modified": "2025-10-09 16:27:07.321680",
    "modified_by": "Administrator",
-   "module": "SEAL HRMS",
+   "module": null,
    "name": "Expense Taxes and Charges-vote_head",
    "no_copy": 0,
    "non_negative": 0,
