@@ -1,6 +1,6 @@
 {
  "app": "seal_hrms",
- "creation": "2026-04-30 00:00:00.000000",
+ "creation": "2026-04-30 00:00:00",
  "docstatus": 0,
  "doctype": "Workspace Sidebar",
  "header_icon": "id-card",
@@ -313,7 +313,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-30 00:00:00.000000",
+ "modified": "2026-04-30 00:00:00",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Self Service",
