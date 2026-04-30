@@ -1,0 +1,73 @@
+{
+ "app": "seal_hrms",
+ "charts": [],
+ "content": "[{\"id\":\"ess_h0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Self Service</b></span>\",\"col\":12}},{\"id\":\"ess_cb1\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"HRMS ESS Overview\",\"col\":12}},{\"id\":\"ess_sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ess_sc1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Application\",\"col\":3}},{\"id\":\"ess_sc2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expense Claim\",\"col\":3}},{\"id\":\"ess_sc3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Request\",\"col\":3}},{\"id\":\"ess_sc4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Timesheet\",\"col\":3}},{\"id\":\"ess_sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ess_cd1\",\"type\":\"card\",\"data\":{\"card_name\":\"Leave & Attendance\",\"col\":4}},{\"id\":\"ess_cd2\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"ess_cd3\",\"type\":\"card\",\"data\":{\"card_name\":\"Shifts & Travel\",\"col\":4}},{\"id\":\"ess_sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ess_cd4\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll & Benefits\",\"col\":4}},{\"id\":\"ess_cd5\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}},{\"id\":\"ess_cd6\",\"type\":\"card\",\"data\":{\"card_name\":\"HR & Others\",\"col\":4}}]",
+ "custom_blocks": [
+  {
+   "custom_block_name": "HRMS ESS Overview",
+   "label": "ESS Overview"
+  }
+ ],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "external_link": null,
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "id-card",
+ "indicator_color": null,
+ "is_hidden": 0,
+ "label": "Self Service",
+ "link_to": null,
+ "link_type": null,
+ "links": [
+  {"dependencies": null, "description": null, "hidden": 0, "icon": "calendar", "is_query_report": 0, "label": "Leave & Attendance", "link_count": 0, "link_to": null, "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Card Break"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Leave Application", "link_count": 0, "link_to": "Leave Application", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Attendance Request", "link_count": 0, "link_to": "Attendance Request", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Compensatory Leave Request", "link_count": 0, "link_to": "Compensatory Leave Request", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Leave Type", "link_count": 0, "link_to": "Leave Type", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Holiday List", "link_count": 0, "link_to": "Holiday List", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": "banknote", "is_query_report": 0, "label": "Expenses", "link_count": 0, "link_to": null, "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Card Break"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Expense Claim", "link_count": 0, "link_to": "Expense Claim", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Advance", "link_count": 0, "link_to": "Employee Advance", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Expense Claim Type", "link_count": 0, "link_to": "Expense Claim Type", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": "clock", "is_query_report": 0, "label": "Shifts & Travel", "link_count": 0, "link_to": null, "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Card Break"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Shift Request", "link_count": 0, "link_to": "Shift Request", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Travel Request", "link_count": 0, "link_to": "Travel Request", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Timesheet", "link_count": 0, "link_to": "Timesheet", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Checkin", "link_count": 0, "link_to": "Employee Checkin", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": "file-text", "is_query_report": 0, "label": "Payroll & Benefits", "link_count": 0, "link_to": null, "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Card Break"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Salary Slip", "link_count": 0, "link_to": "Salary Slip", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Benefit Application", "link_count": 0, "link_to": "Employee Benefit Application", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Tax Exemption Declaration", "link_count": 0, "link_to": "Employee Tax Exemption Declaration", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Tax Exemption Proof Submission", "link_count": 0, "link_to": "Employee Tax Exemption Proof Submission", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": "graduation-cap", "is_query_report": 0, "label": "Training", "link_count": 0, "link_to": null, "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Card Break"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Training Program", "link_count": 0, "link_to": "Training Program", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Training Feedback", "link_count": 0, "link_to": "Training Feedback", "link_type": "DocType", "onboard": 1, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": "users", "is_query_report": 0, "label": "HR & Others", "link_count": 0, "link_to": null, "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Card Break"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Grievance", "link_count": 0, "link_to": "Employee Grievance", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Referral", "link_count": 0, "link_to": "Employee Referral", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
+  {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee", "link_count": 0, "link_to": "Employee", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"}
+ ],
+ "modified": "2026-04-30 00:00:00.000000",
+ "module": "SEAL HRMS",
+ "name": "Self Service",
+ "number_cards": [],
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [
+  {
+   "role": "Employee Self Service"
+  }
+ ],
+ "sequence_id": 10.0,
+ "shortcuts": [
+  {"color": "#2490EF", "doc_view": "List", "format": null, "icon": null, "kanban_board": null, "label": "Leave Application", "link_to": "Leave Application", "report_ref_doctype": null, "restrict_to_domain": null, "stats_filter": null, "type": "DocType", "url": null},
+  {"color": "#10b981", "doc_view": "List", "format": null, "icon": null, "kanban_board": null, "label": "Expense Claim", "link_to": "Expense Claim", "report_ref_doctype": null, "restrict_to_domain": null, "stats_filter": null, "type": "DocType", "url": null},
+  {"color": "#f59e0b", "doc_view": "List", "format": null, "icon": null, "kanban_board": null, "label": "Attendance Request", "link_to": "Attendance Request", "report_ref_doctype": null, "restrict_to_domain": null, "stats_filter": null, "type": "DocType", "url": null},
+  {"color": "#8b5cf6", "doc_view": "List", "format": null, "icon": null, "kanban_board": null, "label": "Timesheet", "link_to": "Timesheet", "report_ref_doctype": null, "restrict_to_domain": null, "stats_filter": null, "type": "DocType", "url": null}
+ ],
+ "title": "Self Service",
+ "type": "Workspace"
+}

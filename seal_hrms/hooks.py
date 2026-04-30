@@ -19,21 +19,14 @@ required_apps = [
 ]
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────────
+# Note: Workspaces sync from seal_hrms/workspace/ via bench migrate.
+# Desktop Icons sync from seal_hrms/desktop_icon/ via bench migrate.
+# Only data fixtures that have no module-level sync need to be listed here.
 fixtures = [
     # Custom HTML Blocks (workspace overview diagrams)
     {
         "dt": "Custom HTML Block",
         "filters": [["name", "like", "HRMS ESS%"]],
-    },
-    # Workspaces
-    {
-        "dt": "Workspace",
-        "filters": [["app", "=", "seal_hrms"]],
-    },
-    # Desktop Icons
-    {
-        "dt": "Desktop Icon",
-        "filters": [["app", "=", "seal_hrms"]],
     },
 ]
 
@@ -86,8 +79,8 @@ doctype_list_js = {
 }
 # Svg Icons
 # ------------------
-# Include custom SVG icons for workspace and desktop use
-app_include_icons = "seal_hrms/public/icons/ess-self-service.svg"
+# Workspace uses Lucide built-in "id-card" icon (no custom sprite needed)
+# app_include_icons = "/assets/seal_hrms/icons/icons.svg"
 
 # Home Pages
 # ----------
