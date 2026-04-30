@@ -9,6 +9,7 @@
  "field_order": [
   "sb1",
   "ess_banner_image",
+  "ess_banner_image_preview",
   "sb0",
   "enable_leave_planning",
   "planning_submission_max_future_days",
@@ -147,13 +148,18 @@
    "mandatory_depends_on": "eval:doc.enable_leave_planning==1",
    "options": "Absolute\nPercentage",
    "reqd": 1
+  },
+  {
+   "fieldname": "ess_banner_image_preview",
+   "fieldtype": "Image",
+   "options": "ess_banner_image"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-31 12:15:22.723760",
+ "modified": "2026-04-30 13:19:36.801189",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "SEAL HRMS Settings",

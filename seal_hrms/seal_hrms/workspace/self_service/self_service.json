@@ -52,7 +52,7 @@
   {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee Referral", "link_count": 0, "link_to": "Employee Referral", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"},
   {"dependencies": null, "description": null, "hidden": 0, "icon": null, "is_query_report": 0, "label": "Employee", "link_count": 0, "link_to": "Employee", "link_type": "DocType", "onboard": 0, "only_for": null, "report_ref_doctype": null, "type": "Link"}
  ],
- "modified": "2026-04-30 00:00:00.000000",
+ "modified": "2026-04-30 12:00:00.000000",
  "module": "SEAL HRMS",
  "name": "Self Service",
  "number_cards": [],
