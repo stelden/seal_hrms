@@ -7,6 +7,8 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "sb1",
+  "ess_banner_image",
   "sb0",
   "enable_leave_planning",
   "planning_submission_max_future_days",
@@ -22,6 +24,17 @@
   "planning_submission_deadline_day"
  ],
  "fields": [
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "Self Service"
+  },
+  {
+   "description": "Banner image displayed on the Employee Self Service workspace home page.",
+   "fieldname": "ess_banner_image",
+   "fieldtype": "Attach Image",
+   "label": "ESS Banner Image"
+  },
   {
    "fieldname": "sb0",
    "fieldtype": "Section Break",
@@ -156,6 +169,10 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Employee Self Service"
   }
  ],
  "row_format": "Dynamic",
