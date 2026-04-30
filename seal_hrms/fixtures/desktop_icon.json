@@ -1,0 +1,28 @@
+[
+ {
+  "app": "seal_hrms",
+  "bg_color": "#2490EF",
+  "docstatus": 0,
+  "doctype": "Desktop Icon",
+  "hidden": 0,
+  "icon": "id-card",
+  "icon_image": "/assets/seal_hrms/icons/ess-self-service.svg",
+  "icon_type": "Link",
+  "label": "Self Service",
+  "link": null,
+  "link_to": "Self Service",
+  "link_type": "Workspace Sidebar",
+  "logo_url": null,
+  "modified": "2026-04-30 00:00:00.000000",
+  "name": "Self Service",
+  "parent_icon": null,
+  "restrict_removal": 0,
+  "roles": [
+   {
+    "role": "Employee Self Service"
+   }
+  ],
+  "sidebar": "Self Service",
+  "standard": 1
+ }
+]

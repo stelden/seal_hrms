@@ -1,18 +1,40 @@
+# Copyright (c) 2026, Stelden EA Ltd and contributors
+# For license information, please see license.txt
+
 app_name = "seal_hrms"
 app_title = "SEAL HRMS"
 app_publisher = "Stelden EA Ltd"
-app_description = "SEAL Customizations for ERPNext HRMS"
+app_description = "SEAL Customizations for Frappe HRMS"
 app_email = "dev@stelden.com"
 app_license = "gpl-3.0"
+app_logo_url = "/assets/seal_hrms/icons/ess-self-service.svg"
 
 # Apps
 # ------------------
 
+# Requires frappe/erpnext and frappe/hrms (version-16 branch)
 required_apps = [
-    "frappe/erpnext", 
-    "hrms", 
-    # "https://github.com/stelden/seal_common",
-    # "https://github.com/stelden/seal_accounts"
+    "frappe/erpnext",
+    "frappe/hrms",
+]
+
+# ─── Fixtures ─────────────────────────────────────────────────────────────────
+fixtures = [
+    # Custom HTML Blocks (workspace overview diagrams)
+    {
+        "dt": "Custom HTML Block",
+        "filters": [["name", "like", "HRMS ESS%"]],
+    },
+    # Workspaces
+    {
+        "dt": "Workspace",
+        "filters": [["app", "=", "seal_hrms"]],
+    },
+    # Desktop Icons
+    {
+        "dt": "Desktop Icon",
+        "filters": [["app", "=", "seal_hrms"]],
+    },
 ]
 
 # Each item in the list will be shown as an app in the apps page
@@ -64,8 +86,8 @@ doctype_list_js = {
 }
 # Svg Icons
 # ------------------
-# include app icons in desk
-# app_include_icons = "seal_hrms/public/icons.svg"
+# Include custom SVG icons for workspace and desktop use
+app_include_icons = "seal_hrms/public/icons/ess-self-service.svg"
 
 # Home Pages
 # ----------
