@@ -1,70 +1,76 @@
 {
  "actions": [],
- "allow_rename": 1,
+ "allow_amend": 0,
+ "allow_rename": 0,
  "autoname": "naming_series:",
  "creation": "2025-05-29 18:45:21.191930",
- "description": "Leave Plan",
+ "description": "Annual Leave Plan filed by an employee against an Open Leave Planning Cycle. Slots declare planned absences; Leave Applications later draw days against those slots.",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "sb0",
+  "sb1",
   "naming_series",
+  "planning_cycle",
   "employee",
-  "leave_period",
-  "cb0",
   "employee_name",
+  "cb1",
+  "company",
+  "leave_period",
+  "posting_date",
+  "sb2",
   "department",
   "designation",
+  "cb2",
   "branch",
-  "cb1",
-  "posting_date",
-  "company",
-  "status",
-  "sb1",
-  "leave_plan_slots",
+  "leave_approver",
   "sb3",
+  "workflow_state",
+  "cb3",
+  "status",
+  "tb1_sb1",
+  "leave_plan_slots",
+  "tb1_sb2",
+  "total_days_planned",
+  "tb2_sb1",
   "remarks",
   "sbx",
   "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Leave Plan",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "sb0",
+   "fieldname": "sb1",
    "fieldtype": "Section Break",
-   "label": "Leave Plan Details"
+   "label": "Plan Identification"
   },
   {
+   "default": "LP-.YYYY.-",
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "LP-."
+   "options": "LP-.YYYY.-",
+   "reqd": 1
   },
   {
-   "fieldname": "cb0",
-   "fieldtype": "Column Break"
+   "description": "Open Leave Planning Cycle this plan belongs to. Determines the leave period, company, and submission deadline.",
+   "fieldname": "planning_cycle",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Planning Cycle",
+   "options": "Leave Planning Cycle",
+   "reqd": 1,
+   "search_index": 1
   },
   {
-   "fieldname": "sbx",
-   "fieldtype": "Section Break"
-  },
-  {
+   "description": "Employee filing the plan. Must be in the Planning Cycle's scope.",
    "fieldname": "employee",
    "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Employee",
    "options": "Employee",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fetch_from": "employee.employee_name",
@@ -74,24 +80,25 @@
    "read_only": 1
   },
   {
-   "fetch_from": "employee.department",
-   "fieldname": "department",
-   "fieldtype": "Data",
-   "label": "Department",
-   "read_only": 1
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "employee.designation",
-   "fieldname": "designation",
-   "fieldtype": "Data",
-   "label": "Designation",
-   "read_only": 1
+   "fetch_from": "planning_cycle.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1,
+   "reqd": 1
   },
   {
+   "fetch_from": "planning_cycle.leave_period",
    "fieldname": "leave_period",
    "fieldtype": "Link",
    "label": "Leave Period",
    "options": "Leave Period",
+   "read_only": 1,
    "reqd": 1,
    "search_index": 1
   },
@@ -104,16 +111,106 @@
    "reqd": 1
   },
   {
-   "fieldname": "company",
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Employee Context"
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
    "fieldtype": "Link",
-   "label": "Company",
-   "options": "Company",
-   "reqd": 1
+   "label": "Department",
+   "options": "Department",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.designation",
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "options": "Designation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.branch",
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "options": "Branch",
+   "read_only": 1
+  },
+  {
+   "description": "Line manager who approves this employee's leave.",
+   "fetch_from": "employee.leave_approver",
+   "fieldname": "leave_approver",
+   "fieldtype": "Link",
+   "label": "Leave Approver",
+   "options": "User",
+   "read_only": 1
   },
   {
    "fieldname": "sb3",
    "fieldtype": "Section Break",
-   "label": "More Information"
+   "label": "Workflow & Status"
+  },
+  {
+   "description": "Workflow state. Driven by the Leave Plan Approval workflow when active; free Data field otherwise.",
+   "fieldname": "workflow_state",
+   "fieldtype": "Link",
+   "label": "Workflow State",
+   "no_copy": 1,
+   "options": "Workflow State",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Not Applied",
+   "description": "Computed from the slots' booking status. Updated when Leave Applications are filed or cancelled.",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "\nNot Applied\nPartially Applied\nFully Applied",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "tb1_sb1",
+   "fieldtype": "Tab Break",
+   "label": "Slots"
+  },
+  {
+   "description": "Planned leave slots. At least one required at submit time.",
+   "fieldname": "leave_plan_slots",
+   "fieldtype": "Table",
+   "label": "Leave Plan Slots",
+   "options": "Leave Plan Slot"
+  },
+  {
+   "fieldname": "tb1_sb2",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
+   "description": "Sum of days across all slots.",
+   "fieldname": "total_days_planned",
+   "fieldtype": "Float",
+   "label": "Total Days Planned",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb2_sb1",
+   "fieldtype": "Tab Break",
+   "label": "Remarks"
   },
   {
    "fieldname": "remarks",
@@ -121,42 +218,26 @@
    "label": "Remarks"
   },
   {
-   "fieldname": "sb1",
-   "fieldtype": "Section Break",
-   "label": "Slots"
+   "fieldname": "sbx",
+   "fieldtype": "Section Break"
   },
   {
-   "fieldname": "leave_plan_slots",
-   "fieldtype": "Table",
-   "label": "Leave Plan Slots",
-   "options": "Leave Plan Slot"
-  },
-  {
-   "fetch_from": "employee.branch",
-   "fieldname": "branch",
-   "fieldtype": "Data",
-   "label": "Branch",
-   "read_only": 1
-  },
-  {
-   "fieldname": "cb1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "Not Applied",
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "\nNot Applied\nPartially Applied\nFully Applied",
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Leave Plan",
+   "print_hide": 1,
    "read_only": 1,
-   "reqd": 1
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-05-30 02:24:59.040696",
+ "modified": "2026-05-10 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Leave Plan",
@@ -174,12 +255,54 @@
    "role": "System Manager",
    "share": 1,
    "submit": 1,
-   "write": 1
+   "write": 1,
+   "cancel": 1,
+   "amend": 0
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1,
+   "cancel": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "submit": 1,
+   "write": 1,
+   "cancel": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee Self Service",
+   "share": 1,
+   "submit": 1,
+   "write": 1,
+   "cancel": 1
   }
  ],
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "track_changes": 1
+ "track_changes": 1,
+ "track_views": 1
 }

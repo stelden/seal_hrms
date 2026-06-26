@@ -1,0 +1,221 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:rule_name",
+ "creation": "2026-05-10 12:00:00.000000",
+ "description": "Caps how many employees in a scope (department, branch, designation, employee group, or company) can have planned leaves of a given type concurrently.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb1",
+  "rule_name",
+  "company",
+  "enabled",
+  "cb1",
+  "leave_type",
+  "priority",
+  "sb2",
+  "scope_type",
+  "department",
+  "branch",
+  "cb2",
+  "designation",
+  "employee_group",
+  "sb3",
+  "max_concurrent_absolute",
+  "max_concurrent_percent",
+  "cb3",
+  "aggregation",
+  "sb4",
+  "effective_from",
+  "effective_to"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "Rule Identification"
+  },
+  {
+   "description": "Short label used to identify this rule in reports and conflict messages.",
+   "fieldname": "rule_name",
+   "fieldtype": "Data",
+   "label": "Rule Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Company this rule applies to.",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Untick to disable the rule without deleting it.",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Leave type the rule limits. Leave empty to apply to every plannable leave type.",
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "label": "Leave Type",
+   "link_filters": "[[\"Leave Type\",\"custom_is_plannable\",\"=\",1]]",
+   "options": "Leave Type"
+  },
+  {
+   "default": "100",
+   "description": "Lower numbers win when multiple rules conflict on the same scope.",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Scope"
+  },
+  {
+   "default": "Department",
+   "description": "Which group of employees the cap applies to. Choose Company to cap the entire firm.",
+   "fieldname": "scope_type",
+   "fieldtype": "Select",
+   "label": "Scope Type",
+   "options": "Company\nDepartment\nBranch\nDesignation\nEmployee Group",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.scope_type == 'Department'",
+   "description": "Department this rule applies to.",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "mandatory_depends_on": "eval:doc.scope_type == 'Department'",
+   "options": "Department"
+  },
+  {
+   "depends_on": "eval:doc.scope_type == 'Branch'",
+   "description": "Branch this rule applies to.",
+   "fieldname": "branch",
+   "fieldtype": "Link",
+   "label": "Branch",
+   "mandatory_depends_on": "eval:doc.scope_type == 'Branch'",
+   "options": "Branch"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.scope_type == 'Designation'",
+   "description": "Designation this rule applies to.",
+   "fieldname": "designation",
+   "fieldtype": "Link",
+   "label": "Designation",
+   "mandatory_depends_on": "eval:doc.scope_type == 'Designation'",
+   "options": "Designation"
+  },
+  {
+   "depends_on": "eval:doc.scope_type == 'Employee Group'",
+   "description": "Employee Group this rule applies to.",
+   "fieldname": "employee_group",
+   "fieldtype": "Link",
+   "label": "Employee Group",
+   "mandatory_depends_on": "eval:doc.scope_type == 'Employee Group'",
+   "options": "Employee Group"
+  },
+  {
+   "fieldname": "sb3",
+   "fieldtype": "Section Break",
+   "label": "Limits"
+  },
+  {
+   "description": "Most employees in scope who can be on this leave at once. Leave 0 to use only the percentage cap.",
+   "fieldname": "max_concurrent_absolute",
+   "fieldtype": "Int",
+   "label": "Max Concurrent (Absolute)",
+   "non_negative": 1
+  },
+  {
+   "description": "Largest share of in-scope employees who can be on this leave at once. Leave 0 to use only the absolute cap.",
+   "fieldname": "max_concurrent_percent",
+   "fieldtype": "Percent",
+   "label": "Max Concurrent (% of Scope)"
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Any Day",
+   "description": "How the limit is checked. Any Day caps a single calendar day; Calendar Week caps the highest day in any rolling week.",
+   "fieldname": "aggregation",
+   "fieldtype": "Select",
+   "label": "Aggregation",
+   "options": "Any Day\nCalendar Week",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sb4",
+   "fieldtype": "Section Break",
+   "label": "Effective Window"
+  },
+  {
+   "description": "First day this rule applies.",
+   "fieldname": "effective_from",
+   "fieldtype": "Date",
+   "label": "Effective From",
+   "reqd": 1
+  },
+  {
+   "description": "Last day this rule applies. Leave empty for open-ended.",
+   "fieldname": "effective_to",
+   "fieldtype": "Date",
+   "label": "Effective To"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-10 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Leave Concurrency Rule",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

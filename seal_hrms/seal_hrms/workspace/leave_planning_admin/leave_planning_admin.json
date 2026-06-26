@@ -1,0 +1,55 @@
+{
+ "app": "seal_hrms",
+ "charts": [],
+ "content": "[{\"id\":\"lpa_h0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Leave Planning Admin</b></span>\",\"col\":12}},{\"id\":\"lpa_sp0\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"lpa_sc1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Planning Cycle\",\"col\":3}},{\"id\":\"lpa_sc2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Concurrency Rule\",\"col\":3}},{\"id\":\"lpa_sc3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Planning Compliance\",\"col\":3}},{\"id\":\"lpa_sc4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Departmental Coverage Calendar\",\"col\":3}},{\"id\":\"lpa_sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"lpa_cd1\",\"type\":\"card\",\"data\":{\"card_name\":\"Cycle & Roster\",\"col\":4}},{\"id\":\"lpa_cd2\",\"type\":\"card\",\"data\":{\"card_name\":\"Plans & Bookings\",\"col\":4}},{\"id\":\"lpa_cd3\",\"type\":\"card\",\"data\":{\"card_name\":\"Reports\",\"col\":4}}]",
+ "creation": "2026-05-10 14:00:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "calendar",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Leave Planning Admin",
+ "links": [
+  {"hidden": 0, "icon": "calendar", "is_query_report": 0, "label": "Cycle & Roster", "link_count": 0, "link_type": "DocType", "onboard": 0, "type": "Card Break"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Planning Cycle", "link_count": 0, "link_to": "Leave Planning Cycle", "link_type": "DocType", "onboard": 1, "type": "Link"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Planning Cycle Member", "link_count": 0, "link_to": "Leave Planning Cycle Member", "link_type": "DocType", "onboard": 0, "type": "Link"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Concurrency Rule", "link_count": 0, "link_to": "Leave Concurrency Rule", "link_type": "DocType", "onboard": 0, "type": "Link"},
+
+  {"hidden": 0, "icon": "list", "is_query_report": 0, "label": "Plans & Bookings", "link_count": 0, "link_type": "DocType", "onboard": 0, "type": "Card Break"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Plan", "link_count": 0, "link_to": "Leave Plan", "link_type": "DocType", "onboard": 1, "type": "Link"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Plan Slot Booking", "link_count": 0, "link_to": "Leave Plan Slot Booking", "link_type": "DocType", "onboard": 0, "type": "Link"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Type", "link_count": 0, "link_to": "Leave Type", "link_type": "DocType", "onboard": 0, "type": "Link"},
+
+  {"hidden": 0, "icon": "graph", "is_query_report": 0, "label": "Reports", "link_count": 0, "link_type": "DocType", "onboard": 0, "type": "Card Break"},
+  {"hidden": 0, "is_query_report": 0, "label": "Leave Planning Compliance", "link_count": 0, "link_to": "leave-planning-compliance", "link_type": "Page", "onboard": 1, "type": "Link"},
+  {"hidden": 0, "is_query_report": 0, "label": "Departmental Coverage Calendar", "link_count": 0, "link_to": "departmental-coverage-calendar", "link_type": "Page", "onboard": 0, "type": "Link"},
+  {"hidden": 0, "is_query_report": 0, "label": "Org-wide Coverage Calendar", "link_count": 0, "link_to": "org-coverage-calendar", "link_type": "Page", "onboard": 0, "type": "Link"}
+ ],
+ "modified": "2026-05-10 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Leave Planning Admin",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "restrict_to_domain": "",
+ "roles": [
+  {"role": "HR Manager"},
+  {"role": "HR User"},
+  {"role": "System Manager"}
+ ],
+ "sequence_id": 12.0,
+ "shortcuts": [
+  {"color": "#2490EF", "doc_view": "List", "label": "Leave Planning Cycle", "link_to": "Leave Planning Cycle", "type": "DocType"},
+  {"color": "#10b981", "doc_view": "List", "label": "Leave Concurrency Rule", "link_to": "Leave Concurrency Rule", "type": "DocType"},
+  {"color": "#f59e0b", "label": "Leave Planning Compliance", "link_to": "leave-planning-compliance", "type": "Page"},
+  {"color": "#8b5cf6", "label": "Departmental Coverage Calendar", "link_to": "departmental-coverage-calendar", "type": "Page"}
+ ],
+ "title": "Leave Planning Admin",
+ "type": "Workspace"
+}

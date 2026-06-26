@@ -1,0 +1,19 @@
+{
+	"name": "seal-hrms",
+	"version": "1.0.0",
+	"description": "SEAL HRMS — Customizations for Frappe HRMS (Cypress UI tests)",
+	"scripts": {
+		"cy:run": "cypress run",
+		"cy:open": "cypress open",
+		"cy:run:headed": "cypress run --headed",
+		"cy:run:chrome": "cypress run --browser chrome"
+	},
+	"author": "Stelden EA Ltd",
+	"license": "GPL-3.0-or-later",
+	"devDependencies": {
+		"@4tw/cypress-drag-drop": "^2.2.5",
+		"@testing-library/cypress": "^10.0.2",
+		"cypress": "^13.6.0",
+		"cypress-real-events": "^1.13.0"
+	}
+}

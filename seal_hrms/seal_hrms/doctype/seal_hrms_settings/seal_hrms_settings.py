@@ -8,9 +8,6 @@ from frappe.utils import flt, cint
 
 class SEALHRMSSettings(Document):
 	def validate(self):
-		if not self.enable_leave_planning:
-			return  # Skip validation if planning is off
-
 		self.validate_concurrency_settings()
 		self.validate_submission_timing_rules()
 		self.validate_numeric_ranges()
@@ -44,8 +41,5 @@ class SEALHRMSSettings(Document):
 			frappe.throw("Invalid submission timing method selected.")
 
 	def validate_numeric_ranges(self):
-		if cint(self.planning_submission_max_future_days) < 0:
-			frappe.throw("Leave Planning Cycle (Days) must be ≥ 0.")
-
 		if cint(self.auto_create_leave_application_reminder_days) < 0:
 			frappe.throw("Auto Create Leave Application Reminder Days must be ≥ 0.")

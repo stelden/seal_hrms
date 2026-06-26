@@ -77,6 +77,11 @@ doctype_js = {
 doctype_list_js = {
     "Employee Advance": "public/js/employee_advance_list.js"
 }
+
+# Expense Requisition posts a party payable (Dr Expense / Cr Staff Payable) at approval and is
+# settled by a Payment Entry that references it invoice-style. Registering it here (NOT in
+# advance_payment_payable_doctypes) makes Payment Entry treat it as an outstanding invoice.
+invoice_doctypes = ["Expense Requisition"]
 # Svg Icons
 # ------------------
 # Workspace uses Lucide built-in "id-card" icon (no custom sprite needed)
@@ -146,13 +151,17 @@ doctype_list_js = {
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
-# }
-#
-# has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
-# }
+permission_query_conditions = {
+    "Leave Plan": "seal_hrms.seal_hrms.leave_planning.permissions.leave_plan_query_conditions",
+    "Leave Plan Slot Booking": "seal_hrms.seal_hrms.leave_planning.permissions.leave_plan_slot_booking_query_conditions",
+    "Leave Planning Cycle Member": "seal_hrms.seal_hrms.leave_planning.permissions.leave_planning_cycle_member_query_conditions",
+}
+
+has_permission = {
+    "Leave Plan": "seal_hrms.seal_hrms.leave_planning.permissions.leave_plan_has_permission",
+    "Leave Plan Slot Booking": "seal_hrms.seal_hrms.leave_planning.permissions.leave_plan_slot_booking_has_permission",
+    "Leave Planning Cycle Member": "seal_hrms.seal_hrms.leave_planning.permissions.leave_planning_cycle_member_has_permission",
+}
 
 # DocType Class
 # ---------------
@@ -190,7 +199,16 @@ doc_events = {
 		"validate": "seal_hrms.seal_hrms.overrides.leave_application.validate",
 		"on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
 		"on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
-	}
+	},
+    "Employee": {
+        "on_update": "seal_hrms.seal_hrms.overrides.employee.on_update",
+    },
+    "Payment Entry": {
+        # Recompute an Expense Requisition's disbursed/returned amounts + status when a payment
+        # that references it is submitted or cancelled.
+        "on_submit": "seal_hrms.seal_hrms.overrides.payment_entry.update_requisition_from_payment",
+        "on_cancel": "seal_hrms.seal_hrms.overrides.payment_entry.update_requisition_from_payment",
+    },
 }
 # Scheduled Tasks
 # ---------------
@@ -202,7 +220,9 @@ scheduler_events = {
 	# ],
 	"daily": [
         "seal_hrms.seal_hrms.overrides.employee_advance.recover_overdue_advances",
-        "seal_hrms.seal_hrms.overrides.employee_advance.notify_overdue_advances"
+        "seal_hrms.seal_hrms.overrides.employee_advance.notify_overdue_advances",
+        "seal_hrms.seal_hrms.leave_planning.scheduler.send_planning_reminders",
+        "seal_hrms.seal_hrms.leave_planning.scheduler.close_due_cycles",
     ],
 	# "hourly": [
 	# 	"seal_hrms.tasks.hourly"
