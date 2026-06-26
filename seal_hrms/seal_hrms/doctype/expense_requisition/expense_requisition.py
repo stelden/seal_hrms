@@ -212,7 +212,9 @@ class ExpenseRequisition(AccountsController):
 		if self.docstatus == 2:
 			return "Cancelled"
 		if self.docstatus == 0:
-			return "Draft"
+			# Reflect the approval workflow's draft sub-states so dashboards/lists are accurate.
+			ws = self.get("workflow_state")
+			return ws if ws in ("Pending Approval", "Rejected") else "Draft"
 		disbursed = flt(self.disbursed_amount)
 		accounted = flt(self.surrendered_amount) + flt(self.returned_amount)
 		if disbursed <= 0:
