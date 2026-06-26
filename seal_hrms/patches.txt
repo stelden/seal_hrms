@@ -14,3 +14,4 @@ seal_hrms.patches.v1_2.audit_orphan_plans_and_log
 seal_hrms.patches.v1_3.create_workflow_leave_plan_approval
 seal_hrms.patches.v1_4.setup_expense_requisition
 seal_hrms.patches.v1_4.create_workflow_expense_requisition
+seal_hrms.patches.v1_4.setup_expense_requisition_surround
