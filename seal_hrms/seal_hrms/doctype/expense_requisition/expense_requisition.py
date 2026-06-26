@@ -28,6 +28,22 @@ PAYABLE_ACCOUNT_FIELD = "custom_staff_requisition_payable_account"
 
 
 class ExpenseRequisition(AccountsController):
+	# Expose invoice-shaped totals so the various Payment Entry reference-detail helpers across
+	# apps (erpnext / hrms / non_profit) can value an Expense Requisition reference without
+	# crashing on a missing attribute. total = the accrued/approved amount; advance_paid = what
+	# has been disbursed, so outstanding = approved - disbursed (the amount left to disburse).
+	@property
+	def grand_total(self):
+		return flt(self.approved_amount) or flt(self.total_requested)
+
+	@property
+	def base_grand_total(self):
+		return self.grand_total
+
+	@property
+	def advance_paid(self):
+		return flt(self.disbursed_amount)
+
 	# ------------------------------------------------------------------ validate
 	def validate(self):
 		# Deliberately NOT calling AccountsController.validate() — its invoice-shaped machinery

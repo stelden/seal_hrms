@@ -31,17 +31,20 @@ def apply_patches():
 	import erpnext.accounts.doctype.payment_entry.payment_entry as pe_mod
 	from erpnext.accounts.doctype.payment_entry.payment_entry import PaymentEntry
 
-	# Allow "Expense Requisition" as a reference for an Employee party. The runtime controller is
-	# usually hrms's EmployeePaymentEntry (which hardcodes its own list and does NOT call super),
-	# so patch that class as well as the base.
-	classes = [PaymentEntry]
+	# Allow "Expense Requisition" as a reference for an Employee party. Different apps gate this in
+	# different ways — hrms via get_valid_reference_doctypes, non_profit with a hardcoded list
+	# *inline* in validate_reference_documents. Rather than chase each, wrap
+	# validate_reference_documents to hide Expense Requisition rows during the app's own check and
+	# restore them after. Patch the base, every imported subclass, and the resolved controller.
+	classes = {PaymentEntry}
 	try:
-		from hrms.overrides.employee_payment_entry import EmployeePaymentEntry
-		classes.append(EmployeePaymentEntry)
+		classes.add(frappe.get_controller("Payment Entry"))
 	except Exception:
 		pass
+	for cls in _iter_subclasses(PaymentEntry):
+		classes.add(cls)
 	for cls in classes:
-		_patch_valid_reference_doctypes(cls)
+		_patch_validate_reference_documents(cls)
 
 	if not getattr(pe_mod.get_reference_details, "_seal_patched", False):
 		_orig_details = pe_mod.get_reference_details
@@ -64,21 +67,41 @@ def apply_patches():
 			pass
 
 
-def _patch_valid_reference_doctypes(cls):
-	"""Wrap a Payment Entry class's own get_valid_reference_doctypes to add Expense Requisition."""
-	own = cls.__dict__.get("get_valid_reference_doctypes")
+def _iter_subclasses(cls):
+	for sub in cls.__subclasses__():
+		yield sub
+		yield from _iter_subclasses(sub)
+
+
+def ensure_patches(doc=None, method=None):
+	"""before_validate hook on Payment Entry: apply the patches before validate_reference_documents
+	runs, so the actually-resolved controller (which may differ per site / load late) is covered."""
+	apply_patches()
+
+
+def _patch_validate_reference_documents(cls):
+	"""Wrap a class's validate_reference_documents to accept Expense Requisition references.
+
+	Hides ER rows while the app's own validation runs (so its allowed-doctype gate, however it's
+	written, skips them), then restores the exact original child list."""
+	own = cls.__dict__.get("validate_reference_documents")
 	if own is None or getattr(own, "_seal_patched", False):
 		return
-	orig = cls.get_valid_reference_doctypes
+	orig = own
 
-	def get_valid_reference_doctypes(self):
-		valid = tuple(orig(self) or ())
-		if self.party_type == "Employee" and REQ_DT not in valid:
-			valid = valid + (REQ_DT,)
-		return valid
+	def validate_reference_documents(self):
+		all_refs = self.get("references") or []
+		er_rows = [d for d in all_refs if d.reference_doctype == REQ_DT]
+		if not er_rows:
+			return orig(self)
+		self.references = [d for d in all_refs if d.reference_doctype != REQ_DT]
+		try:
+			orig(self)
+		finally:
+			self.references = all_refs
 
-	get_valid_reference_doctypes._seal_patched = True
-	cls.get_valid_reference_doctypes = get_valid_reference_doctypes
+	validate_reference_documents._seal_patched = True
+	cls.validate_reference_documents = validate_reference_documents
 
 
 def _expense_requisition_reference_details(reference_name):
@@ -134,6 +157,9 @@ def get_disbursement_payment_entry(requisition, bank_account=None):
 	pe.received_amount = outstanding
 	pe.cost_center = er.cost_center
 	pe.project = er.project
+	# Carry the requisition's funding source (some deployments require it on every Payment Entry).
+	if er.get("funding_source"):
+		pe.funding_source = er.funding_source
 	pe.append("references", {
 		"reference_doctype": REQ_DT,
 		"reference_name": er.name,

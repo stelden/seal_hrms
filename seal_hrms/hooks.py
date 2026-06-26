@@ -204,6 +204,9 @@ doc_events = {
         "on_update": "seal_hrms.seal_hrms.overrides.employee.on_update",
     },
     "Payment Entry": {
+        # Apply the Expense Requisition PE patches before reference validation (covers whichever
+        # app's Payment Entry override won on this site).
+        "before_validate": "seal_hrms.seal_hrms.overrides.payment_entry.ensure_patches",
         # Recompute an Expense Requisition's disbursed/returned amounts + status when a payment
         # that references it is submitted or cancelled.
         "on_submit": "seal_hrms.seal_hrms.overrides.payment_entry.update_requisition_from_payment",
