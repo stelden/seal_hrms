@@ -108,6 +108,9 @@ def get_disbursement_payment_entry(requisition, bank_account=None):
 	er = frappe.get_doc(REQ_DT, requisition)
 	if er.docstatus != 1:
 		frappe.throw(_("Approve the requisition before disbursing."))
+	# Pessimistic lock against a double-disbursement race (§3.3): the loser sees dispatched=1.
+	if frappe.db.get_value(REQ_DT, er.name, "dispatched", for_update=True):
+		frappe.throw(_("{0} has already been disbursed.").format(er.name))
 	outstanding = flt(er.approved_amount) - flt(er.disbursed_amount)
 	if outstanding <= 0:
 		frappe.throw(_("Nothing left to disburse on {0}.").format(er.name))
@@ -153,4 +156,7 @@ def update_requisition_from_payment(doc, method=None):
 	}
 	for name in names:
 		er = frappe.get_doc(REQ_DT, name)
+		if er.docstatus == 2:
+			# The requisition itself is being cancelled; its on_cancel cascade handles teardown.
+			continue
 		er.update_amounts(update=True)

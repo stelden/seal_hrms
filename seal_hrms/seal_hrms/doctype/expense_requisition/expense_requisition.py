@@ -87,9 +87,28 @@ class ExpenseRequisition(AccountsController):
 		]
 
 	def on_cancel(self):
-		"""Reverse the accrual GL. The requisition owns its ledger, so this is the only reversal."""
+		"""Cascade-cancel the disbursement payment, then reverse this requisition's own GL
+		(approval accrual + any return adjustment)."""
+		self._cancel_linked_payment_entries()
 		self.make_gl_entries(cancel=True)
 		self.db_set("status", "Cancelled")
+
+	def _cancel_linked_payment_entries(self):
+		"""Cancel every submitted Payment Entry that references this requisition (disbursement /
+		any return PE). Returns posted on this requisition's own ledger reverse via make_gl_entries."""
+		names = {
+			r.parent
+			for r in frappe.get_all(
+				"Payment Entry Reference",
+				filters={"reference_doctype": self.doctype, "reference_name": self.name, "docstatus": 1},
+				fields=["parent"],
+			)
+		}
+		for name in names:
+			pe = frappe.get_doc("Payment Entry", name)
+			if pe.docstatus == 1:
+				pe.flags.ignore_permissions = True
+				pe.cancel()
 
 	# ------------------------------------------------------------------ GL posting
 	def get_gl_entries(self):
@@ -129,42 +148,34 @@ class ExpenseRequisition(AccountsController):
 
 	# ------------------------------------------------------------------ amounts / status
 	def update_amounts(self, update=True):
-		"""Recompute disbursed / surrendered / returned / outstanding from linked documents.
+		"""Recompute disbursed / surrendered / outstanding and the status.
 
-		Disbursed/returned are summed from submitted Payment Entry Reference rows pointing at this
-		requisition (Pay = disbursement, Receive = return); surrendered from the linked Expense
-		Claim. Called by the Payment Entry + Expense Claim hooks (B3/B4); safe to call anytime.
+		- disbursed   = sum of submitted Pay Payment Entry References pointing at this requisition.
+		- surrendered = sum of line `actual_amount` (receipts accounted for).
+		- returned    = managed by return_funds() (direct GL on this requisition), left as-is here.
+		- outstanding = disbursed - surrendered - returned  (cash the employee still owes back).
+		Called by the Payment Entry hook on disburse and by surrender()/return_funds().
 		"""
-		disbursed = returned = 0.0
-		pe_link = ret_link = None
+		disbursed = 0.0
+		pe_link = None
 		for r in frappe.get_all(
 			"Payment Entry Reference",
 			filters={"reference_doctype": self.doctype, "reference_name": self.name, "docstatus": 1},
 			fields=["parent", "allocated_amount"],
 			order_by="creation",
 		):
-			ptype = frappe.db.get_value("Payment Entry", r.parent, "payment_type")
-			if ptype == "Pay":
+			if frappe.db.get_value("Payment Entry", r.parent, "payment_type") == "Pay":
 				disbursed += flt(r.allocated_amount)
 				pe_link = pe_link or r.parent
-			elif ptype == "Receive":
-				returned += flt(r.allocated_amount)
-				ret_link = ret_link or r.parent
 
-		surrendered = 0.0
-		if self.expense_claim:
-			surrendered = flt(frappe.db.get_value(
-				"Expense Claim", {"name": self.expense_claim, "docstatus": 1}, "total_sanctioned_amount"
-			))
-
+		surrendered = flt(sum(flt(ln.actual_amount) for ln in self.get("items")))
+		returned = flt(self.returned_amount)  # managed by return_funds()
 		outstanding = flt(disbursed) - flt(surrendered) - flt(returned)
 		vals = {
 			"disbursed_amount": disbursed,
-			"returned_amount": returned,
 			"surrendered_amount": surrendered,
 			"outstanding_amount": outstanding,
 			"payment_entry": pe_link,
-			"return_payment_entry": ret_link,
 			"dispatched": 1 if pe_link else 0,
 		}
 		if update:
@@ -190,14 +201,79 @@ class ExpenseRequisition(AccountsController):
 		accounted = flt(self.surrendered_amount) + flt(self.returned_amount)
 		if disbursed <= 0:
 			return "Approved"
-		if accounted <= 0:
-			return "Disbursed"
-		if accounted + 0.01 < disbursed:
-			return "Disbursed"  # partially accounted for
-		# fully accounted
-		if flt(self.returned_amount) and not flt(self.surrendered_amount):
-			return "Returned"
-		return "Closed"
+		if accounted + 0.01 >= disbursed:
+			# fully accounted for (receipts + returns reconcile the cash)
+			if flt(self.returned_amount) and not flt(self.surrendered_amount):
+				return "Returned"
+			return "Closed"
+		if flt(self.surrendered_amount) > 0:
+			return "Surrendered"  # receipts in, unspent balance still to return
+		return "Disbursed"
+
+	# ------------------------------------------------------------------ surrender / return
+	@frappe.whitelist()
+	def surrender(self):
+		"""Record actual spend (receipts) entered on the lines. Non-posting — the expense was
+		booked at approval; only the unspent balance needs correcting (via return_funds)."""
+		if self.docstatus != 1:
+			frappe.throw(_("Approve and disburse the requisition before accounting for receipts."))
+		total_actual = flt(sum(flt(ln.actual_amount) for ln in self.get("items")))
+		if total_actual <= 0:
+			frappe.throw(_("Enter the actual amount spent on at least one line before surrendering."))
+		if total_actual > flt(self.disbursed_amount) + 0.01:
+			frappe.throw(_("Actual spend {0} exceeds the disbursed amount {1}. Raise a top-up first.").format(
+				total_actual, self.disbursed_amount))
+		self.update_amounts(update=True)
+		return self.status
+
+	@frappe.whitelist()
+	def return_funds(self, amount, bank_account):
+		"""Return unspent cash: Dr Bank / Cr Expense on this requisition's own ledger — records the
+		cash in and reverses the over-booked expense for the returned portion (wholly or partly)."""
+		amount = flt(amount)
+		if self.docstatus != 1:
+			frappe.throw(_("The requisition must be approved before returning funds."))
+		unspent = flt(self.disbursed_amount) - flt(self.surrendered_amount) - flt(self.returned_amount)
+		if amount <= 0 or amount > unspent + 0.01:
+			frappe.throw(_("Return amount must be between 0 and the unspent balance ({0}).").format(unspent))
+		if not bank_account:
+			frappe.throw(_("Select the bank/cash account the funds are returned to."))
+		self._post_return_gl(amount, bank_account)
+		self.db_set("returned_amount", flt(self.returned_amount) + amount, update_modified=False)
+		self.reload()
+		self.update_amounts(update=True)
+		return self.status
+
+	def _post_return_gl(self, amount, bank_account):
+		"""Dr Bank / Cr Expense (proportional across lines) for the returned amount."""
+		from erpnext.accounts.utils import get_account_currency
+
+		lines = [ln for ln in self.get("items") if flt(ln.amount) > 0]
+		total = sum(flt(ln.amount) for ln in lines)
+		if total <= 0:
+			frappe.throw(_("Cannot allocate the return — the requisition has no costed lines."))
+		gl, remaining = [], flt(amount)
+		for i, ln in enumerate(lines):
+			amt = round(remaining, 2) if i == len(lines) - 1 else round(amount * flt(ln.amount) / total, 2)
+			remaining = round(remaining - amt, 2)
+			if amt <= 0:
+				continue
+			gl.append(self.get_gl_dict({
+				"account": ln.account,
+				"credit": amt,
+				"credit_in_account_currency": amt,
+				"cost_center": ln.cost_center or self.cost_center,
+				"project": ln.project or self.project,
+				"against": bank_account,
+			}, item=ln))
+		gl.append(self.get_gl_dict({
+			"account": bank_account,
+			"debit": flt(amount),
+			"debit_in_account_currency": flt(amount),
+			"cost_center": self.cost_center,
+			"against": self.employee,
+		}, account_currency=get_account_currency(bank_account), item=self))
+		make_gl_entries(gl, update_outstanding="No", merge_entries=False)
 
 
 # ---------------------------------------------------------------------------
