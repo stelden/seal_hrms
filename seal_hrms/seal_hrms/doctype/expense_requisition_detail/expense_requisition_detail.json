@@ -42,8 +42,7 @@
    "fieldtype": "Link",
    "label": "Expense Account",
    "options": "Account",
-   "read_only": 1,
-   "description": "Resolved from the Expense Type's per-company default account."
+   "read_only": 1
   },
   {
    "fieldname": "cb1",
