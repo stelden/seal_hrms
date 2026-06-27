@@ -75,7 +75,8 @@ def execute():
 			"action": action,
 			"next_state": next_state,
 			"allowed": allowed,
-			"allow_self_approval": 0,
+			# Requester's own actions allow self-approval; only Approve/Reject is gated.
+			"allow_self_approval": 1 if action in ("Submit for Approval", "Resubmit") else 0,
 		})
 		if condition:
 			row.condition = condition

@@ -25,6 +25,9 @@ def get_disbursement_payment_entry(requisition, bank_account=None):
 	from erpnext.accounts.doctype.payment_entry.payment_entry import get_bank_cash_account
 	from erpnext.accounts.utils import get_account_currency
 
+	if not frappe.has_permission("Payment Entry", "create"):
+		frappe.throw(_("You do not have permission to disburse (create a Payment Entry)."), frappe.PermissionError)
+
 	er = frappe.get_doc(REQ_DT, requisition)
 	if er.docstatus != 1:
 		frappe.throw(_("Approve the requisition before disbursing."))
