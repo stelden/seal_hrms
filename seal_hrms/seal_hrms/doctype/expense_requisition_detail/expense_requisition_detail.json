@@ -18,13 +18,7 @@
   "cost_center",
   "project",
   "cb2",
-  "funding_source",
-  "sb3",
-  "actual_amount",
-  "receipt",
-  "cb3",
-  "receipt_date",
-  "receipt_no"
+  "funding_source"
  ],
  "fields": [
   {
@@ -103,42 +97,6 @@
    "fieldtype": "Link",
    "label": "Funding Source",
    "options": "Funding Source"
-  },
-  {
-   "fieldname": "sb3",
-   "fieldtype": "Section Break",
-   "label": "Actual / Receipt (surrender)"
-  },
-  {
-   "fieldname": "actual_amount",
-   "fieldtype": "Currency",
-   "label": "Actual Amount",
-   "non_negative": 1,
-   "allow_on_submit": 1,
-   "options": "Company:company:default_currency",
-   "description": "Actual spent against this line, entered at surrender."
-  },
-  {
-   "fieldname": "receipt",
-   "fieldtype": "Attach",
-   "label": "Receipt",
-   "allow_on_submit": 1
-  },
-  {
-   "fieldname": "cb3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "receipt_date",
-   "fieldtype": "Date",
-   "label": "Receipt Date",
-   "allow_on_submit": 1
-  },
-  {
-   "fieldname": "receipt_no",
-   "fieldtype": "Data",
-   "label": "Receipt No",
-   "allow_on_submit": 1
   }
  ],
  "istable": 1,

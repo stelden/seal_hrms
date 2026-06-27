@@ -78,10 +78,6 @@ doctype_list_js = {
     "Employee Advance": "public/js/employee_advance_list.js"
 }
 
-# Expense Requisition posts a party payable (Dr Expense / Cr Staff Payable) at approval and is
-# settled by a Payment Entry that references it invoice-style. Registering it here (NOT in
-# advance_payment_payable_doctypes) makes Payment Entry treat it as an outstanding invoice.
-invoice_doctypes = ["Expense Requisition"]
 # Svg Icons
 # ------------------
 # Workspace uses Lucide built-in "id-card" icon (no custom sprite needed)
@@ -204,9 +200,6 @@ doc_events = {
         "on_update": "seal_hrms.seal_hrms.overrides.employee.on_update",
     },
     "Payment Entry": {
-        # Apply the Expense Requisition PE patches before reference validation (covers whichever
-        # app's Payment Entry override won on this site).
-        "before_validate": "seal_hrms.seal_hrms.overrides.payment_entry.ensure_patches",
         # Recompute an Expense Requisition's disbursed/returned amounts + status when a payment
         # that references it is submitted or cancelled.
         "on_submit": "seal_hrms.seal_hrms.overrides.payment_entry.update_requisition_from_payment",
