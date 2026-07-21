@@ -45,16 +45,6 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Leave Plan",
-   "link_count": 0,
-   "link_to": "Leave Plan",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
    "label": "Attendance Request",
    "link_count": 0,
    "link_to": "Attendance Request",

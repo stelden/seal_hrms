@@ -11,16 +11,7 @@
   "ess_banner_image",
   "ess_banner_image_preview",
   "sb0",
-  "planning_overlap_scope",
-  "auto_create_leave_application_reminder_days",
-  "planning_submission_timing_method",
-  "cb0",
-  "leave_plan_concurrency_based_on",
-  "max_concurrent_planned_leaves_percentage",
-  "max_concurrent_planned_leaves_absolute",
-  "planning_submission_lead_days",
-  "planning_submission_deadline_month",
-  "planning_submission_deadline_day"
+  "cb0"
  ],
  "fields": [
   {
@@ -40,90 +31,8 @@
    "label": "Leave Planning"
   },
   {
-   "default": "Department",
-   "description": "Scope for Leave Plan concurrency check.",
-   "fieldname": "planning_overlap_scope",
-   "fieldtype": "Select",
-   "label": "Planning Overlap Scope",
-   "options": "\nNone\nDepartment\nEmployee Group\nBranch\nCompany"
-  },
-  {
    "fieldname": "cb0",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "20",
-   "depends_on": "eval:doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Percent'",
-   "description": "Max <b>percentage</b> of overlapping planned leaves in scope.",
-   "fieldname": "max_concurrent_planned_leaves_percentage",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Max Concurrent Planned Leaves Percent",
-   "mandatory_depends_on": "eval:doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Percent'",
-   "non_negative": 1
-  },
-  {
-   "default": "7",
-   "description": "Days before slot start to send Leave Application reminder (0 to disable).",
-   "fieldname": "auto_create_leave_application_reminder_days",
-   "fieldtype": "Int",
-   "label": "Auto Create Leave Application Reminder Days"
-  },
-  {
-   "default": "1",
-   "depends_on": "eval:doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Absolute'",
-   "description": "Absolute maximum <b>number</b> of overlapping planned leaves in scope.",
-   "fieldname": "max_concurrent_planned_leaves_absolute",
-   "fieldtype": "Int",
-   "label": "Max Concurrent Planned Leaves Absolute",
-   "mandatory_depends_on": "eval:doc.planning_overlap_scope != 'None' && doc.leave_plan_concurrency_based_on=='Absolute'"
-  },
-  {
-   "default": "Lead Days Before Slot",
-   "description": "Method to use for Leave Plan submission deadline.",
-   "fieldname": "planning_submission_timing_method",
-   "fieldtype": "Select",
-   "label": "Planning Submission Timing Method",
-   "options": "Lead Days Before Slot\nFixed Deadline for Period",
-   "reqd": 1
-  },
-  {
-   "default": "30",
-   "depends_on": "eval:doc.planning_submission_timing_method=='Lead Days Before Slot'",
-   "description": "Minimum Leave Plan submission days before the slot's start.",
-   "fieldname": "planning_submission_lead_days",
-   "fieldtype": "Int",
-   "label": "Planning Submission Lead Days",
-   "mandatory_depends_on": "eval:doc.planning_submission_timing_method=='Lead Days Before Slot'",
-   "non_negative": 1
-  },
-  {
-   "default": "January",
-   "depends_on": "eval:doc.planning_submission_timing_method=='Fixed Deadline for Period'",
-   "description": "Month for the fixed submission deadline.",
-   "fieldname": "planning_submission_deadline_month",
-   "fieldtype": "Select",
-   "label": "Planning Submission Deadline Month",
-   "mandatory_depends_on": "eval:doc.planning_submission_timing_method=='Fixed Deadline for Period'",
-   "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
-  },
-  {
-   "default": "28",
-   "depends_on": "eval:doc.planning_submission_timing_method=='Fixed Deadline for Period'",
-   "description": "Day of the month for the fixed submission deadline.",
-   "fieldname": "planning_submission_deadline_day",
-   "fieldtype": "Select",
-   "label": "Planning Submission Deadline Day",
-   "mandatory_depends_on": "eval:doc.planning_submission_timing_method=='Fixed Deadline for Period'",
-   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28"
-  },
-  {
-   "default": "Absolute",
-   "fieldname": "leave_plan_concurrency_based_on",
-   "fieldtype": "Select",
-   "label": "Leave Plan Concurrency Based On",
-   "options": "Absolute\nPercentage",
-   "reqd": 1
   },
   {
    "fieldname": "ess_banner_image_preview",
