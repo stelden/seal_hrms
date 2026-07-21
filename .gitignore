@@ -7,3 +7,6 @@ node_modules
 __pycache__
 cypress/videos
 cypress/screenshots
+
+# Throwaway scratch modules (SEAL_DEV_RULES §2.1)
+scratch/
