@@ -49,6 +49,11 @@ fixtures = [
 # app_include_js = "/assets/seal_hrms/js/seal_hrms.js"
 app_include_js = "/assets/seal_hrms/js/common.js"
 
+# Installation
+# ------------
+after_install = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
+after_migrate = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
+
 # include js, css files in header of web template
 # web_include_css = "/assets/seal_hrms/css/seal_hrms.css"
 # web_include_js = "/assets/seal_hrms/js/seal_hrms.js"

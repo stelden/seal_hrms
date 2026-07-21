@@ -5,3 +5,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 seal_hrms.patches.v1_0.drop_seal_hrms_settings_planning_flags
 seal_hrms.patches.v1_5.drop_dead_leave_planning_settings
+seal_hrms.patches.v1_6.relax_employee_org_permlevels
