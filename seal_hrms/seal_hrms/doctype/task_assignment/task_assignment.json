@@ -1,0 +1,212 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2024-06-17 14:31:31.373589",
+ "description": "Task Assignment",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb0",
+  "naming_series",
+  "cb2",
+  "posting_date",
+  "sb1",
+  "employee",
+  "employee_name",
+  "company",
+  "department",
+  "cb1",
+  "leave_application",
+  "leave_from",
+  "leave_to",
+  "leave_days",
+  "cb0",
+  "task_assignee",
+  "task_assignee_name",
+  "task_assignee_department",
+  "task_assignee_user",
+  "sb2",
+  "task_description",
+  "sb3",
+  "assignment_todos",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Task Assignment",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "sb0",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "task_assignee",
+   "fieldtype": "Link",
+   "label": "Task Assignee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "task_description",
+   "fieldtype": "Text Editor",
+   "label": "Description of Tasks",
+   "reqd": 1
+  },
+  {
+   "fieldname": "sb3",
+   "fieldtype": "Section Break",
+   "label": "My Tasks"
+  },
+  {
+   "fetch_from": "task_assignee.employee_name",
+   "fieldname": "task_assignee_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Assignee Name"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "no_copy": 1,
+   "options": "HR-TA-.YY.MM.-",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Employee Name"
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "leave_application",
+   "fieldtype": "Link",
+   "label": "Leave Application",
+   "options": "Leave Application",
+   "reqd": 1
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "read_only": 1
+  },
+  {
+   "description": "Tasks that will be assigned/reassigned to the assignee.",
+   "fieldname": "assignment_todos",
+   "fieldtype": "Table",
+   "options": "Task Assignment ToDo"
+  },
+  {
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Read Only",
+   "label": "Company"
+  },
+  {
+   "fetch_from": "leave_application.from_date",
+   "fieldname": "leave_from",
+   "fieldtype": "Read Only",
+   "label": "Leave From"
+  },
+  {
+   "fetch_from": "leave_application.to_date",
+   "fieldname": "leave_to",
+   "fieldtype": "Read Only",
+   "label": "Leave To"
+  },
+  {
+   "fetch_from": "leave_application.total_leave_days",
+   "fieldname": "leave_days",
+   "fieldtype": "Read Only",
+   "label": "Leave Days"
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Read Only",
+   "label": "Department"
+  },
+  {
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Description"
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "task_assignee.department",
+   "fieldname": "task_assignee_department",
+   "fieldtype": "Read Only",
+   "label": "Assignee Department"
+  },
+  {
+   "fetch_from": "task_assignee.user_id",
+   "fieldname": "task_assignee_user",
+   "fieldtype": "Read Only",
+   "label": "Assignee User"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2024-09-07 11:02:22.539234",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Task Assignment",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "task_assignee_name, task_description",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "track_seen": 1
+}

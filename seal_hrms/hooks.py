@@ -71,6 +71,12 @@ app_include_js = "/assets/seal_hrms/js/common.js"
 doctype_js = {
     "Company": "public/js/company.js",
     "Employee": "public/js/employee.js",
+    "ToDo": "public/js/todo.js",
+}
+
+doctype_calendar_js = {
+    # Colours the leave calendar by Leave Type.custom_default_color.
+    "Leave Allocation": "public/js/leave_allocation_calendar.js",
 }
 
 
@@ -168,6 +174,26 @@ doc_events = {
         # its phone number.
         "on_update": "seal_hrms.seal_hrms.overrides.contact.on_update",
     },
+    "Leave Type": {
+        # custom_min_leave_days must not exceed max_leaves_allowed.
+        "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
+    },
+    "Leave Application": {
+        # Posting-date and minimum-notice rules, plus reversal of any Task
+        # Assignments raised for the absence when the application is rejected
+        # or cancelled. Distinct from seal_leave_planning, which gates an
+        # application against a declared plan slot.
+        "validate": "seal_hrms.seal_hrms.overrides.leave_application.validate",
+        "on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
+        "on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
+    },
+}
+
+# Permissions
+# -----------
+permission_query_conditions = {
+    # Scope the ToDo list to what a user owns, assigned, or was assigned.
+    "ToDo": "seal_hrms.seal_hrms.overrides.todo.get_permission_query_conditions",
 }
 # Scheduled Tasks
 # ---------------
