@@ -127,9 +127,7 @@ def get_assignable_employees(doctype, txt, searchfield, start, page_len, filters
     if not employee or not leave_application:
         return []
     
-    company, department = frappe.get_value('Employee', employee, ['company', 'department'])
-    
-    restrict_task_assignment = frappe.get_value('Company', company, 'custom_restrict_task_assignment')
+    company = frappe.get_value('Employee', employee, 'company')
 
     leave_app = frappe.get_doc('Leave Application', leave_application)
     from_date = leave_app.from_date
@@ -141,9 +139,10 @@ def get_assignable_employees(doctype, txt, searchfield, start, page_len, filters
         'name': ['!=', employee]
     }
 
-    #if the company restricts task assignment to employees in the same department
-    if restrict_task_assignment:
-        employee_filters['department'] = department
+    # The same-department restriction that used to gate this list has moved to
+    # Leave Planning — coverage is chosen per slot on the Leave Plan and validated
+    # by the concurrency rules — so the Company `custom_restrict_task_assignment`
+    # flag is defunct and no longer read here.
 
     employees = frappe.get_all('Employee', fields=['name', 'employee_name'], filters=employee_filters, ignore_permissions=True)
 
