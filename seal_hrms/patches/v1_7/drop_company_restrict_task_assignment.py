@@ -9,8 +9,15 @@ slot on the Leave Plan and validated by the concurrency rules — so the flag no
 longer does anything. `get_assignable_employees` has already stopped reading it.
 
 Idempotent: the field is absent on sites that never had it (wel.local), present
-on those that did (dev.local). Not shipped by any active fixture, so deleting it
-here is final — nothing re-imports it.
+on those that did (dev.local).
+
+⚠️ Deleting it here is NOT always final. On a site running mamlaka_hill_chapel,
+that app's Customize-Form export declared the same field with
+`sync_on_migrate`, so `sync_customizations` re-created it on the same migrate
+this patch removed it — and a patch runs once, so the field simply stayed.
+That export has since dropped the declaration and the app removes the field on
+its own side (`v2_19.drop_company_task_assignment_flag`). If it ever reappears,
+look for another app declaring it rather than assuming this patch failed.
 """
 
 import json
