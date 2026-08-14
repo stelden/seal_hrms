@@ -66,6 +66,11 @@ function create_bank_account(frm, name_field, callback) {
             fieldtype: 'Link', label: 'Bank', fieldname: 'bank', options: 'Bank', reqd: 1
         },
         {
+            // Domestic bank rails (EFT/RTGS/IFT) need the branch; without it the
+            // account exists but cannot be paid to.
+            fieldtype: 'Data', label: 'Branch Code', fieldname: 'branch_code', reqd: 0
+        },
+        {
             fieldtype: 'Data', label: 'IBAN', fieldname: 'iban', reqd: 0
         }
     ],
@@ -78,6 +83,7 @@ function create_bank_account(frm, name_field, callback) {
                 account_name: values.account_name,
                 account_number: values.account_number,
                 bank: values.bank,
+                branch_code: values.branch_code,
                 iban: values.iban
             },
             callback: function (r) {

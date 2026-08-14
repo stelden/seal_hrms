@@ -174,32 +174,73 @@ def update_contact(phone_number, email_id):
     return contact
 
 @frappe.whitelist()
-def bank_account_exists(account_number):
+def bank_account_exists(account_number, party_type=None, party=None):
+    """Whether a Bank Account already holds this account number.
+
+    Scoped to the party when one is given. An unscoped match is too strict to
+    block a create: joint and pooled accounts legitimately repeat a number
+    across parties, and a global match would refuse the second party outright.
+    """
     if not account_number:
         return False
 
-    account_number = account_number.strip()
+    filters = {"bank_account_no": account_number.strip()}
+    if party_type and party:
+        filters.update({"party_type": party_type, "party": party})
 
-    account_exists = frappe.db.exists("Bank Account", {"bank_account_no": account_number})
+    return bool(frappe.db.exists("Bank Account", filters))
 
-    return bool(account_exists)
 
 @frappe.whitelist()
-def create_bank_account(ref_doctype, ref_name, account_name, account_number, bank, iban=None):
-    if bank_account_exists(account_number):
-        frappe.throw(_("A bank account with this number already exists."))
+def create_bank_account(
+    ref_doctype, ref_name, account_name, account_number, bank,
+    iban=None, branch_code=None, company=None,
+):
+    """Create a party Bank Account that ERPNext's own lookups can find.
 
-    bank_account = frappe.get_doc({
+    `is_default` is what makes the record usable: ERPNext resolves a party's
+    account with `get_party_bank_account`, which filters on
+    `{party_type, party, is_default: 1, disabled: 0}`
+    (erpnext/accounts/doctype/bank_account/bank_account.py). Without the flag the
+    record exists but nothing downstream — Payment Entry, bank file generation,
+    reconciliation — can resolve it, which is how employee bank details ended up
+    invisible to every payment rail.
+
+    `branch_code` is stored because domestic bank rails require it; `company`
+    keeps the record scoped for multi-company sites.
+    """
+    if bank_account_exists(account_number, ref_doctype, ref_name):
+        frappe.throw(_("{0} {1} already has a bank account with this number.").format(
+            _(ref_doctype), ref_name
+        ))
+
+    # Only the first account for a party may claim the default; a later one would
+    # otherwise silently displace the account existing payments already resolve to.
+    has_default = frappe.db.exists("Bank Account", {
+        "party_type": ref_doctype, "party": ref_name, "is_default": 1,
+    })
+
+    return frappe.get_doc({
         "doctype": "Bank Account",
         "account_name": account_name,
         "party_type": ref_doctype,
         "party": ref_name,
         "bank_account_no": account_number,
         "bank": bank,
-        "iban": iban
+        "iban": iban,
+        "branch_code": branch_code,
+        "company": company or _party_company(ref_doctype, ref_name),
+        "is_default": 0 if has_default else 1,
     }).insert()
 
-    return bank_account
+
+def _party_company(party_type, party):
+    """The party's own Company, when its doctype carries one."""
+    if not (party_type and party):
+        return None
+    if not frappe.get_meta(party_type).has_field("company"):
+        return None
+    return frappe.db.get_value(party_type, party, "company")
 
 def split_name(full_name: str):
     parts = full_name.strip().split()

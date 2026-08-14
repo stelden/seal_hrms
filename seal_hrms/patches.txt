@@ -7,3 +7,4 @@ seal_hrms.patches.v1_0.drop_seal_hrms_settings_planning_flags
 seal_hrms.patches.v1_5.drop_dead_leave_planning_settings
 seal_hrms.patches.v1_6.relax_employee_org_permlevels
 seal_hrms.patches.v1_7.drop_company_restrict_task_assignment
+seal_hrms.patches.v1_8.backfill_employee_payout_details
