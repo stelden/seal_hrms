@@ -233,10 +233,31 @@ class PayoutDetailsTest(IntegrationTestCase):
         contact.save(ignore_permissions=True)
         return email, contact.name
 
+    def test_an_01_number_normalises_and_is_stored(self):
+        """`01` numbers are ordinary Kenyan mobiles under the CAK 2024 plan.
+
+        `normalize_kenya_mobile_no` used to return `'254' + digits` for them
+        instead of `'254' + digits[1:]`, producing a 13-digit string that failed
+        its own validator — so every 01 subscriber was rejected as "not a Kenyan
+        mobile number" whenever they typed their number the ordinary local way.
+        Fixed in seal_common; this keeps it fixed.
+        """
+        user, contact = self._user_with_contact(
+            "airtel.payee@example.com", "Airtel", "Payee", "0110 123456"
+        )
+        emp = _employee("Airtel", "Payee", cell_number="")
+        frappe.db.set_value("Employee", emp, {
+            "user_id": user, "custom_contact": contact, "cell_number": "",
+        }, update_modified=False)
+
+        report = payout_details.sync_payout_details(employees=[emp])
+
+        self.assertEqual(report["phones_set"], 1)
+        self.assertEqual(frappe.db.get_value("Employee", emp, "cell_number"), "254110123456")
+
     def test_sync_refuses_to_write_an_invalid_number(self):
-        """`normalize_kenya_mobile_no` returns an invalid 13-digit string for an
-        01-prefixed number, so the normalised value is validated before it is
-        stored — a wrong mobile number pays a stranger."""
+        """The normaliser is lenient about input it cannot resolve, so its output
+        is validated before being stored — a wrong number pays a stranger."""
         user = "badnumber.payee@example.com"
         if not frappe.db.exists("User", user):
             frappe.get_doc({
@@ -246,7 +267,7 @@ class PayoutDetailsTest(IntegrationTestCase):
 
         contact = frappe.get_doc({
             "doctype": "Contact", "first_name": "Ruth", "last_name": "Akinyi",
-            "user": user, "phone_nos": [{"phone": "0110 123456", "is_primary_mobile_no": 1}],
+            "user": user, "phone_nos": [{"phone": "12345", "is_primary_mobile_no": 1}],
         }).insert(ignore_permissions=True)
         self.addCleanup(frappe.delete_doc, "Contact", contact.name, force=True)
 
