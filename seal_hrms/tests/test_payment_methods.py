@@ -209,3 +209,68 @@ class PaymentMethodsTest(IntegrationTestCase):
         frappe.db.set_value("Bank Account", ba.name, "disabled", 1)
 
         self.assertIsNone(payment_methods.get_payee_payment_methods("Employee", emp)["bank"])
+
+    # ── editing the Contact in place ─────────────────────────────────────────
+
+    def test_editing_the_contact_needs_no_email_on_the_employee(self):
+        """The reported bug: "No contact found with this email address".
+
+        The old resolver searched by `Contact.email_id` matching the employee's
+        `prefered_email`, which is blank on most records — so the dialog failed
+        for an employee whose Contact was linked right there on the form.
+        """
+        from seal_hrms.seal_hrms.api import update_employee_contact
+
+        emp = self._employee("Lydia", "Muthoni", "lydia.muthoni@example.com", "254712000006")
+        self.assertFalse(frappe.db.get_value("Employee", emp, "prefered_email"))
+
+        contact = update_employee_contact(emp, mobile_no="0722 415 908",
+                                          first_name="Lydia", last_name="Muthoni Wairimu")
+
+        self.assertEqual(contact.mobile_no, "254722415908")   # normalised
+        self.assertEqual(contact.full_name, "Lydia Muthoni Wairimu")
+
+    def test_editing_the_contact_updates_what_the_rails_read(self):
+        """`fetch_from` only fires when the EMPLOYEE is saved, so the Contact pushes."""
+        from seal_hrms.seal_hrms.api import update_employee_contact
+
+        emp = self._employee("Mercy", "Adhiambo", "mercy.adhiambo@example.com", "254712000007")
+        update_employee_contact(emp, mobile_no="0733 000 222")
+
+        row = frappe.db.get_value(
+            "Employee", emp,
+            ["cell_number", "custom_mobile_account_no", "custom_mobile_account_name"],
+            as_dict=True,
+        )
+        self.assertEqual(row.cell_number, "254733000222")
+        self.assertEqual(row.custom_mobile_account_no, "254733000222")
+        self.assertTrue(row.custom_mobile_account_name)
+
+    def test_editing_refuses_a_contact_belonging_to_someone_else(self):
+        from seal_hrms.seal_hrms.api import update_employee_contact
+
+        emp = self._employee("Nancy", "Cherono", "nancy.cherono@example.com", "254712000008")
+        stranger = _user("other.owner@example.com", "Other", "Owner")
+        foreign = _contact("Other", "Owner", user=stranger, mobile="254766666666")
+        self.addCleanup(frappe.delete_doc, "Contact", foreign.name, force=True)
+        frappe.db.set_value("Employee", emp, "custom_contact", foreign.name,
+                            update_modified=False)
+
+        with self.assertRaises(frappe.ValidationError):
+            update_employee_contact(emp, mobile_no="254700111222")
+
+    def test_editing_without_a_contact_says_so(self):
+        from seal_hrms.seal_hrms.api import update_employee_contact
+
+        emp = self._employee("Peter", "Njoroge")
+        self.assertFalse(frappe.db.get_value("Employee", emp, "custom_contact"))
+
+        with self.assertRaises(frappe.ValidationError):
+            update_employee_contact(emp, mobile_no="254700111333")
+
+    def test_editing_refuses_an_invalid_number(self):
+        from seal_hrms.seal_hrms.api import update_employee_contact
+
+        emp = self._employee("Quentin", "Barasa", "quentin.barasa@example.com", "254712000009")
+        with self.assertRaises(frappe.ValidationError):
+            update_employee_contact(emp, mobile_no="12345")

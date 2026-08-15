@@ -132,46 +132,99 @@ def create_contact(ref_doctype, ref_name, contact_name, phone_number, email_id=N
 
 
 @frappe.whitelist()
-def update_contact(phone_number, email_id):
-    # Validate inputs
+def get_employee_contact_details(employee):
+    """The employee's Contact, for pre-filling the edit dialog."""
+    contact = frappe.db.get_value("Employee", employee, "custom_contact")
+    if not contact:
+        return None
+    return frappe.db.get_value(
+        "Contact", contact,
+        ["name", "first_name", "middle_name", "last_name", "full_name",
+         "mobile_no", "phone", "email_id", "user"],
+        as_dict=True,
+    )
+
+
+@frappe.whitelist()
+def update_employee_contact(employee, mobile_no=None, first_name=None,
+                            middle_name=None, last_name=None):
+    """Edit the employee's own Contact in place.
+
+    Addressed by the Employee, not by an email address. The previous version
+    looked the Contact up by `Contact.email_id` matching the employee's
+    `prefered_email`, which is blank on most records — so the dialog reported
+    "No contact found with this email address" for an employee whose Contact was
+    sitting right there on the form.
+
+    Edits the linked Contact rather than searching for one, so it can never
+    update somebody else's record; the same ownership rule the Employee
+    controller enforces is checked again here, because this is a whitelisted
+    endpoint and not only reachable from that form.
+
+    The name matters as much as the number: `Contact.full_name` is the account
+    name a mobile payment is made out to.
+    """
+    contact_name = frappe.db.get_value("Employee", employee, "custom_contact")
+    if not contact_name:
+        frappe.throw(
+            _("{0} has no Contact yet. Pick the Contact belonging to their User first.")
+            .format(employee),
+            title=_("No Contact"),
+        )
+
+    _assert_contact_belongs_to_employee(contact_name, employee)
+
+    contact = frappe.get_doc("Contact", contact_name)
+    contact.check_permission("write")
+
+    if mobile_no:
+        _set_primary_mobile(contact, mobile_no)
+
+    for fieldname, value in (("first_name", first_name),
+                             ("middle_name", middle_name),
+                             ("last_name", last_name)):
+        if value is not None:
+            contact.set(fieldname, value.strip())
+
+    if not (contact.first_name or "").strip():
+        frappe.throw(_("A contact needs a first name."))
+
+    contact.save(ignore_permissions=True)
+    return contact
+
+
+def _assert_contact_belongs_to_employee(contact, employee):
+    """Refuse to edit a Contact that is not this employee's own User's.
+
+    `Contact.user` is not unique and Frappe adopts any Contact whose email
+    matches when creating one for a User, so a Supplier's Contact can carry an
+    employee's user. Editing the wrong one changes where their money goes.
+    """
+    user_id = frappe.db.get_value("Employee", employee, "user_id")
+    owner = frappe.db.get_value("Contact", contact, "user")
+    if not user_id or owner != user_id:
+        frappe.throw(
+            _("Contact {0} does not belong to {1}'s User.").format(contact, employee),
+            title=_("Contact Belongs to Someone Else"),
+        )
+
+
+def _set_primary_mobile(contact, phone_number):
+    """Make `phone_number` the Contact's primary mobile.
+
+    Frappe derives the read-only `Contact.mobile_no` from whichever child row
+    carries `is_primary_mobile_no`, and blanks it when none does — so the flag
+    is the thing being set here, not the parent field.
+    """
     normalized = normalize_kenya_mobile_no(phone_number)
     if not normalized or not is_valid_kenya_mobile_no(normalized):
-        frappe.throw(_("Invalid Kenyan mobile number."))
-    
-    if email_id and not validate_email_address(email_id):
-        frappe.throw(_("Invalid email address."))
-    
-    if not contact_exists(email_id=email_id):
-        frappe.throw(_("No contact found with this email address."))
-    
-    # Fetch the most recently modified contact with the given email. We expect only one
-    contacts = frappe.get_all("Contact", filters={"email_id": email_id}, order_by="modified desc", limit=1)
-    
-    contact = contacts and frappe.get_doc("Contact", contacts[0].name) or None
+        frappe.throw(_("{0} is not a valid Kenyan mobile number.").format(phone_number))
 
-    if contact:
-        existing_phones = [phone.phone for phone in contact.phone_nos]
+    for row in contact.phone_nos:
+        row.is_primary_mobile_no = 1 if row.phone == normalized else 0
 
-        if normalized not in existing_phones:
-            # If adding a new phone, mark all existing as non-primary
-            for phone in contact.phone_nos:
-                phone.is_primary_mobile_no = 0
-
-            contact.append("phone_nos", {
-                "phone": normalized,
-                "is_primary_mobile_no": 1
-            })
-        else:
-            # If the phone already exists, ensure it's marked as primary
-            for phone in contact.phone_nos:
-                if phone.phone == normalized:
-                    phone.is_primary_mobile_no = 1
-                else:
-                    phone.is_primary_mobile_no = 0
-
-        contact.save(ignore_permissions=True)
-                
-    return contact
+    if not any(row.phone == normalized for row in contact.phone_nos):
+        contact.append("phone_nos", {"phone": normalized, "is_primary_mobile_no": 1})
 
 @frappe.whitelist()
 def bank_account_exists(account_number, party_type=None, party=None):

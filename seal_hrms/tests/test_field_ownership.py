@@ -109,3 +109,63 @@ class FieldOwnershipTest(unittest.TestCase):
                           "custom_bank_provider", "custom_mobile_account_name",
                           "custom_mobile_account_no", "custom_cell_number_provider"):
             self.assertIn(fieldname, declared)
+
+    def test_field_order_does_not_pin_the_payment_fields(self):
+        """`field_order` overrides `insert_after`, so a pinned field cannot move.
+
+        The Payment Details fields are positioned by `insert_after`. Naming any of
+        them in the layout snapshot would freeze it wherever the snapshot was
+        taken — which is how the mobile provider ended up in Address & Contacts
+        while the rest of its section sat in Overview.
+        """
+        with open(CUSTOM_DIR / "employee.json") as fh:
+            data = json.load(fh)
+
+        pinned = set()
+        for ps in data.get("property_setters", []):
+            if ps.get("property") == "field_order":
+                pinned |= set(json.loads(ps["value"]))
+
+        payment_fields = {
+            "custom_payment_details", "custom_payment_details_cb0",
+            "custom_bank_account_name", "custom_bank_account_no", "custom_bank_provider",
+            "custom_mobile_account_name", "custom_mobile_account_no",
+            "custom_cell_number_provider",
+        }
+        self.assertEqual(sorted(pinned & payment_fields), [])
+        # And nothing deleted may linger there either.
+        self.assertEqual(sorted(pinned & RETIRED_PAYMENT_FIELDS), [])
+
+
+class EmployeeFormTest(unittest.TestCase):
+    """The bits of the form an operator actually relies on."""
+
+    def test_payment_details_renders_on_the_overview_tab(self):
+        """Anchored mid-tab on purpose.
+
+        Inserting after a tab's LAST field puts the new section after the
+        following Tab Break, which landed Payment Details in "Joining".
+        """
+        meta = frappe.get_meta("Employee")
+        tab = None
+        placement = {}
+        for field in meta.fields:
+            if field.fieldtype == "Tab Break":
+                tab = field.label or field.fieldname
+            placement[field.fieldname] = tab
+
+        for fieldname in ("custom_payment_details", "custom_bank_account_name",
+                          "custom_bank_account_no", "custom_bank_provider",
+                          "custom_mobile_account_name", "custom_mobile_account_no",
+                          "custom_cell_number_provider"):
+            self.assertEqual(placement.get(fieldname), "Overview", fieldname)
+
+    def test_create_bank_account_is_offered_only_while_there_is_none(self):
+        depends_on = frappe.get_meta("Employee").get_field(
+            "custom_create_salary_bank_account").depends_on or ""
+        self.assertIn("!doc.custom_salary_bank_account", depends_on.replace(" ", ""))
+
+    def test_update_contact_is_offered_only_when_there_is_one(self):
+        depends_on = frappe.get_meta("Employee").get_field(
+            "custom_update_contact").depends_on or ""
+        self.assertIn("doc.custom_contact", depends_on)
