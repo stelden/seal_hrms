@@ -36,7 +36,7 @@ def execute():
     print(
         "[seal_hrms] backfill_employee_payout_details: "
         f"considered={report['considered']} phones_set={report['phones_set']} "
-        f"accounts_created={report['accounts_created']} "
+        f"contacts_linked={report['contacts_linked']} "
         f"defaults_fixed={report['defaults_fixed']} skipped={len(report['skipped'])}"
     )
 

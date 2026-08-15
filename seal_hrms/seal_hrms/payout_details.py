@@ -1,22 +1,24 @@
 # Copyright (c) 2026, Stelden EA Ltd and contributors
 # For license information, please see license.txt
 """
-Normalise employee payout details onto the native ERPNext fields.
+Put employee payout details onto the fields payment rails actually read.
 
-Employee payee data is captured in several places on this bench — the seal_hrms
-custom fields (`custom_preferred_payment_method` + `custom_mpesa_contact` /
-`custom_bank_account`, or the flattened `custom_account_no` / `custom_account_name`),
-and the stock `Employee.bank_ac_no` / `bank_name` / `cell_number`. Payment rails,
-however, read only the native ones:
+An employee's details live on two records — a Contact for mobile money, a Bank
+Account for bank transfers — but the rails downstream read stock ERPNext fields:
 
 * mobile money reads `Employee.cell_number`;
 * every bank rail resolves the beneficiary through ERPNext's
-  `get_party_bank_account`, i.e. a `Bank Account` record with `is_default = 1`.
+  `get_party_bank_account`, i.e. a `Bank Account` with `is_default = 1`.
 
-This module copies whatever an employee actually has onto those two native
-surfaces. Doing it here — in the app that owns Employee — is what lets the
-disbursement and bank-integration apps stay ignorant of each other: they both
-read stock ERPNext fields and never this module.
+`fetch_from` keeps `cell_number` in step with the Contact going forward. This
+module handles what `fetch_from` cannot: records that already exist, Contacts
+Frappe queued but never created, and Bank Accounts saved before `is_default` was
+being set — which exist, show on the Employee, and are invisible to every payment
+path.
+
+Doing this here — in the app that owns Employee — is what lets the disbursement
+and bank-integration apps stay ignorant of each other: they read stock fields and
+never this module.
 
 Everything is idempotent and additive. Existing values are never overwritten and
 existing Bank Accounts are never edited, so a re-run is a no-op.
@@ -30,8 +32,6 @@ from seal_common.seal_common.mno import (
     normalize_kenya_mobile_no,
 )
 
-MPESA = "Mpesa"
-
 
 @frappe.whitelist()
 def sync_employee_payout_details(employees=None, company=None):
@@ -41,7 +41,7 @@ def sync_employee_payout_details(employees=None, company=None):
 
 
 def sync_payout_details(employees=None, company=None, commit=False):
-    """Copy each employee's payout details onto `cell_number` / a default Bank Account.
+    """Align each employee's stock fields with the records they point at.
 
     Args:
         employees: optional list (or JSON list) of Employee names. Defaults to
@@ -58,7 +58,7 @@ def sync_payout_details(employees=None, company=None, commit=False):
     with a session switch.
     """
     names = _resolve_employee_names(employees, company)
-    report = {"considered": len(names), "phones_set": 0, "accounts_created": 0,
+    report = {"considered": len(names), "phones_set": 0, "contacts_linked": 0,
               "defaults_fixed": 0, "skipped": []}
 
     for name in names:
@@ -89,43 +89,47 @@ def _resolve_employee_names(employees, company):
 def _sync_one(name, report):
     emp = frappe.db.get_value(
         "Employee", name,
-        ["name", "employee_name", "company", "cell_number", "bank_ac_no", "bank_name",
-         "custom_preferred_payment_method", "custom_mpesa_contact", "custom_bank_account",
-         "custom_account_no", "custom_account_name"],
+        ["name", "employee_name", "company", "user_id", "cell_number",
+         "custom_contact", "custom_salary_bank_account"],
         as_dict=True,
     )
     if not emp:
         report["skipped"].append({"employee": name, "reason": _("Employee not found.")})
         return
 
-    did_something = _sync_phone(emp, report)
-    did_something = _sync_bank_account(emp, report) or did_something
+    mobile = _sync_mobile(emp, report)
+    bank = _sync_bank(emp, report)
 
-    if not did_something:
+    if not (mobile or bank):
         report["skipped"].append({
             "employee": name,
-            "reason": _("No usable payout details — needs a mobile number or bank account."),
+            "reason": _("Cannot be paid — needs a Contact with a mobile number, or a bank account."),
         })
 
 
 # ── mobile money ─────────────────────────────────────────────────────────────
 
-def _sync_phone(emp, report):
-    """Stamp a valid Kenyan mobile number onto the native `cell_number`."""
-    if is_valid_kenya_mobile_no(emp.cell_number or ""):
-        return True  # already usable — never rewrite what payroll may rely on
-
-    raw = _candidate_phone(emp)
-    if not raw:
+def _sync_mobile(emp, report):
+    """Link the User's Contact if missing, then mirror its number onto `cell_number`."""
+    contact = emp.custom_contact or _adopt_user_contact(emp, report)
+    if not contact:
         return False
 
-    normalized = normalize_kenya_mobile_no(raw)
+    number = frappe.db.get_value("Contact", contact, "mobile_no") \
+        or frappe.db.get_value("Contact", contact, "phone")
+    if not number:
+        return False
+
+    if emp.cell_number and is_valid_kenya_mobile_no(emp.cell_number):
+        return True  # already usable — never rewrite what payroll may rely on
+
+    normalized = normalize_kenya_mobile_no(number)
     # Validate the normaliser's own output: it is lenient about input it cannot
     # actually resolve, and a wrong mobile number sends money to a stranger.
     if not (normalized and is_valid_kenya_mobile_no(normalized)):
         report["skipped"].append({
             "employee": emp.name,
-            "reason": _("Mobile number {0} is not a valid Kenyan number.").format(raw),
+            "reason": _("Mobile number {0} is not a valid Kenyan number.").format(number),
         })
         return False
 
@@ -135,27 +139,40 @@ def _sync_phone(emp, report):
     return True
 
 
-def _candidate_phone(emp):
-    """The best raw phone we hold, in order of how deliberately it was captured."""
-    if emp.custom_mpesa_contact:
-        contact = frappe.db.get_value(
-            "Contact", emp.custom_mpesa_contact, ["mobile_no", "phone"], as_dict=True
-        ) or {}
-        if contact.get("mobile_no") or contact.get("phone"):
-            return contact.get("mobile_no") or contact.get("phone")
+def _adopt_user_contact(emp, report):
+    """Find the Contact belonging to this employee's User, and link it.
 
-    if emp.custom_preferred_payment_method == MPESA and emp.custom_account_no:
-        return emp.custom_account_no
+    Frappe creates a Contact per User in a **background job**, so it may never
+    have run; and because it adopts any Contact matching the user's email, one
+    User can end up owning several. Where that is ambiguous the choice is left to
+    a human rather than guessed — paying the wrong number is not recoverable.
+    """
+    if not emp.user_id:
+        return None
 
-    return emp.cell_number or None
+    candidates = frappe.get_all(
+        "Contact", filters={"user": emp.user_id}, pluck="name", order_by="creation asc"
+    )
+    if not candidates:
+        return None
+    if len(candidates) > 1:
+        report["skipped"].append({
+            "employee": emp.name,
+            "reason": _("User {0} has {1} Contacts — pick the right one on the employee record.")
+            .format(emp.user_id, len(candidates)),
+        })
+        return None
+
+    frappe.db.set_value("Employee", emp.name, "custom_contact", candidates[0],
+                        update_modified=False)
+    report["contacts_linked"] += 1
+    return candidates[0]
 
 
 # ── bank rail ────────────────────────────────────────────────────────────────
 
-def _sync_bank_account(emp, report):
-    """Ensure the employee has a resolvable default Bank Account."""
-    from seal_hrms.seal_hrms.api import create_bank_account
-
+def _sync_bank(emp, report):
+    """Ensure the employee's Bank Account is one ERPNext can resolve."""
     if frappe.db.exists("Bank Account", {
         "party_type": "Employee", "party": emp.name, "is_default": 1, "disabled": 0,
     }):
@@ -166,45 +183,12 @@ def _sync_bank_account(emp, report):
     orphan = frappe.db.get_value("Bank Account", {
         "party_type": "Employee", "party": emp.name, "disabled": 0,
     }, "name")
-    if orphan:
-        frappe.db.set_value("Bank Account", orphan, "is_default", 1, update_modified=False)
-        report["defaults_fixed"] += 1
-        return True
-
-    account_no, bank = _candidate_bank(emp)
-    if not (account_no and bank):
+    if not orphan:
         return False
 
-    create_bank_account(
-        ref_doctype="Employee",
-        ref_name=emp.name,
-        account_name=emp.custom_account_name or emp.employee_name,
-        account_number=account_no,
-        bank=bank,
-        company=emp.company,
-    )
-    report["accounts_created"] += 1
+    frappe.db.set_value("Bank Account", orphan, "is_default", 1, update_modified=False)
+    if not emp.custom_salary_bank_account:
+        frappe.db.set_value("Employee", emp.name, "custom_salary_bank_account", orphan,
+                            update_modified=False)
+    report["defaults_fixed"] += 1
     return True
-
-
-def _candidate_bank(emp):
-    """(account_no, Bank) from whatever bank details the employee carries.
-
-    `Employee.bank_name` is free text, so it is matched against the Bank master
-    by name and then by SWIFT; an unmatched bank yields no account rather than a
-    record pointing at a Bank that does not exist.
-    """
-    account_no = (emp.bank_ac_no or "").strip()
-    if not account_no and emp.custom_preferred_payment_method not in (None, "", MPESA):
-        account_no = (emp.custom_account_no or "").strip()
-    if not account_no:
-        return None, None
-
-    raw_bank = (emp.bank_name or "").strip()
-    if not raw_bank:
-        return None, None
-
-    bank = frappe.db.get_value("Bank", raw_bank, "name") or frappe.db.get_value(
-        "Bank", {"swift_number": raw_bank}, "name"
-    )
-    return account_no, bank

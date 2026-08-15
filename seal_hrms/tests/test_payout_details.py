@@ -157,25 +157,102 @@ class PayoutDetailsTest(IntegrationTestCase):
         report = payout_details.sync_payout_details(employees=[emp])
 
         self.assertEqual(report["defaults_fixed"], 1)
-        self.assertEqual(report["accounts_created"], 0)   # repaired, not duplicated
         self.assertEqual(get_party_bank_account("Employee", emp), orphan.name)
+        # Repaired in place, not duplicated.
+        self.assertEqual(
+            frappe.db.count("Bank Account", {"party_type": "Employee", "party": emp}), 1
+        )
 
     def test_sync_is_idempotent(self):
         emp = _employee("Faith", "Nyambura", cell_number="254711223344")
         first = payout_details.sync_payout_details(employees=[emp])
         second = payout_details.sync_payout_details(employees=[emp])
 
-        for key in ("phones_set", "accounts_created", "defaults_fixed"):
+        for key in ("phones_set", "contacts_linked", "defaults_fixed"):
             self.assertEqual(first[key], second[key], key)
+
+    def test_sync_links_the_users_contact(self):
+        """Adopt the Contact Frappe made for the User, so the link need not be manual."""
+        user, contact = self._user_with_contact(
+            "linkable.payee@example.com", "Linkable", "Payee", "254712909090"
+        )
+        emp = _employee("Linkable", "Payee", cell_number="254712909090")
+        frappe.db.set_value("Employee", emp, {"user_id": user, "custom_contact": None},
+                            update_modified=False)
+
+        report = payout_details.sync_payout_details(employees=[emp])
+
+        self.assertEqual(report["contacts_linked"], 1)
+        self.assertEqual(frappe.db.get_value("Employee", emp, "custom_contact"), contact)
+
+    def test_sync_refuses_to_guess_between_several_contacts(self):
+        """One User can own several Contacts, with different numbers.
+
+        Frappe adopts any Contact whose email matches rather than making a fresh
+        one, and `Contact.user` is not unique. Guessing here would pay whichever
+        number happened to sort first.
+        """
+        user, _ = self._user_with_contact(
+            "ambiguous.payee@example.com", "Ambiguous", "Payee", "254712808080"
+        )
+        second = frappe.get_doc({
+            "doctype": "Contact", "first_name": "Ambiguous", "last_name": "Payee Supplies",
+            "user": user,
+            "phone_nos": [{"phone": "254799000111", "is_primary_mobile_no": 1}],
+        }).insert(ignore_permissions=True)
+        self.addCleanup(frappe.delete_doc, "Contact", second.name, force=True)
+
+        emp = _employee("Ambiguous", "Payee", cell_number="254712808080")
+        frappe.db.set_value("Employee", emp, {"user_id": user, "custom_contact": None},
+                            update_modified=False)
+
+        report = payout_details.sync_payout_details(employees=[emp])
+
+        self.assertEqual(report["contacts_linked"], 0)
+        self.assertFalse(frappe.db.get_value("Employee", emp, "custom_contact"))
+        self.assertTrue(any("has 2 Contacts" in s["reason"] for s in report["skipped"]))
+
+    def _user_with_contact(self, email, first, last, mobile):
+        """A User and the single Contact Frappe creates for it, carrying `mobile`.
+
+        Frappe creates that Contact itself on User save, so the test uses it
+        rather than adding a second one — which is what a real site looks like.
+        """
+        if not frappe.db.exists("User", email):
+            frappe.get_doc({
+                "doctype": "User", "email": email, "first_name": first,
+                "last_name": last, "enabled": 1, "send_welcome_email": 0,
+            }).insert(ignore_permissions=True)
+
+        names = frappe.get_all("Contact", filters={"user": email}, pluck="name")
+        self.assertEqual(len(names), 1, f"expected exactly one Contact for {email}")
+
+        contact = frappe.get_doc("Contact", names[0])
+        contact.set("phone_nos", [])
+        contact.append("phone_nos", {"phone": mobile, "is_primary_mobile_no": 1})
+        contact.save(ignore_permissions=True)
+        return email, contact.name
 
     def test_sync_refuses_to_write_an_invalid_number(self):
         """`normalize_kenya_mobile_no` returns an invalid 13-digit string for an
         01-prefixed number, so the normalised value is validated before it is
         stored — a wrong mobile number pays a stranger."""
+        user = "badnumber.payee@example.com"
+        if not frappe.db.exists("User", user):
+            frappe.get_doc({
+                "doctype": "User", "email": user, "first_name": "Ruth",
+                "last_name": "Akinyi", "enabled": 1, "send_welcome_email": 0,
+            }).insert(ignore_permissions=True)
+
+        contact = frappe.get_doc({
+            "doctype": "Contact", "first_name": "Ruth", "last_name": "Akinyi",
+            "user": user, "phone_nos": [{"phone": "0110 123456", "is_primary_mobile_no": 1}],
+        }).insert(ignore_permissions=True)
+        self.addCleanup(frappe.delete_doc, "Contact", contact.name, force=True)
+
         emp = _employee("Ruth", "Akinyi", cell_number="")
         frappe.db.set_value("Employee", emp, {
-            "custom_preferred_payment_method": "Mpesa",
-            "custom_account_no": "0110 123456",
+            "user_id": user, "custom_contact": contact.name, "cell_number": "",
         }, update_modified=False)
 
         report = payout_details.sync_payout_details(employees=[emp])

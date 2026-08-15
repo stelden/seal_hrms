@@ -179,6 +179,11 @@ doc_events = {
         # its phone number.
         "on_update": "seal_hrms.seal_hrms.overrides.contact.on_update",
     },
+    "Employee": {
+        # The Contact must belong to the employee's own User, and the Bank
+        # Account to this employee — both guard against paying the wrong person.
+        "validate": "seal_hrms.seal_hrms.overrides.employee.validate",
+    },
     "Leave Type": {
         # custom_min_leave_days must not exceed max_leaves_allowed.
         "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
