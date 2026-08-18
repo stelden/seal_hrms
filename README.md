@@ -1,33 +1,53 @@
-### SEAL HRMS
+# SEAL HRMS
 
-SEAL Customizations for Frappe HRMS
+> Kenyan statutory payroll reporting and an employee self-service shell.
 
-### Installation
+A thin layer on Frappe HRMS: the monthly statutory registers (NSSF, SHIF, HELB, salary register, bank
+advice), a Self Service workspace aimed at staff rather than HR officers, and the Employee-master
+additions HRMS does not ship — dependants and beneficiaries, separation types, task hand-over.
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+## Dependencies
+
+- `erpnext`
+- `hrms`
+
+Frappe v16 / ERPNext v16.
+
+## Installation
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
-bench get-app $URL_OF_THIS_REPO --branch develop
-bench install-app seal_hrms
+bench get-app seal_hrms --branch version-16
+bench --site <site> install-app seal_hrms
+bench --site <site> migrate
 ```
 
-### Contributing
+## Documentation
 
-This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
+See [`DOCUMENTATION.md`](DOCUMENTATION.md) for the full developer and user guide —
+what each record is for, how the modules fit together, the settings, and the
+gotchas that have cost real time.
+
+## Testing
+
+```bash
+# Browser
+cd apps/seal_hrms/e2e && npx playwright test
+
+# Python
+bench --site <site> run-tests --app seal_hrms
+```
+
+## Contributing
+
+This app uses `pre-commit` for formatting and linting (ruff, eslint, prettier,
+pyupgrade):
 
 ```bash
 cd apps/seal_hrms
 pre-commit install
 ```
 
-Pre-commit is configured to use the following tools for checking and formatting your code:
+## Licence
 
-- ruff
-- eslint
-- prettier
-- pyupgrade
-
-### License
-
-gpl-3.0
+GPL-3.0. See `license.txt`.

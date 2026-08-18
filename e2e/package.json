@@ -1,0 +1,7 @@
+{
+ "name": "seal-hrms-e2e",
+ "private": true,
+ "devDependencies": {
+  "@playwright/test": "^1.47.0"
+ }
+}

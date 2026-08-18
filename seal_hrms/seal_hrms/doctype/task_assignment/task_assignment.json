@@ -52,7 +52,8 @@
    "fieldtype": "Link",
    "label": "Task Assignee",
    "options": "Employee",
-   "reqd": 1
+   "reqd": 1,
+   "description": "Who takes this work on while the member of staff is away."
   },
   {
    "fieldname": "sb1",
@@ -62,7 +63,8 @@
    "fieldname": "task_description",
    "fieldtype": "Text Editor",
    "label": "Description of Tasks",
-   "reqd": 1
+   "reqd": 1,
+   "description": "What has to be covered, in enough detail for someone who does not do this job."
   },
   {
    "fieldname": "sb3",
@@ -82,7 +84,8 @@
    "fieldtype": "Link",
    "label": "Employee",
    "options": "Employee",
-   "reqd": 1
+   "reqd": 1,
+   "description": "The member of staff who is away."
   },
   {
    "fieldname": "naming_series",
@@ -109,7 +112,8 @@
    "fieldtype": "Link",
    "label": "Leave Application",
    "options": "Leave Application",
-   "reqd": 1
+   "reqd": 1,
+   "description": "The leave this hand-over is for."
   },
   {
    "fieldname": "posting_date",

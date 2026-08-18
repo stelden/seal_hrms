@@ -1,0 +1,55 @@
+{
+  "cookies": [
+    {
+      "name": "sid",
+      "value": "f87c6cacc2110fb3d33c27c29168164a12c89e052510cc130e99c118",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1787680370.587,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "system_user",
+      "value": "yes",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "full_name",
+      "value": "Administrator",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "user_id",
+      "value": "Administrator",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "user_lang",
+      "value": "en",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

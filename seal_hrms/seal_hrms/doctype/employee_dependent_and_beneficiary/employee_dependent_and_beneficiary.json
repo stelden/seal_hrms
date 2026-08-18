@@ -47,7 +47,9 @@
    "fieldtype": "Link",
    "label": "Employee",
    "options": "Employee",
-   "reqd": 1
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "description": "The member of staff this person is connected to."
   },
   {
    "fetch_from": "employee.employee_name",
@@ -61,17 +63,20 @@
    "fieldname": "first_name",
    "fieldtype": "Data",
    "label": "First Name",
-   "reqd": 1
+   "reqd": 1,
+   "description": "As it appears on their ID."
   },
   {
    "fieldname": "middle_name",
    "fieldtype": "Data",
-   "label": "Middle Name"
+   "label": "Middle Name",
+   "description": "As it appears on their ID."
   },
   {
    "fieldname": "last_name",
    "fieldtype": "Data",
-   "label": "Last Name"
+   "label": "Last Name",
+   "description": "As it appears on their ID."
   },
   {
    "fieldname": "full_name",
@@ -85,17 +90,20 @@
    "fieldtype": "Link",
    "label": "Gender",
    "options": "Gender",
-   "reqd": 1
+   "reqd": 1,
+   "description": "Recorded for benefit schemes that need it."
   },
   {
    "fieldname": "dob",
    "fieldtype": "Date",
-   "label": "Date of Birth"
+   "label": "Date of Birth",
+   "description": "Used to work out age, and whether a child is still eligible."
   },
   {
    "fieldname": "age",
    "fieldtype": "Int",
-   "label": "Age"
+   "label": "Age",
+   "description": "Worked out from the date of birth."
   },
   {
    "fieldname": "cb1",
@@ -106,19 +114,24 @@
    "fieldtype": "Select",
    "label": "Type",
    "options": "\nDependent\nBeneficiary\nDependent and Beneficiary",
-   "reqd": 1
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "description": "Whether this person is a dependant, a beneficiary, or both."
   },
   {
    "fieldname": "relationship",
    "fieldtype": "Select",
    "label": "Relationship",
    "options": "\nSpouse\nParent\nSibling\nRelative\nGuardian\nLegal Dependant\nHousehold Member",
-   "reqd": 1
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "description": "How they are related to the member of staff."
   },
   {
    "fieldname": "contact_details",
    "fieldtype": "Small Text",
-   "label": "Contact Details"
+   "label": "Contact Details",
+   "description": "How to reach them if the member of staff cannot be reached."
   }
  ],
  "grid_page_length": 50,
