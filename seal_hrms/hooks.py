@@ -302,3 +302,9 @@ scheduler_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+# App Health checks, rendered at /app/app-health/seal_hrms.
+app_health_checks = [
+    "seal_hrms.health.checks.cover_assigned_to_inactive_staff",
+    "seal_hrms.health.checks.cover_without_an_assignee",
+    "seal_hrms.health.checks.beneficiary_records_present",
+]
