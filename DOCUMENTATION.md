@@ -101,5 +101,11 @@ leaves a blank form and no server-side trace.
 
 ## 6. Changelog
 
+- **2026-09-18** — 1.2.1. On My Desk this app's area chip reads **Staff Tasks**
+  instead of "SEAL HRMS" (`hooks.py` → `seal_desk_group_labels`). Chosen because
+  what reaches a desk from this module is Task Assignments, and "HR" is already
+  the chip of the HRMS app's own module. Display only: filters and links still
+  use the module name, and on a site without My Desk the declaration does
+  nothing.
 - **2026-08-18** — First `DOCUMENTATION.md`. Added the browser suite, standard
   filters on the two list doctypes, and descriptions for every user-set field.

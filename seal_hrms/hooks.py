@@ -308,3 +308,13 @@ app_health_checks = [
     "seal_hrms.health.checks.cover_without_an_assignee",
     "seal_hrms.health.checks.beneficiary_records_present",
 ]
+
+# ---------------------------------------------------------------------------
+# My Desk (seal_desk) — a SUBSCRIPTION, not a dependency (SEAL_DEV_RULES §3.15).
+#
+# Plain data that only seal_desk reads, and only on sites where it is installed:
+# anywhere else it is inert. seal_desk must never appear in required_apps.
+#
+# What the desk's area chip says for this app's module — the work, not the app.
+# ---------------------------------------------------------------------------
+seal_desk_group_labels = {"SEAL HRMS": "Staff Tasks"}
