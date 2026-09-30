@@ -200,6 +200,12 @@ doc_events = {
         "on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
         "on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
     },
+    "Expense Claim": {
+        # Approval by whoever approves in an absent approver's place (acting.py).
+        "validate": "seal_hrms.seal_hrms.overrides.expense_claim.validate",
+        "on_update": "seal_hrms.seal_hrms.overrides.expense_claim.on_update",
+        "on_submit": "seal_hrms.seal_hrms.overrides.expense_claim.on_submit",
+    },
 }
 
 # Permissions
@@ -320,6 +326,7 @@ app_health_checks = [
     "seal_hrms.health.checks.cover_without_an_assignee",
     "seal_hrms.health.checks.work_left_with_stand_ins",
     "seal_hrms.health.checks.leave_started_without_agreed_cover",
+    "seal_hrms.health.checks.approvals_with_nobody_to_give_them",
     "seal_hrms.health.checks.beneficiary_records_present",
 ]
 
@@ -332,3 +339,22 @@ app_health_checks = [
 # What the desk's area chip says for this app's module — the work, not the app.
 # ---------------------------------------------------------------------------
 seal_desk_group_labels = {"SEAL HRMS": "Staff Tasks"}
+
+# Approvals a member of staff can hand over while on leave (seal_hrms.acting).
+# Read from each app's hooks module, not frappe.get_hooks, because a nested dict
+# is reshaped by get_hooks (SEAL_DEV_RULES §2.17). Other apps declare their own
+# kinds in their own hooks.py under this name.
+task_assignment_authorities = {
+    "leave_approval": {
+        "label": "Approving leave",
+        "role": "Leave Approver",
+        "holds": "seal_hrms.seal_hrms.acting.holds_leave_approval",
+        "pending": "seal_hrms.seal_hrms.acting.pending_leave_approvals",
+    },
+    "expense_approval": {
+        "label": "Approving expense claims",
+        "role": "Expense Approver",
+        "holds": "seal_hrms.seal_hrms.acting.holds_expense_approval",
+        "pending": "seal_hrms.seal_hrms.acting.pending_expense_approvals",
+    },
+}

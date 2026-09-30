@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 11:59:19.459271",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "field_order": [
+  "authority_label",
+  "task_assignee",
+  "cb0",
+  "acceptance",
+  "decline_reason",
+  "sb1",
+  "authority",
+  "role_granted",
+  "role_added_by_assignment",
+  "shares"
+ ],
+ "fields": [
+  {
+   "fieldname": "authority_label",
+   "fieldtype": "Data",
+   "label": "What You Approve",
+   "read_only": 1,
+   "in_list_view": 1,
+   "description": "Found from who you approve for. Add these with Find What I Approve."
+  },
+  {
+   "fieldname": "task_assignee",
+   "fieldtype": "Link",
+   "options": "Employee",
+   "label": "Approves in Your Place",
+   "in_list_view": 1,
+   "ignore_user_permissions": 1,
+   "description": "Leave blank for the stand-in named on the handover. They approve on your behalf only while you are away."
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acceptance",
+   "fieldtype": "Select",
+   "label": "Their Answer",
+   "options": "\nPending\nAccepted\nDeclined",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "in_list_view": 1,
+   "description": "Approving for someone is agreed separately from covering their work."
+  },
+  {
+   "fieldname": "decline_reason",
+   "fieldtype": "Small Text",
+   "label": "Why They Declined",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.acceptance=='Declined'"
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "While You Are Away",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "authority",
+   "fieldtype": "Data",
+   "label": "Kind",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "role_granted",
+   "fieldtype": "Data",
+   "label": "Access Given",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "The access they were given for the leave, taken away again when you return."
+  },
+  {
+   "fieldname": "role_added_by_assignment",
+   "fieldtype": "Check",
+   "label": "Access Added for This Leave",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "shares",
+   "fieldtype": "Small Text",
+   "label": "Documents Opened for Them",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "module": "SEAL HRMS",
+ "name": "Task Assignment Authority",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "modified": "2026-09-30 11:59:19.459271"
+}

@@ -11,12 +11,18 @@ def on_submit(doc, method=None):
         withdraw_task_assignments(doc)
     elif doc.status == "Approved":
         start_cover_if_due(doc)
+    from seal_hrms.seal_hrms import acting
+
+    acting.record_acting_approval(doc, doc.leave_approver, "leave_approval")
 
 
 def on_update(doc, method=None):
-    """Keep an unsubmitted handover's dates in step with an edited application."""
+    """Keep an unsubmitted handover's dates in step; reach an absent approver's stand-in."""
     if doc.docstatus != 0:
         return
+    from seal_hrms.seal_hrms import acting
+
+    acting.share_new_document(doc, doc.leave_approver, "leave_approval")
     from seal_hrms.seal_hrms.handover import return_date_for
 
     for name in frappe.get_all(
@@ -50,6 +56,10 @@ def on_cancel(doc, method=None):
 
 def validate(doc, method=None):
     check_cover_before_approval(doc)
+    if _is_being_approved(doc):
+        from seal_hrms.seal_hrms import acting
+
+        acting.refuse_self_approval(doc, doc.employee, doc.leave_approver, "leave_approval")
     _check_application_timing(doc)
 
 

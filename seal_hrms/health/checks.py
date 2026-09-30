@@ -164,6 +164,42 @@ def leave_started_without_agreed_cover():
     )
 
 
+@health_check(label="Approvals while away", category=Category.DATA)
+def approvals_with_nobody_to_give_them():
+    """Someone approving in an absent colleague's place is now away themselves.
+
+    Approval does not pass on down a chain (seal_hrms.acting), so their team's
+    requests wait for two people who are both on leave.
+    """
+    if not frappe.db.table_exists("Task Assignment Authority"):
+        return []
+    count = frappe.db.sql(
+        """
+        SELECT COUNT(DISTINCT r.name) FROM `tabTask Assignment Authority` r
+        INNER JOIN `tabTask Assignment` a ON a.name = r.parent AND r.parenttype = 'Task Assignment'
+        INNER JOIN `tabLeave Application` la
+                ON la.employee = IFNULL(NULLIF(r.task_assignee, ''), a.task_assignee)
+               AND la.docstatus = 1 AND la.status = 'Approved'
+               AND la.from_date <= %(today)s AND la.to_date >= %(today)s
+        WHERE a.docstatus = 1 AND a.status = 'Active' AND r.acceptance = 'Accepted'
+        """,
+        {"today": frappe.utils.today()},
+    )[0][0]
+    if not count:
+        return []
+    return Finding(
+        severity=Severity.DEGRADED,
+        title=_("Some approvals are waiting on two people who are both away"),
+        detail=_(
+            "The person approving in a colleague's place has gone on leave too. "
+            "Approval does not pass on again, so name someone else or ask HR to approve."
+        ),
+        count=count,
+        state=State.MISSING,
+        link="/app/task-assignment?status=Active",
+    )
+
+
 @health_check(label="Dependants on file", category=Category.CONFIGURATION)
 def beneficiary_records_present():
     """Dependants matter when somebody has to claim on their behalf.

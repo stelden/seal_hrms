@@ -36,6 +36,9 @@
   "tb2",
   "tb2_sb1",
   "assignment_todos",
+  "tb3",
+  "tb3_sb1",
+  "authorities",
   "tb4",
   "tb4_sb1",
   "return_summary",
@@ -243,6 +246,22 @@
    "options": "Task Assignment ToDo"
   },
   {
+   "fieldname": "tb3",
+   "fieldtype": "Tab Break",
+   "label": "Approvals"
+  },
+  {
+   "fieldname": "tb3_sb1",
+   "fieldtype": "Section Break",
+   "description": "Approvals you give that someone must give in your place while you are away, such as other people's leave or expense claims."
+  },
+  {
+   "fieldname": "authorities",
+   "fieldtype": "Table",
+   "options": "Task Assignment Authority",
+   "label": "Approvals"
+  },
+  {
    "fieldname": "tb4",
    "fieldtype": "Tab Break",
    "label": "Return"
@@ -312,7 +331,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-30 11:36:03.917640",
+ "modified": "2026-09-30 11:59:19.459271",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Task Assignment",

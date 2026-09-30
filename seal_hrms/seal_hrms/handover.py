@@ -278,10 +278,12 @@ def _rows_to_move(assignment):
 
 
 def stand_ins(assignment) -> dict[str, list]:
-	"""Each stand-in, with the rows they cover. The assignment's own stand-in is always listed."""
+	"""Each stand-in, with the work rows they cover. Anyone who approves in the owner's place is listed too."""
 	covering = {assignment.task_assignee: []} if assignment.task_assignee else {}
 	for row in assignment.assignment_todos:
 		covering.setdefault(covered_by(assignment, row), []).append(row)
+	for row in assignment.get("authorities") or []:
+		covering.setdefault(covered_by(assignment, row), [])
 	covering.pop(None, None)
 	return covering
 
@@ -290,7 +292,7 @@ def overall_answer(assignment) -> str:
 	"""Declined if anyone declined, Accepted once everyone has, otherwise Pending."""
 	answers = [assignment.get("acceptance")] + [
 		row.acceptance for row in assignment.assignment_todos if answers_for_itself(assignment, row)
-	]
+	] + [row.acceptance for row in assignment.get("authorities") or []]
 	if Answer.DECLINED in answers:
 		return Answer.DECLINED
 	if all(a == Answer.ACCEPTED for a in answers):
@@ -355,6 +357,12 @@ def activate(name: str) -> bool:
 			continue
 		move_row(row, employee_user, stand_in_user)
 
+	from seal_hrms.seal_hrms import acting
+
+	# Approvals move with the work (acting.py). Status goes Active only after,
+	# because being Active is what makes the stand-in count as acting.
+	assignment.db_set("status", Status.ACTIVE, update_modified=False)
+	acting.grant_for(assignment)
 	assignment.db_set({"status": Status.ACTIVE, "activated_at": now_datetime()}, update_modified=False)
 	return True
 
@@ -374,6 +382,9 @@ def hand_back(name: str, final_status: str = Status.HANDED_BACK) -> bool:
 			if stand_in_user:
 				hand_back_row(row, employee_user, stand_in_user)
 
+	from seal_hrms.seal_hrms import acting
+
+	acting.revoke_for(assignment)
 	assignment.db_set({"status": final_status, "handed_back_at": now_datetime()}, update_modified=False)
 	# A cancelled leave is not a return, so there is no "welcome back" for it.
 	if moved and employee_user and final_status == Status.HANDED_BACK:

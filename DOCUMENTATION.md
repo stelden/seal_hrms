@@ -109,6 +109,37 @@ Sick leave is the usual exception. The check runs in the Leave Application's
 validate, so it holds whether leave is approved by submitting or by setting the
 status.
 
+### Approving in someone's place
+
+A handover can pass on approvals as well as work. The **Approvals** tab lists
+what the member of staff approves for others. **Find What I Approve** fills it
+from who names them as approver. Each row names who approves in their place.
+It is **answered on its own**, because agreeing to cover someone's tasks is not
+agreeing to sign for them (decision T2).
+
+While the handover is Active, the stand-in:
+- is given the approver role, if they lack it, and the principal's pending
+  documents are shared with them (read, write, submit);
+- also gets documents raised for the principal while they are away;
+- leaves a timeline note on each approval they give, naming both people and the
+  handover;
+- **cannot approve their own request**, even though their own approver is the
+  person they are standing in for.
+
+On return, the role and shares the handover added are taken back. A role the
+stand-in already held is left alone. There is no chaining: if the stand-in goes
+on leave too, nobody inherits it, and a health check says so.
+
+Kinds of approval come from the hook `task_assignment_authorities`. It is read
+from each app's hooks module, because it is a nested dict (SEAL_DEV_RULES §2.17).
+seal_hrms ships **leave** and **expense claims**. Another app declares its own
+the same way, with `label`, `role`, `holds(user)`, `pending(user)` and
+optionally `enabled`. See the docstring in `seal_hrms/seal_hrms/acting.py`.
+
+The role is added and removed on the user's role list directly, not by saving
+the User. Saving a User can be refused by site governance, or reset to a role
+profile.
+
 ### How work moves
 
 `seal_hrms/seal_hrms/handover.py` is the only code that moves work, so the form,
@@ -175,6 +206,7 @@ bench --site dev.local run-tests --module seal_hrms.<module>
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_legacy_return
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_lifecycle
+bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_acting
 ```
 
 The browser suite asserts on `pageerror` and console errors rather than markup,
@@ -185,6 +217,16 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-09-30** — 1.5.0. Approving in someone's place while they are away.
+  - A handover's Approvals tab, filled by **Find What I Approve**; each row is
+    answered on its own.
+  - While away, the stand-in gets the approver role and the pending documents,
+    both taken back on return.
+  - They cannot approve their own request, and every approval they give is
+    noted on the document.
+  - Kinds of approval are a hook (`task_assignment_authorities`); leave and
+    expense claims ship.
+  - New health check: *Approvals while away*.
 - **2026-09-30** — 1.4.0. A handover is agreed before anything moves.
   - Stand-ins accept or decline, and a task can name its own stand-in.
   - Work moves when the leave starts, not when the form is submitted, and

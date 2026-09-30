@@ -64,18 +64,55 @@ def respond(name: str, answer: str, reason: str | None = None) -> dict:
 	for row in my_rows:
 		row.db_set({"acceptance": answer, "decline_reason": reason}, update_modified=False)
 
-	doc.reload()
+	doc.add_comment("Info", _("{0} {1} covering this.").format(
+		frappe.utils.get_fullname(frappe.session.user),
+		_("agreed to") if answer == Answer.ACCEPTED else _("declined"),
+	) + (f" {frappe.utils.escape_html(reason)}" if reason else ""))
+	return _settle(name)
+
+
+@frappe.whitelist()
+def respond_authority(name: str, row: str, answer: str, reason: str | None = None) -> dict:
+	"""A stand-in agrees, or declines, to approve one kind of thing in the owner's place.
+
+	Separate from `respond` on purpose (decision T2): agreeing to cover someone's
+	work is not agreeing to sign for them, so each approval is answered on its own.
+	"""
+	if answer not in (Answer.ACCEPTED, Answer.DECLINED):
+		frappe.throw(_("Answer Accepted or Declined."))
+	frappe.db.get_value(ASSIGNMENT, name, "name", for_update=True)
+	doc = _submitted(name)
+	me = _me()
+	target = next((r for r in doc.get("authorities") or [] if r.name == row), None)
+	if not target:
+		frappe.throw(_("That approval is not on {0}.").format(name))
+	if covered_by(doc, target) != me:
+		frappe.throw(_("Only the person named to approve this can answer for it."), frappe.PermissionError)
+	if doc.status not in _ANSWERABLE:
+		frappe.throw(_("{0} can no longer be answered: it is {1}.").format(name, _(doc.status)))
+	if answer == Answer.DECLINED and not (reason or "").strip():
+		frappe.throw(_("Say why you cannot approve this, so {0} can ask someone else.").format(doc.employee_name))
+
+	reason = reason.strip() if answer == Answer.DECLINED else None
+	target.db_set({"acceptance": answer, "decline_reason": reason}, update_modified=False)
+	doc.add_comment("Info", _("{0} {1} approving {2} in {3}'s place.").format(
+		frappe.utils.get_fullname(frappe.session.user),
+		_("agreed to") if answer == Answer.ACCEPTED else _("declined"),
+		(target.authority_label or target.authority).lower(),
+		doc.employee_name,
+	) + (f" {frappe.utils.escape_html(reason)}" if reason else ""))
+	return _settle(name)
+
+
+def _settle(name: str) -> dict:
+	"""Work out the handover's status from everyone's answers, and start it if that was the last thing missing."""
+	doc = frappe.get_doc(ASSIGNMENT, name)
 	overall = handover.overall_answer(doc)
 	status = {Answer.ACCEPTED: Status.ACCEPTED, Answer.DECLINED: Status.DECLINED}.get(overall, Status.AWAITING)
 	if status != doc.status:
 		doc.db_set("status", status, update_modified=False)
 		if status in (Status.ACCEPTED, Status.DECLINED):
 			handover_notifications.answered(doc, status)
-	doc.add_comment("Info", _("{0} {1} covering this.").format(
-		frappe.utils.get_fullname(frappe.session.user),
-		_("agreed to") if answer == Answer.ACCEPTED else _("declined"),
-	) + (f" {frappe.utils.escape_html(reason)}" if reason else ""))
-
 	activated = handover.maybe_activate(name)
 	return {"status": Status.ACTIVE if activated else status}
 
@@ -151,6 +188,10 @@ def prepare_from_leave(leave_application: str) -> str:
 			"reference_type": todo.reference_type,
 			"reference_name": todo.reference_name,
 		})
+	from seal_hrms.seal_hrms.acting import suggest_authorities
+
+	for authority in suggest_authorities(leave.employee):
+		doc.append("authorities", authority)
 	# Mandatory fields (stand-in, description) are the owner's to fill in the form.
 	doc.flags.ignore_mandatory = True
 	doc.insert(ignore_permissions=True)

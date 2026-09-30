@@ -80,11 +80,16 @@ function ta_role(frm) {
 	const doc = frm.doc;
 	const own_rows = (doc.assignment_todos || []).filter((r) => r.task_assignee && r.task_assignee !== doc.task_assignee && r.task_assignee === me);
 	const is_main = !!me && doc.task_assignee === me;
-	const pending = (is_main && doc.acceptance === "Pending") || own_rows.some((r) => r.acceptance === "Pending");
+	const my_approvals = (doc.authorities || []).filter((r) => ta_covered_by(frm, r) === me);
+	const pending = (is_main && doc.acceptance === "Pending") || own_rows.some((r) => r.acceptance === "Pending")
+		|| my_approvals.some((r) => r.acceptance === "Pending");
 	return {
+		my_approvals,
+		covers_work: is_main || own_rows.length > 0,
 		is_owner: !!me && doc.employee === me,
 		is_hr: frappe.user.has_role(["HR User", "HR Manager", "System Manager"]),
-		is_stand_in: is_main || own_rows.length > 0 || (doc.assignment_todos || []).some((r) => ta_covered_by(frm, r) === me),
+		is_stand_in: is_main || own_rows.length > 0 || my_approvals.length > 0
+			|| (doc.assignment_todos || []).some((r) => ta_covered_by(frm, r) === me),
 		pending,
 	};
 }
@@ -106,9 +111,15 @@ function ta_banner(frm) {
 	} else if (doc.status === "Awaiting Acceptance") {
 		now = __("Waiting for the stand-in to agree.");
 		next = __("Once everyone agrees and the leave is approved, the work moves to them on {0}.", [from]);
-		todo = role.pending
-			? __("Click <b>Accept</b> if you can cover it, or <b>Decline</b> and say why.")
-			: __("Nothing yet. You will be emailed when they answer.");
+		if (role.pending && role.my_approvals.length && !role.covers_work) {
+			todo = __("Under <b>Approvals</b>, click <b>Accept</b> or <b>Decline</b> for each approval you are asked to give.");
+		} else if (role.pending) {
+			todo = role.my_approvals.length
+				? __("Click <b>Accept</b> if you can cover the work, or <b>Decline</b> and say why; then answer each item under <b>Approvals</b>.")
+				: __("Click <b>Accept</b> if you can cover it, or <b>Decline</b> and say why.");
+		} else {
+			todo = __("Nothing yet. You will be emailed when they answer.");
+		}
 		colour = "orange";
 	} else if (doc.status === "Declined") {
 		now = __("A stand-in cannot cover this.");
@@ -176,10 +187,47 @@ function ta_call(frm, method, args, done) {
 
 function ta_buttons(frm) {
 	const doc = frm.doc;
-	if (doc.docstatus !== 1) return;
 	const role = ta_role(frm);
 
-	if (role.is_stand_in && ["Awaiting Acceptance", "Accepted", "Declined"].includes(doc.status)) {
+	if (doc.docstatus === 0 && !frm.is_new() && (role.is_owner || role.is_hr)) {
+		frm.add_custom_button(__("Find What I Approve"), () => {
+			frappe.call({
+				method: "seal_hrms.seal_hrms.acting.suggest_authorities",
+				args: { employee: doc.employee },
+				callback(r) {
+					const have = new Set((doc.authorities || []).map((a) => a.authority));
+					const found = (r.message || []).filter((a) => !have.has(a.authority));
+					found.forEach((a) => Object.assign(frm.add_child("authorities"), a));
+					frm.refresh_field("authorities");
+					frappe.show_alert(found.length
+						? __("Added {0}. Name who approves each in your place, or leave it to your stand-in.", [found.map((a) => a.authority_label).join(", ")])
+						: __("Nothing new: you do not approve anything else for anyone."));
+				},
+			});
+		});
+	}
+	if (doc.docstatus !== 1) return;
+
+	if (["Awaiting Acceptance", "Accepted", "Declined"].includes(doc.status)) {
+		role.my_approvals.forEach((row) => {
+			const label = row.authority_label || row.authority;
+			if (row.acceptance !== "Accepted") {
+				frm.add_custom_button(__("Accept: {0}", [label]), () =>
+					ta_call(frm, "respond_authority", { row: row.name, answer: "Accepted" }), __("Approvals"));
+			}
+			frm.add_custom_button(__("Decline: {0}", [label]), () => {
+				frappe.prompt(
+					{ fieldname: "reason", fieldtype: "Small Text", reqd: 1, label: __("Why can you not approve this?"),
+					  description: __("{0} reads this to decide who to ask instead.", [doc.employee_name]) },
+					(v) => ta_call(frm, "respond_authority", { row: row.name, answer: "Declined", reason: v.reason }),
+					__("Decline"),
+					__("Decline")
+				);
+			}, __("Approvals"));
+		});
+	}
+
+	if (role.covers_work && ["Awaiting Acceptance", "Accepted", "Declined"].includes(doc.status)) {
 		if (role.pending || doc.status !== "Accepted") {
 			frm.add_custom_button(__("Accept"), () => ta_call(frm, "respond", { answer: "Accepted" }));
 		}

@@ -37,6 +37,10 @@ class TaskAssignment(Document):
 		for row in self.assignment_todos:
 			row.acceptance = Answer.PENDING if answers_for_itself(self, row) else None
 			row.decline_reason = None
+		# Approving in someone's place is always agreed on its own row (decision T2).
+		for row in self.get("authorities") or []:
+			row.acceptance = Answer.PENDING
+			row.decline_reason = None
 		self.status = Status.AWAITING
 
 	def on_submit(self):
@@ -70,11 +74,25 @@ class TaskAssignment(Document):
 			frappe.throw(_("This leave application has been cancelled, so there is nothing to cover."))
 
 	def _validate_stand_in(self):
-		for row in self.assignment_todos:
+		self._validate_authorities()
+		for row in [*self.assignment_todos, *(self.get("authorities") or [])]:
 			if row.task_assignee and row.task_assignee != self.task_assignee:
 				self._check_can_cover(row.task_assignee, frappe.db.get_value("Employee", row.task_assignee, "employee_name"))
 		if self.task_assignee:
 			self._check_can_cover(self.task_assignee, self.task_assignee_name)
+
+	def _validate_authorities(self):
+		from seal_hrms.seal_hrms import acting
+
+		kinds = acting.registry()
+		seen = set()
+		for row in self.get("authorities") or []:
+			if row.authority not in kinds:
+				frappe.throw(_("Row {0} of Approvals is not an approval this site knows about. Use Find What I Approve.").format(row.idx))
+			if row.authority in seen:
+				frappe.throw(_("{0} is listed twice under Approvals.").format(_(kinds[row.authority].label)))
+			seen.add(row.authority)
+			row.authority_label = _(kinds[row.authority].label)
 
 	def _check_can_cover(self, stand_in, stand_in_name):
 		if stand_in == self.employee:
