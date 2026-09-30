@@ -358,3 +358,9 @@ task_assignment_authorities = {
         "pending": "seal_hrms.seal_hrms.acting.pending_expense_approvals",
     },
 }
+
+# seal_common asks this app who is approving for whom right now
+# (seal_common.delegation). A plain list, so frappe.get_hooks reads it intact.
+acting_delegation_providers = [
+    "seal_hrms.seal_hrms.acting.delegations",
+]

@@ -138,6 +138,30 @@ def acting_for(user: str) -> list[frappe._dict]:
 	return _active_rows(**{"stand_in.user_id": user})
 
 
+def delegations(capacity: str) -> list[tuple[str, str]]:
+	"""seal_common's `acting_delegation_providers` hook: (principal, stand-in) in force for a capacity.
+
+	The capacity is the key of a kind of approval, so seal_buying's
+	"accounting_officer" kind is answered here without seal_hrms knowing what an
+	Accounting Officer is.
+	"""
+	return [(r.principal, r.stand_in) for r in _active_rows(**{"r.authority": capacity}) if r.principal and r.stand_in]
+
+
+def _announce(capacity: str, principal: str, stand_in: str, started: bool) -> None:
+	"""Tell other apps that someone started or stopped acting.
+
+	seal_common is optional for seal_hrms, so it is imported here, only where
+	installed. That is how an app that stamped the principal onto documents in
+	flight gets to re-stamp them.
+	"""
+	if "seal_common" not in frappe.get_installed_apps():
+		return
+	from seal_common.delegation import announce
+
+	announce(capacity, principal, stand_in, started)
+
+
 def acting_stand_in(principal_user: str | None, authority: str) -> str | None:
 	"""Who approves `authority` for `principal_user` right now. Direct stand-in only: no chaining."""
 	if not principal_user:
@@ -205,14 +229,22 @@ def grant_for(assignment) -> None:
 		assignment.add_comment("Info", _("{0} now approves {1} for {2}, until they are back.").format(
 			frappe.utils.get_fullname(stand_in), _(spec.label).lower(), assignment.employee_name,
 		))
+		_announce(row.authority, principal, stand_in, started=True)
 
 
 def revoke_for(assignment) -> None:
-	"""The owner is back: take away what the handover gave, and nothing it did not."""
+	"""The owner is back: take away what the handover gave, and nothing it did not.
+
+	Called once the handover is no longer Active, so anyone asking "who acts for
+	this officer?" while re-stamping already gets the officer back.
+	"""
+	principal = user_for_employee(assignment.employee)
 	for row in assignment.get("authorities") or []:
 		stand_in = _stand_in_user(assignment, row)
 		if not stand_in:
 			continue
+		if row.acceptance == Answer.ACCEPTED and principal:
+			_announce(row.authority, principal, stand_in, started=False)
 		for share in json.loads(row.shares or "[]"):
 			if frappe.db.exists("DocShare", share):
 				frappe.delete_doc("DocShare", share, ignore_permissions=True, flags={"ignore_share_permission": True})

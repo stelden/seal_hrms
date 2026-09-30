@@ -382,10 +382,11 @@ def hand_back(name: str, final_status: str = Status.HANDED_BACK) -> bool:
 			if stand_in_user:
 				hand_back_row(row, employee_user, stand_in_user)
 
+	assignment.db_set({"status": final_status, "handed_back_at": now_datetime()}, update_modified=False)
 	from seal_hrms.seal_hrms import acting
 
+	# After the status changes: from here on nobody counts as acting for the owner.
 	acting.revoke_for(assignment)
-	assignment.db_set({"status": final_status, "handed_back_at": now_datetime()}, update_modified=False)
 	# A cancelled leave is not a return, so there is no "welcome back" for it.
 	if moved and employee_user and final_status == Status.HANDED_BACK:
 		from seal_hrms.seal_hrms import handover_notifications

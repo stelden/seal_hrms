@@ -11,6 +11,7 @@ leave by being his own approver's stand-in.
 """
 
 import json
+import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -20,6 +21,8 @@ from frappe.tests import IntegrationTestCase
 from seal_hrms.seal_hrms import acting, handover, task_assignment_actions as actions
 from seal_hrms.seal_hrms.handover import Status
 from seal_hrms.tests import _handover_fixtures as fx
+
+_real_get_attr = frappe.get_attr
 
 
 class ActingTestCase(IntegrationTestCase):
@@ -179,6 +182,37 @@ class TestOnReturn(ActingTestCase):
 		self.assertFalse(frappe.db.get_value("Task Assignment Authority", ta.authorities[0].name, "role_added_by_assignment"))
 		handover.hand_back(ta.name)
 		self.assertIn("Leave Approver", frappe.get_roles(self.otieno_user), "he was an approver before; he still is")
+
+
+@unittest.skipUnless("seal_common" in frappe.get_installed_apps(), "seal_common is not installed")
+class TestOtherAppsCanAsk(ActingTestCase):
+	"""seal_common.delegation is how seal_buying and seal_leave_planning learn who is acting."""
+
+	def test_the_answer_follows_the_handover(self):
+		from seal_common import delegation
+
+		_la, ta = self._in_effect()
+		delegation.forget()
+		self.assertEqual(delegation.acting_stand_in(self.achieng_user, "leave_approval"), self.otieno_user)
+		handover.hand_back(ta.name)
+		self.assertIsNone(delegation.acting_stand_in(self.achieng_user, "leave_approval"))
+
+	def test_others_are_told_when_acting_starts_and_ends(self):
+		heard = []
+
+		def listen(capacity, principal, stand_in, started):
+			from seal_common import delegation
+
+			# Asked at the moment of the announcement, as a re-stamping app would.
+			heard.append((capacity, started, delegation.acting_stand_in(principal, capacity)))
+
+		hooks = {"acting_change_subscribers": ["x.listen"], "acting_delegation_providers": ["seal_hrms.seal_hrms.acting.delegations"]}
+		with patch("seal_common.delegation._hook_paths", side_effect=lambda name: hooks.get(name, [])), \
+		     patch.object(frappe, "get_attr", side_effect=lambda path: listen if path == "x.listen" else _real_get_attr(path)):
+			_la, ta = self._in_effect()
+			handover.hand_back(ta.name)
+		self.assertIn(("leave_approval", True, self.otieno_user), heard)
+		self.assertIn(("leave_approval", False, None), heard, "by the end, nobody counts as acting any more")
 
 
 class TestRegistry(IntegrationTestCase):

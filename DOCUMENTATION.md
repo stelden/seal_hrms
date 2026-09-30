@@ -140,6 +140,17 @@ The role is added and removed on the user's role list directly, not by saving
 the User. Saving a User can be refused by site governance, or reset to a role
 profile.
 
+**Other apps ask through seal_common.** This app answers `seal_common.delegation`'s
+`acting_delegation_providers` hook (`acting.delegations`). It announces each
+start and end, so seal_buying can re-stamp documents waiting on the officer
+(Head of Department, Head of Procurement, Accounting Officer), and
+seal_leave_planning can let the stand-in review the team's leave plans.
+seal_common is optional for this app and is imported only where installed.
+
+On return the handover is marked finished **before** the end is announced, so
+an app re-stamping at that moment already gets the officer back. A test pins
+the order.
+
 ### How work moves
 
 `seal_hrms/seal_hrms/handover.py` is the only code that moves work, so the form,
@@ -217,6 +228,12 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-09-30** — 1.6.0. Other apps learn who is acting, through seal_common.
+  - This app answers `seal_common.delegation` and announces when acting starts
+    and ends.
+  - seal_buying's procurement capacities, and seal_leave_planning's plan
+    review, follow a handover.
+  - On return the handover is finished before the end is announced.
 - **2026-09-30** — 1.5.0. Approving in someone's place while they are away.
   - A handover's Approvals tab, filled by **Find What I Approve**; each row is
     answered on its own.
