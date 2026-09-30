@@ -1,0 +1,31 @@
+{
+ "actions": [],
+ "creation": "2026-09-30 11:36:03.917640",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "istable": 1,
+ "field_order": [
+  "leave_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "options": "Leave Type",
+   "label": "Leave Type",
+   "in_list_view": 1,
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "module": "SEAL HRMS",
+ "name": "Task Assignment Policy Leave Type",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "modified": "2026-09-30 11:36:03.917640"
+}

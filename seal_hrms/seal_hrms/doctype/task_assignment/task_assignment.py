@@ -14,7 +14,7 @@ from frappe.model.document import Document
 from frappe.utils import getdate, today
 
 from seal_hrms.seal_hrms import handover, handover_notifications
-from seal_hrms.seal_hrms.handover import Status, user_for_employee
+from seal_hrms.seal_hrms.handover import Answer, Status, answers_for_itself, return_date_for, user_for_employee
 from seal_hrms.seal_hrms.task_assignment_access import can_prepare_for
 
 
@@ -26,15 +26,22 @@ class TaskAssignment(Document):
 		self._validate_stand_in()
 		if self.docstatus == 0:
 			self.status = Status.DRAFT
+			self.return_date = return_date_for(self.employee, self.leave_to)
 
 	def before_submit(self):
 		self._validate_logins()
+		# Submitting sends the handover to the stand-ins. Each answers for what
+		# they cover; nothing moves until they all have and the leave starts.
+		self.acceptance = Answer.PENDING
+		self.decline_reason = None
+		for row in self.assignment_todos:
+			row.acceptance = Answer.PENDING if answers_for_itself(self, row) else None
+			row.decline_reason = None
+		self.status = Status.AWAITING
 
 	def on_submit(self):
-		# Work moves as soon as the handover is submitted.
-		if handover.activate(self.name):
-			self.reload()
-			handover_notifications.work_handed_over(self, self.task_assignee, self.assignment_todos)
+		for employee, rows in handover.stand_ins(self).items():
+			handover_notifications.asked_to_cover(self, employee, rows)
 
 	def on_cancel(self):
 		status = frappe.db.get_value(self.doctype, self.name, "status")
@@ -63,30 +70,36 @@ class TaskAssignment(Document):
 			frappe.throw(_("This leave application has been cancelled, so there is nothing to cover."))
 
 	def _validate_stand_in(self):
-		if not self.task_assignee:
-			return
-		if self.task_assignee == self.employee:
+		for row in self.assignment_todos:
+			if row.task_assignee and row.task_assignee != self.task_assignee:
+				self._check_can_cover(row.task_assignee, frappe.db.get_value("Employee", row.task_assignee, "employee_name"))
+		if self.task_assignee:
+			self._check_can_cover(self.task_assignee, self.task_assignee_name)
+
+	def _check_can_cover(self, stand_in, stand_in_name):
+		if stand_in == self.employee:
 			frappe.throw(_("You cannot cover your own work. Choose a colleague."))
-		if frappe.db.get_value("Employee", self.task_assignee, "status") != "Active":
+		if frappe.db.get_value("Employee", stand_in, "status") != "Active":
 			frappe.throw(_("{0} is no longer an active member of staff. Choose someone else.").format(
-				self.task_assignee_name or self.task_assignee
+				stand_in_name or stand_in
 			))
 		if self.docstatus == 0:
-			away = stand_in_leave_overlapping(self.task_assignee, self.leave_from, self.leave_to)
+			away = stand_in_leave_overlapping(stand_in, self.leave_from, self.leave_to)
 			if away:
 				frappe.throw(_(
 					"{0} is on leave themselves between {1} and {2} ({3}). Choose someone else, or change the dates."
-				).format(self.task_assignee_name or self.task_assignee, away.from_date, away.to_date, away.name))
+				).format(stand_in_name or stand_in, away.from_date, away.to_date, away.name))
 
 	def _validate_logins(self):
 		if not user_for_employee(self.employee):
 			frappe.throw(_("{0} has no login, so there is no work list to hand over from.").format(
 				self.employee_name or self.employee
 			))
-		if not user_for_employee(self.task_assignee):
-			frappe.throw(_("{0} has no login, so work cannot be passed to them. Ask HR to give them one, or choose someone else.").format(
-				self.task_assignee_name or self.task_assignee
-			))
+		for employee in handover.stand_ins(self):
+			if not user_for_employee(employee):
+				frappe.throw(_("{0} has no login, so work cannot be passed to them. Ask HR to give them one, or choose someone else.").format(
+					frappe.db.get_value("Employee", employee, "employee_name") or employee
+				))
 
 
 def stand_in_leave_overlapping(employee: str, from_date, to_date):

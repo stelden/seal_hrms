@@ -8,37 +8,91 @@ one broken record cannot hold up everybody else's return.
 """
 
 import frappe
-from frappe.utils import getdate, today
+from frappe.utils import add_days, getdate, today
 
 from seal_hrms.seal_hrms import handover
 from seal_hrms.seal_hrms.handover import ASSIGNMENT, Status
 
 
 def daily() -> None:
-	"""Scheduler entry point."""
+	"""Scheduler entry point: start cover, remind about returns, and return work."""
+	activate_started_leave()
+	remind_before_return()
 	hand_back_ended_leave()
 
 
-def hand_back_ended_leave(on_date=None) -> list[str]:
-	"""Return the work of everyone whose leave has ended. Returns the assignments handled."""
+def _each(names, fn, title: str) -> list[str]:
+	"""Run `fn` per record, so one failure cannot stop the rest.
+
+	A savepoint rather than a full rollback undoes only the failed record, and
+	leaves a test's own fixtures alone.
+	"""
+	done = []
+	for name in names:
+		frappe.db.savepoint("task_assignment_job")
+		try:
+			if fn(name):
+				done.append(name)
+			if not frappe.flags.in_test:
+				frappe.db.commit()
+		except Exception:
+			frappe.db.rollback(save_point="task_assignment_job")
+			frappe.log_error(
+				title=title, message=frappe.get_traceback(), reference_doctype=ASSIGNMENT, reference_name=name
+			)
+	return done
+
+
+def activate_started_leave(on_date=None) -> list[str]:
+	"""Move work for agreed handovers whose leave has started and been approved."""
 	on_date = getdate(on_date or today())
 	due = frappe.get_all(
 		ASSIGNMENT,
-		filters=[["docstatus", "=", 1], ["status", "=", Status.ACTIVE], ["leave_to", "<", on_date]],
+		filters=[["docstatus", "=", 1], ["status", "=", Status.ACCEPTED], ["leave_from", "<=", on_date]],
 		pluck="name",
 	)
-	done = []
-	for name in due:
-		try:
-			if handover.hand_back(name):
-				done.append(name)
-			frappe.db.commit()
-		except Exception:
-			frappe.db.rollback()
-			frappe.log_error(
-				title="Task Assignment: work could not be returned",
-				message=frappe.get_traceback(),
-				reference_doctype=ASSIGNMENT,
-				reference_name=name,
-			)
-	return done
+	return _each(due, lambda name: handover.maybe_activate(name, on_date), "Task Assignment: cover could not start")
+
+
+def remind_before_return(on_date=None) -> list[str]:
+	"""The day before the owner is back, ask stand-ins for a note. Once per handover (§3.7)."""
+	on_date = getdate(on_date or today())
+	due = frappe.get_all(
+		ASSIGNMENT,
+		filters=[
+			["docstatus", "=", 1], ["status", "=", Status.ACTIVE], ["return_reminder_sent", "=", 0],
+			["return_date", "<=", add_days(on_date, 1)], ["return_date", ">", on_date],
+		],
+		pluck="name",
+	)
+
+	def remind(name):
+		if frappe.db.get_value(ASSIGNMENT, name, "return_reminder_sent", for_update=True):
+			return False
+		frappe.db.set_value(ASSIGNMENT, name, "return_reminder_sent", 1, update_modified=False)
+		doc = frappe.get_doc(ASSIGNMENT, name)
+		from seal_hrms.seal_hrms import handover_notifications
+
+		for employee in handover.stand_ins(doc):
+			handover_notifications.return_note_due(doc, employee)
+		return True
+
+	return _each(due, remind, "Task Assignment: return reminder not sent")
+
+
+def hand_back_ended_leave(on_date=None) -> list[str]:
+	"""Return the work of everyone back at work today. Returns the assignments handled."""
+	on_date = getdate(on_date or today())
+	due = frappe.get_all(
+		ASSIGNMENT,
+		filters=[["docstatus", "=", 1], ["status", "=", Status.ACTIVE], ["return_date", "<=", on_date]],
+		pluck="name",
+	)
+	# A handover that took effect before return dates existed has only its leave dates.
+	due += frappe.get_all(
+		ASSIGNMENT,
+		filters=[["docstatus", "=", 1], ["status", "=", Status.ACTIVE], ["return_date", "is", "not set"],
+		         ["leave_to", "<", on_date]],
+		pluck="name",
+	)
+	return _each(due, handover.hand_back, "Task Assignment: work could not be returned")

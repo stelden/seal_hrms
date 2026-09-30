@@ -9,6 +9,37 @@ def on_submit(doc, method=None):
     # A rejected application is still submitted: the cover it asked for is off.
     if doc.status == "Rejected":
         withdraw_task_assignments(doc)
+    elif doc.status == "Approved":
+        start_cover_if_due(doc)
+
+
+def on_update(doc, method=None):
+    """Keep an unsubmitted handover's dates in step with an edited application."""
+    if doc.docstatus != 0:
+        return
+    from seal_hrms.seal_hrms.handover import return_date_for
+
+    for name in frappe.get_all(
+        "Task Assignment",
+        filters={"leave_application": doc.name, "docstatus": ["<", 2], "status": ["not in", ["Active", "Handed Back"]]},
+        pluck="name",
+    ):
+        frappe.db.set_value("Task Assignment", name, {
+            "leave_from": doc.from_date,
+            "leave_to": doc.to_date,
+            "leave_days": doc.total_leave_days,
+            "return_date": return_date_for(doc.employee, doc.to_date),
+        }, update_modified=False)
+
+
+def start_cover_if_due(doc):
+    """Approval can be the last thing missing, when the leave has already begun."""
+    from seal_hrms.seal_hrms import handover
+
+    for name in frappe.get_all(
+        "Task Assignment", filters={"leave_application": doc.name, "docstatus": 1, "status": "Accepted"}, pluck="name"
+    ):
+        handover.maybe_activate(name)
 
 
 def on_cancel(doc, method=None):
@@ -18,6 +49,50 @@ def on_cancel(doc, method=None):
 
 
 def validate(doc, method=None):
+    check_cover_before_approval(doc)
+    _check_application_timing(doc)
+
+
+def _is_being_approved(doc) -> bool:
+    if doc.status != "Approved":
+        return False
+    if doc.is_new() or getattr(doc, "_action", None) == "submit":
+        return True
+    before = doc.get_doc_before_save()
+    return bool(before) and before.status != "Approved"
+
+
+def check_cover_before_approval(doc):
+    """Apply the company's handover policy at the moment leave is approved.
+
+    In validate, not on_submit: the approval has to be refused before it is
+    written, and a status set to Approved without submitting must be caught too.
+    """
+    if not _is_being_approved(doc):
+        return
+    from seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy import (
+        REQUIRE, applies_to, policy_for,
+    )
+
+    policy = policy_for(doc.company)
+    if not applies_to(policy, doc.leave_type, doc.total_leave_days):
+        return
+    agreed = frappe.db.exists(
+        "Task Assignment",
+        {"leave_application": doc.name, "docstatus": 1, "status": ["in", ["Accepted", "Active"]]},
+    )
+    if agreed:
+        return
+    message = _(
+        "Nobody has agreed to cover {0}'s work during this leave yet. "
+        "Ask them to prepare a handover, and their stand-in to accept it."
+    ).format(doc.employee_name or doc.employee)
+    if policy.requirement == REQUIRE:
+        frappe.throw(message, title=_("Cover Not Arranged"))
+    frappe.msgprint(message, title=_("Cover Not Arranged"), indicator="orange")
+
+
+def _check_application_timing(doc):
     # These are application-time (creation) rules only. Guarding on is_new()
     # prevents them from re-firing on every later save (approval, cancellation,
     # edits of historical leave), which would otherwise block those updates

@@ -61,6 +61,7 @@ becomes a bank batch there, not here.
 | **Employee Dependent and Beneficiary** | Who depends on a member of staff, and who benefits if something happens to them. Two different questions, one record, distinguished by `type`. |
 | **Employee Separation Type** | Why someone left — resignation, retirement, end of contract. |
 | **Task Assignment** | Who covers a member of staff's work while they are on leave, and what exactly is being handed over. See §4. |
+| **Task Assignment Policy** | Per company: whether leave needs a stand-in who has agreed before it can be approved. |
 | **SEAL HRMS Settings** | The Self Service banner image. |
 
 > ⚠️ **`Task Assignment` also exists in `seal_customizations`.** Two apps ship a
@@ -73,8 +74,40 @@ becomes a bank batch there, not here.
 ## 4. Cover during leave (Task Assignment)
 
 A member of staff going on leave lists the work they are handing over and names
-a stand-in. The work moves to the stand-in's list, and **comes back when the
-leave ends**. Design and decisions: `dev_notes/seal_hrms/TASK_ASSIGNMENT_DESIGN.md`.
+a stand-in. The stand-in agrees, the work moves to them when the leave starts,
+and **it comes back on the first working day after**. Design and decisions:
+`dev_notes/seal_hrms/TASK_ASSIGNMENT_DESIGN.md`.
+
+### The steps
+
+| Status | What it means | Who acts |
+|---|---|---|
+| Draft | Being prepared: from **Prepare Handover** on the Leave Application, or a new Task Assignment | The member of staff, then **Submit** |
+| Awaiting Acceptance | Sent. Each stand-in answers for what they cover. A task can name its own stand-in. | Stand-ins: **Accept** or **Decline** (a reason is required) |
+| Declined | Someone cannot cover it. Nothing has moved. | The member of staff: **Cancel**, then **Amend** with someone else |
+| Accepted | Everyone has agreed. Nothing moves yet. | Nobody |
+| Active | The leave is approved and has begun, and the work is on the stand-ins' lists | Stand-ins: **Leave a Note**, **Note for Return**. The owner: **I'm Back** if early |
+| Handed Back | Open work has returned to its owner | Nobody |
+| Legacy / Cancelled | Before 1.3.0, or called off | Nobody |
+
+Work moves only when **all three** hold: the stand-in agreed, the leave is
+approved, and it has started. The daily job (`handover_jobs.daily`) checks
+this, and so does approving the leave or the last stand-in's answer, whichever
+comes last. The stand-ins are reminded the day before the return. The return
+date skips holidays, read from the employee's Holiday List Assignment for that
+date.
+
+### Before leave is approved: Task Assignment Policy
+
+One record per company:
+- **Off**: approve as usual.
+- **Warn**: the approver is told that nobody has agreed to cover.
+- **Require**: leave cannot be approved until someone has.
+
+It can apply only from a minimum length of leave, or only to chosen leave types.
+Sick leave is the usual exception. The check runs in the Leave Application's
+validate, so it holds whether leave is approved by submitting or by setting the
+status.
 
 ### How work moves
 
@@ -86,7 +119,7 @@ same way.
   That path posts the "assigned" comment, notifies them, and shares the document
   with them if they could not open it otherwise. The employee's ToDo is set to
   Cancelled, not edited, so whoever originally gave the work out is kept.
-- **Coming back** (daily job, `handover_jobs.daily`, once the leave has ended):
+- **Coming back** (on the first working day after the leave, or on **I'm Back**):
   - work the stand-in finished stays finished, as "Done while away";
   - anything still open comes back to the employee from its original assignor;
   - a share opened for the stand-in is closed again;
@@ -134,13 +167,14 @@ does not want.
 ## 6. Testing
 
 ```bash
-# Browser — 8 tests: every list and form, plus the Settings single
+# Browser — every list and form (ours, plus Leave Application, which carries our script), and the Settings single
 cd apps/seal_hrms/e2e && npx playwright test
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_legacy_return
+bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_lifecycle
 ```
 
 The browser suite asserts on `pageerror` and console errors rather than markup,
@@ -151,6 +185,20 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-09-30** — 1.4.0. A handover is agreed before anything moves.
+  - Stand-ins accept or decline, and a task can name its own stand-in.
+  - Work moves when the leave starts, not when the form is submitted, and
+    returns on the first working day after, holidays included.
+  - Stand-ins leave notes per task, plus a note for the owner's return, and
+    are reminded the day before the return.
+  - The owner can end the cover early.
+  - New *Task Assignment Policy*: Off, Warn or Require, per company, for leave
+    being approved.
+  - **Prepare Handover** on the Leave Application, and a banner on the form
+    saying Now, Next and Do.
+  - `leave_from` and `leave_to` are now real dates; patch `v1_12` clears any
+    value that is not one first.
+  - New health check: *Cover agreed before leave*.
 - **2026-09-30** — 1.3.0. Task Assignment brings work back.
   - Work returns to the employee when their leave ends; before, it stayed with
     the stand-in for good.

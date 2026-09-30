@@ -76,6 +76,7 @@ after_migrate = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permle
 doctype_js = {
     "Company": "public/js/company.js",
     "Employee": "public/js/employee.js",
+    "Leave Application": "public/js/leave_application.js",
     "ToDo": "public/js/todo.js",
 }
 
@@ -189,11 +190,13 @@ doc_events = {
         "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
     },
     "Leave Application": {
-        # Posting-date and minimum-notice rules, plus reversal of any Task
-        # Assignments raised for the absence when the application is rejected
-        # or cancelled. Distinct from seal_leave_planning, which gates an
+        # Posting-date and minimum-notice rules; the handover policy at approval;
+        # starting cover once approved leave has begun; keeping a handover's
+        # dates in step; and calling it off when the leave is rejected or
+        # cancelled. Distinct from seal_leave_planning, which gates an
         # application against a declared plan slot.
         "validate": "seal_hrms.seal_hrms.overrides.leave_application.validate",
+        "on_update": "seal_hrms.seal_hrms.overrides.leave_application.on_update",
         "on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
         "on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
     },
@@ -316,6 +319,7 @@ app_health_checks = [
     "seal_hrms.health.checks.cover_assigned_to_inactive_staff",
     "seal_hrms.health.checks.cover_without_an_assignee",
     "seal_hrms.health.checks.work_left_with_stand_ins",
+    "seal_hrms.health.checks.leave_started_without_agreed_cover",
     "seal_hrms.health.checks.beneficiary_records_present",
 ]
 

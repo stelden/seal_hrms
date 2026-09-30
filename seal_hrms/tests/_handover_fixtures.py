@@ -147,6 +147,43 @@ def handover(employee: str, stand_in: str, la, rows: list[dict], submit: bool = 
 	return doc
 
 
+def as_user(user: str, fn, *args, **kwargs):
+	"""Call `fn` as `user`, and always come back as Administrator."""
+	frappe.set_user(user)
+	try:
+		return fn(*args, **kwargs)
+	finally:
+		frappe.set_user("Administrator")
+
+
+def agree(ta, *stand_in_keys):
+	"""Each named stand-in accepts their part."""
+	from seal_hrms.seal_hrms import task_assignment_actions
+
+	for key in stand_in_keys:
+		as_user(email(key), task_assignment_actions.respond, ta.name, "Accepted")
+	ta.reload()
+	return ta
+
+
+def approve(la):
+	la.reload()
+	la.status = "Approved"
+	la.submit()
+	return la
+
+
+def take_effect(ta, la, *stand_in_keys):
+	"""Everything a handover needs before work moves: agreement, approval, and the leave begun."""
+	from seal_hrms.seal_hrms import handover
+
+	approve(la)
+	agree(ta, *(stand_in_keys or ("otieno",)))
+	handover.maybe_activate(ta.name, on_date=la.from_date)
+	ta.reload()
+	return ta
+
+
 def open_todos(user: str, task: str) -> list[str]:
 	return frappe.get_all(
 		"ToDo",

@@ -1,0 +1,120 @@
+{
+ "actions": [],
+ "autoname": "field:company",
+ "creation": "2026-09-30 11:36:03.917640",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "sb1",
+  "company",
+  "cb1",
+  "requirement",
+  "sb2",
+  "min_days",
+  "prep_reminder_days",
+  "cb2",
+  "leave_types"
+ ],
+ "fields": [
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "options": "Company",
+   "label": "Company",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "requirement",
+   "fieldtype": "Select",
+   "label": "Before Leave Is Approved",
+   "in_list_view": 1,
+   "options": "Off\nWarn\nRequire",
+   "default": "Off",
+   "reqd": 1,
+   "description": "Off: approve leave as usual. Warn: tell the approver when nobody has agreed to cover the work. Require: leave cannot be approved until a stand-in has agreed."
+  },
+  {
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Which Leave"
+  },
+  {
+   "fieldname": "min_days",
+   "fieldtype": "Float",
+   "label": "Only for Leave of at Least (Days)",
+   "default": "0",
+   "description": "Short absences often need no handover. Leave at 0 to apply to every length of leave."
+  },
+  {
+   "fieldname": "prep_reminder_days",
+   "fieldtype": "Int",
+   "label": "Remind Staff to Hand Over (Days Before)",
+   "default": "7",
+   "description": "How many days before their leave starts staff are reminded, on My Desk, to prepare a handover."
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "leave_types",
+   "fieldtype": "Table MultiSelect",
+   "options": "Task Assignment Policy Leave Type",
+   "label": "Only for These Kinds of Leave",
+   "description": "Leave empty to apply to every kind. Sick leave, for instance, is often taken without warning."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "module": "SEAL HRMS",
+ "name": "Task Assignment Policy",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "System Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "HR Manager",
+   "create": 1,
+   "read": 1,
+   "write": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "email": 1,
+   "share": 1
+  },
+  {
+   "role": "HR User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "sort_field": "company",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1,
+ "description": "Per company: whether leave needs a stand-in who has agreed to cover before it can be approved.",
+ "modified": "2026-09-30 11:36:03.917640"
+}

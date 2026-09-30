@@ -101,6 +101,38 @@ def welcome_back(assignment) -> None:
 	)
 
 
+def answered(assignment, status: str) -> None:
+	"""Tell the owner that everyone has agreed, or that someone has declined."""
+	if status == "Accepted":
+		subject = _("Your handover has been agreed")
+		paragraphs = [_("Everyone you asked has agreed to cover your work during your leave ({0}).").format(_dates(assignment))]
+	else:
+		subject = _("A stand-in cannot cover your work")
+		paragraphs = [
+			_("Someone you asked to cover your leave ({0}) has declined. Their reason is on {1}.").format(
+				_dates(assignment), assignment.name
+			),
+			_("Cancel the handover and amend it with someone else. Nothing has moved yet."),
+		]
+	_send(user_for_employee(assignment.employee), subject, paragraphs, [], assignment)
+
+
+def return_note_due(assignment, stand_in_employee: str) -> None:
+	"""Remind a stand-in, the day before, to leave a note for the owner's return."""
+	_send(
+		user_for_employee(stand_in_employee),
+		_("{0} is back tomorrow").format(assignment.employee_name),
+		[
+			_("{0} returns on {1}, and what you are still covering goes back to them that morning.").format(
+				escape_html(assignment.employee_name), formatdate(assignment.return_date)
+			),
+			_("Leave them a note on {0}: what you finished, what is waiting, and who called.").format(assignment.name),
+		],
+		[],
+		assignment,
+	)
+
+
 def assignment_withdrawn(assignment, stand_in_employee: str) -> None:
 	"""Tell a stand-in the handover is off, because the leave was rejected or cancelled."""
 	_send(

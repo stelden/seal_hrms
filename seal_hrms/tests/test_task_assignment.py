@@ -41,13 +41,21 @@ class TaskAssignmentTestCase(IntegrationTestCase):
 		fx.cleanup([self.wanjiku, self.otieno, self.njeri])
 
 	def _handover_with_task(self, start_offset=3, days=5, submit=True):
+		"""A handover that has taken effect: agreed, approved, and the leave begun."""
 		task = fx.project_task("Reconcile the Westlands petty cash")
 		todo = fx.assign(task, self.wanjiku_user)
 		la = fx.leave(self.wanjiku, start_offset, days)
 		ta = fx.handover(self.wanjiku, self.otieno, la, [{"todo": todo, "description": "Reconcile petty cash",
 		                                                   "reference_type": "Task", "reference_name": task}],
 		                 submit=submit)
+		if submit:
+			fx.take_effect(ta, la)
 		return task, todo, la, ta
+
+	def _typed_in(self, description):
+		la = fx.leave(self.wanjiku, 3, 5)
+		ta = fx.handover(self.wanjiku, self.otieno, la, [{"description": description}])
+		return fx.take_effect(ta, la)
 
 
 class TestWorkMoves(TaskAssignmentTestCase):
@@ -84,9 +92,7 @@ class TestWorkMoves(TaskAssignmentTestCase):
 		self.assertFalse(handover.activate(ta.name), "the second call sees activated_at and stops")
 
 	def test_typed_in_task_gets_a_todo_and_it_is_recorded(self):
-		la = fx.leave(self.wanjiku, 3, 5)
-		ta = fx.handover(self.wanjiku, self.otieno, la, [{"description": "Call Kilimani landlord about the lease"}])
-		ta.reload()
+		ta = self._typed_in("Call Kilimani landlord about the lease")
 		row = ta.assignment_todos[0]
 		self.assertTrue(row.stand_in_todo, "the 2024 code created this ToDo and never wrote it back")
 		self.assertEqual(frappe.db.get_value("ToDo", row.stand_in_todo, "allocated_to"), self.otieno_user)
@@ -98,7 +104,7 @@ class TestWorkMoves(TaskAssignmentTestCase):
 		la = fx.leave(self.wanjiku, 3, 5)
 		ta = fx.handover(self.wanjiku, self.otieno, la, [{"todo": todo, "description": "KRA returns",
 		                                                   "reference_type": "Task", "reference_name": task}])
-		ta.reload()
+		fx.take_effect(ta, la)
 		self.assertEqual(ta.assignment_todos[0].row_status, RowStatus.ALREADY_DONE)
 		self.assertEqual(fx.open_todos(self.otieno_user, task), [])
 
@@ -136,29 +142,27 @@ class TestWorkComesBack(TaskAssignmentTestCase):
 		la = fx.leave(self.wanjiku, 3, 5)
 		ta = fx.handover(self.wanjiku, self.otieno, la, [{"todo": todo, "description": "Supplier onboarding",
 		                                                   "reference_type": "Task", "reference_name": task}])
+		fx.take_effect(ta, la)
 		handover.hand_back(ta.name)
 		self.assertEqual(frappe.db.get_value("ToDo", already, "status"), "Open",
 		                 "Otieno was on this before the handover and stays on it")
 
 	def test_typed_in_task_comes_back_to_the_owner(self):
-		la = fx.leave(self.wanjiku, 3, 5)
-		ta = fx.handover(self.wanjiku, self.otieno, la, [{"description": "Call Kilimani landlord about the lease"}])
+		ta = self._typed_in("Call Kilimani landlord about the lease")
 		handover.hand_back(ta.name)
 		ta.reload()
 		row = ta.assignment_todos[0]
 		self.assertEqual(frappe.db.get_value("ToDo", row.stand_in_todo, "status"), "Cancelled")
 		self.assertEqual(frappe.db.get_value("ToDo", row.todo, "allocated_to"), self.wanjiku_user)
 
-	def test_daily_job_returns_work_when_leave_has_ended(self):
+	def test_daily_job_returns_work_on_the_first_day_back(self):
 		_task, _todo, la, ta = self._handover_with_task(start_offset=1, days=2)
 		self.assertEqual(handover_jobs.hand_back_ended_leave(on_date=la.to_date), [], "not while still away")
-		self.assertEqual(handover_jobs.hand_back_ended_leave(on_date=add_days(la.to_date, 1)), [ta.name])
+		self.assertEqual(handover_jobs.hand_back_ended_leave(on_date=ta.return_date), [ta.name])
 
 	def test_cancelling_the_leave_calls_off_the_handover(self):
 		task, _todo, la, ta = self._handover_with_task()
 		la.reload()
-		la.status = "Approved"
-		la.submit()
 		la.cancel()
 		ta.reload()
 		self.assertEqual(ta.docstatus, 2)
@@ -167,13 +171,15 @@ class TestWorkComesBack(TaskAssignmentTestCase):
 		self.assertEqual(fx.open_todos(self.otieno_user, task), [])
 
 	def test_rejecting_the_leave_calls_off_the_handover(self):
-		task, _todo, la, ta = self._handover_with_task()
+		task, _todo, la, ta = self._handover_with_task(submit=False)
+		ta.submit()
+		fx.agree(ta, "otieno")
 		la.reload()
 		la.status = "Rejected"
 		la.submit()
 		ta.reload()
 		self.assertEqual(ta.status, Status.CANCELLED)
-		self.assertEqual(len(fx.open_todos(self.wanjiku_user, task)), 1)
+		self.assertEqual(len(fx.open_todos(self.wanjiku_user, task)), 1, "nothing had moved, and nothing is lost")
 
 
 class TestChoosingAStandIn(TaskAssignmentTestCase):

@@ -7,83 +7,63 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
-  "sb0",
+  "tb1",
+  "tb1_sb1",
   "naming_series",
-  "cb2",
-  "posting_date",
-  "status",
-  "sb1",
   "employee",
   "employee_name",
   "company",
   "department",
-  "cb1",
+  "tb1_cb1",
   "leave_application",
   "leave_from",
   "leave_to",
   "leave_days",
-  "cb0",
+  "return_date",
+  "tb1_cb2",
+  "posting_date",
+  "status",
+  "tb1_sb2",
   "task_assignee",
   "task_assignee_name",
   "task_assignee_department",
   "task_assignee_user",
-  "sb2",
+  "tb1_cb3",
+  "acceptance",
+  "decline_reason",
+  "tb1_sb3",
   "task_description",
-  "sb3",
+  "tb2",
+  "tb2_sb1",
   "assignment_todos",
-  "sb4",
+  "tb4",
+  "tb4_sb1",
+  "return_summary",
+  "tb4_sb2",
   "activated_at",
-  "cb3",
+  "tb4_cb1",
   "handed_back_at",
+  "return_reminder_sent",
+  "sbx",
   "amended_from"
  ],
  "fields": [
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
+   "fieldname": "tb1",
+   "fieldtype": "Tab Break",
+   "label": "Handover"
+  },
+  {
+   "fieldname": "tb1_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
    "no_copy": 1,
-   "options": "Task Assignment",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "sb0",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "task_assignee",
-   "fieldtype": "Link",
-   "label": "Stand-in",
-   "options": "Employee",
-   "reqd": 1,
-   "description": "Who covers this work while the member of staff is away. You can name someone different for a single task below.",
-   "ignore_user_permissions": 1
-  },
-  {
-   "fieldname": "sb1",
-   "fieldtype": "Section Break"
-  },
-  {
-   "fieldname": "task_description",
-   "fieldtype": "Text Editor",
-   "label": "Description of Tasks",
-   "reqd": 1,
-   "description": "What has to be covered, in enough detail for someone who does not do this job."
-  },
-  {
-   "fieldname": "sb3",
-   "fieldtype": "Section Break",
-   "label": "Work to Hand Over"
-  },
-  {
-   "fetch_from": "task_assignee.employee_name",
-   "fieldname": "task_assignee_name",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Stand-in Name"
+   "options": "HR-TA-.YY.MM.-",
+   "reqd": 1
   },
   {
    "fieldname": "employee",
@@ -95,14 +75,6 @@
    "ignore_user_permissions": 1
   },
   {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Series",
-   "no_copy": 1,
-   "options": "HR-TA-.YY.MM.-",
-   "reqd": 1
-  },
-  {
    "fetch_from": "employee.employee_name",
    "fieldname": "employee_name",
    "fieldtype": "Read Only",
@@ -111,7 +83,19 @@
    "label": "Employee Name"
   },
   {
-   "fieldname": "cb0",
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Read Only",
+   "label": "Company"
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Read Only",
+   "label": "Department"
+  },
+  {
+   "fieldname": "tb1_cb1",
    "fieldtype": "Column Break"
   },
   {
@@ -123,71 +107,45 @@
    "description": "The leave this hand-over is for."
   },
   {
-   "fieldname": "posting_date",
-   "fieldtype": "Date",
-   "label": "Posting Date",
-   "read_only": 1
-  },
-  {
-   "description": "The work being handed over. It moves to the stand-in's list when the handover takes effect, and comes back when the leave ends.",
-   "fieldname": "assignment_todos",
-   "fieldtype": "Table",
-   "options": "Task Assignment ToDo"
-  },
-  {
-   "fetch_from": "employee.company",
-   "fieldname": "company",
-   "fieldtype": "Read Only",
-   "label": "Company"
-  },
-  {
    "fetch_from": "leave_application.from_date",
    "fieldname": "leave_from",
-   "fieldtype": "Read Only",
-   "label": "Leave From"
+   "fieldtype": "Date",
+   "label": "Leave From",
+   "read_only": 1,
+   "in_list_view": 1
   },
   {
    "fetch_from": "leave_application.to_date",
    "fieldname": "leave_to",
-   "fieldtype": "Read Only",
-   "label": "Leave To"
+   "fieldtype": "Date",
+   "label": "Leave To",
+   "read_only": 1,
+   "in_list_view": 1
   },
   {
    "fetch_from": "leave_application.total_leave_days",
    "fieldname": "leave_days",
-   "fieldtype": "Read Only",
-   "label": "Leave Days"
+   "fieldtype": "Float",
+   "label": "Leave Days",
+   "read_only": 1
   },
   {
-   "fetch_from": "employee.department",
-   "fieldname": "department",
-   "fieldtype": "Read Only",
-   "label": "Department"
+   "fieldname": "return_date",
+   "fieldtype": "Date",
+   "label": "Back At Work",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "The first working day after the leave. Whatever is still open comes back to you that morning."
   },
   {
-   "fieldname": "sb2",
-   "fieldtype": "Section Break",
-   "label": "Description"
-  },
-  {
-   "fieldname": "cb1",
+   "fieldname": "tb1_cb2",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "cb2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fetch_from": "task_assignee.department",
-   "fieldname": "task_assignee_department",
-   "fieldtype": "Read Only",
-   "label": "Stand-in Department"
-  },
-  {
-   "fetch_from": "task_assignee.user_id",
-   "fieldname": "task_assignee_user",
-   "fieldtype": "Read Only",
-   "label": "Stand-in Login"
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "label": "Posting Date",
+   "read_only": 1
   },
   {
    "fieldname": "status",
@@ -202,10 +160,110 @@
    "description": "Where the handover has got to. You do not set this by hand."
   },
   {
-   "fieldname": "sb4",
+   "fieldname": "tb1_sb2",
    "fieldtype": "Section Break",
-   "label": "Progress",
-   "collapsible": 1
+   "label": "Stand-in"
+  },
+  {
+   "fieldname": "task_assignee",
+   "fieldtype": "Link",
+   "label": "Stand-in",
+   "options": "Employee",
+   "reqd": 1,
+   "description": "Who covers this work while the member of staff is away. You can name someone different for a single task below.",
+   "ignore_user_permissions": 1
+  },
+  {
+   "fetch_from": "task_assignee.employee_name",
+   "fieldname": "task_assignee_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Stand-in Name"
+  },
+  {
+   "fetch_from": "task_assignee.department",
+   "fieldname": "task_assignee_department",
+   "fieldtype": "Read Only",
+   "label": "Stand-in Department"
+  },
+  {
+   "fetch_from": "task_assignee.user_id",
+   "fieldname": "task_assignee_user",
+   "fieldtype": "Read Only",
+   "label": "Stand-in Login"
+  },
+  {
+   "fieldname": "tb1_cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acceptance",
+   "fieldtype": "Select",
+   "label": "Stand-in's Answer",
+   "options": "\nPending\nAccepted\nDeclined",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "description": "Whether the stand-in has agreed to cover. Nothing moves to them until they have."
+  },
+  {
+   "fieldname": "decline_reason",
+   "fieldtype": "Small Text",
+   "label": "Why They Declined",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.acceptance=='Declined'"
+  },
+  {
+   "fieldname": "tb1_sb3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "task_description",
+   "fieldtype": "Text Editor",
+   "label": "What Your Stand-in Needs to Know",
+   "reqd": 1,
+   "description": "What has to be covered, in enough detail for someone who does not do this job."
+  },
+  {
+   "fieldname": "tb2",
+   "fieldtype": "Tab Break",
+   "label": "Work"
+  },
+  {
+   "fieldname": "tb2_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "The work being handed over. It moves to the stand-in's list when the handover takes effect, and comes back when the leave ends.",
+   "fieldname": "assignment_todos",
+   "fieldtype": "Table",
+   "options": "Task Assignment ToDo"
+  },
+  {
+   "fieldname": "tb4",
+   "fieldtype": "Tab Break",
+   "label": "Return"
+  },
+  {
+   "fieldname": "tb4_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "return_summary",
+   "fieldtype": "Text Editor",
+   "label": "Note for When You Are Back",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "description": "What your stand-in wants you to know when you return: what they finished, what is waiting, and who called."
+  },
+  {
+   "fieldname": "tb4_sb2",
+   "fieldtype": "Section Break",
+   "label": "Progress"
   },
   {
    "fieldname": "activated_at",
@@ -216,7 +274,7 @@
    "description": "When the work moved to the stand-in's list."
   },
   {
-   "fieldname": "cb3",
+   "fieldname": "tb4_cb1",
    "fieldtype": "Column Break"
   },
   {
@@ -226,12 +284,35 @@
    "read_only": 1,
    "no_copy": 1,
    "description": "When whatever was still open came back to the member of staff."
+  },
+  {
+   "fieldname": "return_reminder_sent",
+   "fieldtype": "Check",
+   "label": "Stand-in Reminded to Write Their Note",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "sbx",
+   "fieldtype": "Section Break",
+   "hidden": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Task Assignment",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-30 11:18:15.600186",
+ "modified": "2026-09-30 11:36:03.917640",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Task Assignment",
@@ -305,5 +386,6 @@
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1,
- "track_seen": 1
+ "track_seen": 1,
+ "title_field": "employee_name"
 }

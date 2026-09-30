@@ -21,7 +21,10 @@ test.use({ storageState: statePathFor("admin") });
 const LISTABLE = [
  "Employee Dependent and Beneficiary",
  "Employee Separation Type",
- "Task Assignment"
+ "Task Assignment",
+ "Task Assignment Policy",
+ // Not ours, but it carries our form script (Prepare Handover / cover indicator).
+ "Leave Application"
 ];
 
 /** Singles have no list view — `/app/<single>` lands straight on the form. */

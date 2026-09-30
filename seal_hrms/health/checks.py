@@ -129,6 +129,41 @@ def work_left_with_stand_ins():
     )
 
 
+@health_check(label="Cover agreed before leave", category=Category.DATA)
+def leave_started_without_agreed_cover():
+    """Approved leave under way while its handover still waits for an answer, or was declined.
+
+    Nothing moves until a stand-in agrees, so this work is sitting on the list
+    of someone who is away. The approval policy exists to prevent it; this is
+    where it shows when the policy is off or was bypassed.
+    """
+    if not frappe.db.table_exists(ASSIGNMENT):
+        return []
+    count = frappe.db.sql(
+        """
+        SELECT COUNT(*) FROM `tabTask Assignment` a
+        INNER JOIN `tabLeave Application` la ON la.name = a.leave_application
+        WHERE a.docstatus = 1 AND a.status IN ('Awaiting Acceptance', 'Declined')
+          AND la.docstatus = 1 AND la.status = 'Approved'
+          AND la.from_date <= %(today)s AND la.to_date >= %(today)s
+        """,
+        {"today": frappe.utils.today()},
+    )[0][0]
+    if not count:
+        return []
+    return Finding(
+        severity=Severity.DEGRADED,
+        title=_("Some staff are on leave with nobody agreed to cover their work"),
+        detail=_(
+            "Their handover is still waiting for an answer, or was declined, so the "
+            "work has stayed on the list of someone who is away."
+        ),
+        count=count,
+        state=State.MISSING,
+        link="/app/task-assignment?status=Awaiting%20Acceptance",
+    )
+
+
 @health_check(label="Dependants on file", category=Category.CONFIGURATION)
 def beneficiary_records_present():
     """Dependants matter when somebody has to claim on their behalf.

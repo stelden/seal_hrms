@@ -11,26 +11,22 @@
   "cb0",
   "reference_type",
   "reference_name",
-  "task_assignee",
+  "todo",
   "sb1",
+  "task_assignee",
+  "cb1",
+  "acceptance",
+  "decline_reason",
+  "sb2",
   "row_status",
   "stand_in_todo",
-  "cb1",
+  "cb2",
   "stand_in_notes",
   "original_assignor",
   "stand_in_already_had_it",
-  "shared_with_stand_in",
-  "todo"
+  "shared_with_stand_in"
  ],
  "fields": [
-  {
-   "fieldname": "todo",
-   "fieldtype": "Link",
-   "label": "Your To Do",
-   "options": "ToDo",
-   "read_only": 1,
-   "no_copy": 0
-  },
   {
    "fetch_from": "todo.description",
    "fieldname": "description",
@@ -48,14 +44,14 @@
    "options": "High\nMedium\nLow"
   },
   {
-   "fieldname": "cb0",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "due_date",
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Due Date"
+  },
+  {
+   "fieldname": "cb0",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "reference_type",
@@ -72,16 +68,52 @@
    "options": "reference_type"
   },
   {
+   "fieldname": "todo",
+   "fieldtype": "Link",
+   "label": "Your To Do",
+   "options": "ToDo",
+   "read_only": 1,
+   "no_copy": 0
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "Someone Else Covers This"
+  },
+  {
    "fieldname": "task_assignee",
    "fieldtype": "Link",
    "options": "Employee",
    "label": "Covered By",
    "in_list_view": 1,
-   "description": "Leave blank for the stand-in named on the handover.",
+   "description": "Leave blank for the stand-in named on the handover. Someone named here answers for this task themselves.",
    "ignore_user_permissions": 1
   },
   {
-   "fieldname": "sb1",
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "acceptance",
+   "fieldtype": "Select",
+   "label": "Their Answer",
+   "options": "\nPending\nAccepted\nDeclined",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "depends_on": "task_assignee"
+  },
+  {
+   "fieldname": "decline_reason",
+   "fieldtype": "Small Text",
+   "label": "Why They Declined",
+   "read_only": 1,
+   "no_copy": 1,
+   "allow_on_submit": 1,
+   "depends_on": "eval:doc.acceptance=='Declined'"
+  },
+  {
+   "fieldname": "sb2",
    "fieldtype": "Section Break",
    "label": "While You Are Away"
   },
@@ -103,7 +135,7 @@
    "no_copy": 1
   },
   {
-   "fieldname": "cb1",
+   "fieldname": "cb2",
    "fieldtype": "Column Break"
   },
   {
@@ -143,7 +175,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-30 11:18:15.600186",
+ "modified": "2026-09-30 11:36:03.917640",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Task Assignment ToDo",

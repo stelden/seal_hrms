@@ -35,7 +35,7 @@ scheduler run racing a button press does the work once.
 import frappe
 from frappe import _
 from frappe.desk.form import assign_to
-from frappe.utils import cstr, now_datetime
+from frappe.utils import add_days, cstr, getdate, now_datetime, today
 
 ASSIGNMENT = "Task Assignment"
 ROW = "Task Assignment ToDo"
@@ -64,6 +64,38 @@ class RowStatus:
 	HANDED_BACK = "Handed Back"
 	# The employee had already finished it before the handover took effect.
 	ALREADY_DONE = "Already done"
+
+
+class Answer:
+	PENDING = "Pending"
+	ACCEPTED = "Accepted"
+	DECLINED = "Declined"
+
+
+def return_date_for(employee: str, leave_to) -> str | None:
+	"""The first working day after the leave, on the employee's own holiday list."""
+	if not leave_to:
+		return None
+	from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
+
+	day = getdate(add_days(leave_to, 1))
+	# HRMS answers through Holiday List Assignment, effective from a date, so ask for the return day.
+	holiday_list = get_holiday_list_for_employee(employee, raise_exception=False, as_on=day)
+	if not holiday_list:
+		return day
+	holidays = set(
+		getdate(d)
+		for d in frappe.get_all(
+			"Holiday",
+			filters={"parent": holiday_list, "holiday_date": ["between", [day, add_days(day, 60)]]},
+			pluck="holiday_date",
+		)
+	)
+	for _step in range(60):
+		if day not in holidays:
+			return day
+		day = getdate(add_days(day, 1))
+	return day
 
 
 def user_for_employee(employee: str | None) -> str | None:
@@ -117,6 +149,15 @@ def _give(row, user: str, assigned_by: str) -> tuple[str, bool, bool]:
 
 	reference = frappe.get_doc(reference_type, reference_name)
 	needs_share = not frappe.has_permission(doc=reference, user=user)
+	if needs_share:
+		# Shared here rather than left to assign_to, which checks that whoever
+		# is logged in may share the document. Work moves when a stand-in
+		# accepts or an owner comes back early, and neither can share a
+		# document they do not own. Read and write, because covering work
+		# usually means updating it; never submit, which stays with the owner.
+		frappe.share.add_docshare(
+			reference_type, reference_name, user, read=1, write=1, flags={"ignore_share_permission": True}
+		)
 	args = {
 		"assign_to": [user],
 		"doctype": reference_type,
@@ -129,6 +170,15 @@ def _give(row, user: str, assigned_by: str) -> tuple[str, bool, bool]:
 		args["date"] = row.due_date
 	assign_to._add(args, ignore_permissions=True)
 	return _open_todo(reference_type, reference_name, user), False, needs_share
+
+
+def _unshare(reference_type, reference_name, user) -> None:
+	"""Close a share this module opened. Like opening it, not the session user's decision."""
+	share = frappe.db.get_value(
+		"DocShare", {"share_doctype": reference_type, "share_name": reference_name, "user": user}, "name"
+	)
+	if share:
+		frappe.delete_doc("DocShare", share, ignore_permissions=True, flags={"ignore_share_permission": True})
 
 
 def _set_todo_status(todo_name: str | None, status: str) -> None:
@@ -193,23 +243,90 @@ def hand_back_row(row, employee_user: str, stand_in_user: str) -> None:
 
 	reference_type, reference_name = _reference(row)
 	if row.shared_with_stand_in and reference_type and not _open_todo(reference_type, reference_name, stand_in_user):
-		frappe.share.remove(reference_type, reference_name, stand_in_user)
+		_unshare(reference_type, reference_name, stand_in_user)
 		row.shared_with_stand_in = 0
 
 	row.db_update()
 
 
+def covered_by(assignment, row) -> str | None:
+	"""The employee covering this row: the row's own stand-in, else the assignment's."""
+	return row.get("task_assignee") or assignment.task_assignee
+
+
+def answers_for_itself(assignment, row) -> bool:
+	"""A row names its own stand-in, different from the assignment's, who answers for it."""
+	return bool(row.get("task_assignee")) and row.task_assignee != assignment.task_assignee
+
+
+def answer_for(assignment, row) -> str | None:
+	"""Whether whoever covers this row agreed to."""
+	return row.get("acceptance") if answers_for_itself(assignment, row) else assignment.get("acceptance")
+
+
 def _stand_in_for(assignment, row) -> str | None:
-	"""The login of whoever covers this row: the row's own stand-in, else the assignment's."""
-	return user_for_employee(row.get("task_assignee") or assignment.task_assignee)
+	return user_for_employee(covered_by(assignment, row))
 
 
 def _rows_to_move(assignment):
 	"""Rows that are handed over when the assignment takes effect.
 
-	A row a stand-in declined stays with the employee: nobody agreed to carry it.
+	Only work somebody agreed to carry moves. A declined row stays with the
+	employee; the approval gate is what stops leave going ahead that way.
 	"""
-	return [row for row in assignment.assignment_todos if (row.get("acceptance") or "Accepted") == "Accepted"]
+	return [row for row in assignment.assignment_todos if answer_for(assignment, row) == Answer.ACCEPTED]
+
+
+def stand_ins(assignment) -> dict[str, list]:
+	"""Each stand-in, with the rows they cover. The assignment's own stand-in is always listed."""
+	covering = {assignment.task_assignee: []} if assignment.task_assignee else {}
+	for row in assignment.assignment_todos:
+		covering.setdefault(covered_by(assignment, row), []).append(row)
+	covering.pop(None, None)
+	return covering
+
+
+def overall_answer(assignment) -> str:
+	"""Declined if anyone declined, Accepted once everyone has, otherwise Pending."""
+	answers = [assignment.get("acceptance")] + [
+		row.acceptance for row in assignment.assignment_todos if answers_for_itself(assignment, row)
+	]
+	if Answer.DECLINED in answers:
+		return Answer.DECLINED
+	if all(a == Answer.ACCEPTED for a in answers):
+		return Answer.ACCEPTED
+	return Answer.PENDING
+
+
+def leave_is_approved(assignment) -> bool:
+	if not assignment.leave_application:
+		return False
+	return bool(frappe.db.get_value(
+		"Leave Application",
+		{"name": assignment.leave_application, "docstatus": 1, "status": "Approved"},
+		"name",
+	))
+
+
+def maybe_activate(name: str, on_date=None) -> bool:
+	"""Hand the work over if everything is in place for it: agreed, approved, and the leave has started."""
+	on_date = getdate(on_date or today())
+	assignment = frappe.get_doc(ASSIGNMENT, name)
+	if assignment.docstatus != 1 or assignment.status != Status.ACCEPTED:
+		return False
+	if not assignment.leave_from or getdate(assignment.leave_from) > on_date:
+		return False
+	if not leave_is_approved(assignment):
+		return False
+	if not activate(name):
+		return False
+	assignment.reload()
+	from seal_hrms.seal_hrms import handover_notifications
+
+	for employee, rows in stand_ins(assignment).items():
+		moved = [r for r in rows if r.row_status == RowStatus.HANDED_OVER]
+		handover_notifications.work_handed_over(assignment, employee, moved)
+	return True
 
 
 def activate(name: str) -> bool:
