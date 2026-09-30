@@ -180,6 +180,35 @@ ignore User Permissions on purpose: HRMS gives every login an "Employee =
 themselves" User Permission, which would otherwise hide the handover from its
 own stand-in.
 
+### Where handovers show up
+
+- **My Desk** (if installed). `seal_hrms/desk/providers.py` subscribes
+  (SEAL_DEV_RULES §3.15; seal_desk is never imported at module level, and a test
+  says so). It shows:
+  - "Hand over your work before your leave on …", within the policy's reminder
+    window;
+  - an unsent draft;
+  - a declined handover, to its owner;
+  - a request to cover, or to approve in someone's place, to the stand-in;
+  - "Covering for … until …";
+  - "Welcome back", for three days after the work returns.
+
+  The questions are answered in `handover_work.py`, which knows nothing about
+  the desk.
+- **Self Service.** A **Hand over** tile on the overview, a Task Assignment
+  shortcut, and sidebar links. A **Setup** section at the bottom holds the two
+  reports and the policy; the sidebar hides links a person cannot open.
+- **Reports** (HR):
+  - *Who Is Covering Whom* lists everyone away or about to be, with undecided
+    cover first.
+  - *Stand-in Load* shows people covering several colleagues, and the most at
+    once.
+
+The form learns who is looking from `task_assignment_access.my_employee`, not
+from the browser. Staff may not filter Employee on `user_id` client-side, and
+the browser suite found every non-HR stand-in getting a permission error
+instead of an Accept button.
+
 ### Records from before 1.3.0
 
 Before 1.3.0, a handover edited each ToDo to point at the stand-in and **never
@@ -218,7 +247,14 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_legacy_return
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_lifecycle
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_acting
+bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_surfaces
 ```
+
+`02-handover.spec.ts` walks a real handover in two logins: HR prepares and
+submits one from the Leave Application, and the stand-in logs in and accepts.
+After any Python change, **reload gunicorn before running it**: this bench
+preloads the app, so stale workers serve a mix of old and new code, and the
+suite then fails intermittently for reasons that are not in the code.
 
 The browser suite asserts on `pageerror` and console errors rather than markup,
 which is what catches a form script that throws on load — the failure mode that
@@ -228,6 +264,13 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-09-30** — 1.7.0. Handovers on My Desk, in Self Service, and in two HR
+  reports.
+  - The browser suite walks the whole path: HR prepares from the leave, and
+    the stand-in accepts.
+  - Fixed on the way: stand-ins could not use the form at all (see §4 *Where
+    handovers show up*), and a stand-in was offered a Cancel the server would
+    refuse.
 - **2026-09-30** — 1.6.0. Other apps learn who is acting, through seal_common.
   - This app answers `seal_common.delegation` and announces when acting starts
     and ends.

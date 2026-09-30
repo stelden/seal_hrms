@@ -65,9 +65,10 @@ frappe.ui.form.on("Task Assignment", {
 	},
 });
 
+// Asked of the server: staff may not filter Employee on user_id from the browser.
 async function ta_my_employee() {
-	const { message } = await frappe.db.get_value("Employee", { user_id: frappe.session.user }, "name");
-	return (message && message.name) || null;
+	const { message } = await frappe.call("seal_hrms.seal_hrms.task_assignment_access.my_employee");
+	return message || null;
 }
 
 function ta_covered_by(frm, row) {
@@ -188,6 +189,11 @@ function ta_call(frm, method, args, done) {
 function ta_buttons(frm) {
 	const doc = frm.doc;
 	const role = ta_role(frm);
+
+	// Only the owner or HR may cancel. The server refuses anyone else, so do not offer it.
+	if (doc.docstatus === 1 && !(role.is_owner || role.is_hr)) {
+		frm.page.clear_secondary_action();
+	}
 
 	if (doc.docstatus === 0 && !frm.is_new() && (role.is_owner || role.is_hr)) {
 		frm.add_custom_button(__("Find What I Approve"), () => {

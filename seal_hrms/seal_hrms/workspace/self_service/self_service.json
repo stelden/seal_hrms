@@ -1,7 +1,7 @@
 {
  "app": "seal_hrms",
  "charts": [],
- "content": "[{\"id\":\"GpIZJF_b8b\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"HRMS ESS Profile Banner\",\"col\":12}},{\"id\":\"ess_h0\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Self Service</b></span>\",\"col\":12}},{\"id\":\"9T3hC6O6_u\",\"type\":\"custom_block\",\"data\":{\"custom_block_name\":\"HRMS ESS Overview\",\"col\":12}},{\"id\":\"ess_sp1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ess_sc1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Leave Application\",\"col\":3}},{\"id\":\"ess_sc2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Expense Claim\",\"col\":3}},{\"id\":\"ess_sc3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Attendance Request\",\"col\":3}},{\"id\":\"ess_sc4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Timesheet\",\"col\":3}},{\"id\":\"ess_sp2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ess_cd1\",\"type\":\"card\",\"data\":{\"card_name\":\"Leave & Attendance\",\"col\":4}},{\"id\":\"ess_cd2\",\"type\":\"card\",\"data\":{\"card_name\":\"Expenses\",\"col\":4}},{\"id\":\"ess_cd3\",\"type\":\"card\",\"data\":{\"card_name\":\"Shifts & Travel\",\"col\":4}},{\"id\":\"ess_sp3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ess_cd4\",\"type\":\"card\",\"data\":{\"card_name\":\"Payroll & Benefits\",\"col\":4}},{\"id\":\"ess_cd5\",\"type\":\"card\",\"data\":{\"card_name\":\"Training\",\"col\":4}},{\"id\":\"ess_cd6\",\"type\":\"card\",\"data\":{\"card_name\":\"HR & Others\",\"col\":4}}]",
+ "content": "[{\"id\": \"GpIZJF_b8b\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"HRMS ESS Profile Banner\", \"col\": 12}}, {\"id\": \"ess_h0\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Self Service</b></span>\", \"col\": 12}}, {\"id\": \"9T3hC6O6_u\", \"type\": \"custom_block\", \"data\": {\"custom_block_name\": \"HRMS ESS Overview\", \"col\": 12}}, {\"id\": \"ess_sp1\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"ess_sc1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Leave Application\", \"col\": 3}}, {\"id\": \"ess_sc2\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Expense Claim\", \"col\": 3}}, {\"id\": \"ess_sc3\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Attendance Request\", \"col\": 3}}, {\"id\": \"ess_sc4\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Timesheet\", \"col\": 3}}, {\"id\": \"ess_sc5\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Task Assignment\", \"col\": 3}}, {\"id\": \"ess_sp2\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"ess_cd1\", \"type\": \"card\", \"data\": {\"card_name\": \"Leave & Attendance\", \"col\": 4}}, {\"id\": \"ess_cd2\", \"type\": \"card\", \"data\": {\"card_name\": \"Expenses\", \"col\": 4}}, {\"id\": \"ess_cd3\", \"type\": \"card\", \"data\": {\"card_name\": \"Shifts & Travel\", \"col\": 4}}, {\"id\": \"ess_sp3\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"ess_cd4\", \"type\": \"card\", \"data\": {\"card_name\": \"Payroll & Benefits\", \"col\": 4}}, {\"id\": \"ess_cd5\", \"type\": \"card\", \"data\": {\"card_name\": \"Training\", \"col\": 4}}, {\"id\": \"ess_cd6\", \"type\": \"card\", \"data\": {\"card_name\": \"HR & Others\", \"col\": 4}}]",
  "creation": "2026-04-30 13:24:52.932998",
  "custom_blocks": [
   {
@@ -38,6 +38,16 @@
    "label": "Leave Application",
    "link_count": 0,
    "link_to": "Leave Application",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Task Assignment",
+   "link_count": 0,
+   "link_to": "Task Assignment",
    "link_type": "DocType",
    "onboard": 1,
    "type": "Link"
@@ -293,7 +303,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-30 13:29:06.749557",
+ "modified": "2026-09-30 12:31:15.944903",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Self Service",
@@ -336,6 +346,13 @@
    "doc_view": "List",
    "label": "Timesheet",
    "link_to": "Timesheet",
+   "type": "DocType"
+  },
+  {
+   "color": "#8b5cf6",
+   "doc_view": "List",
+   "label": "Task Assignment",
+   "link_to": "Task Assignment",
    "type": "DocType"
   }
  ],

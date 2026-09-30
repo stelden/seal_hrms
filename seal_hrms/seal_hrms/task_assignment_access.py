@@ -37,6 +37,18 @@ def employee_for_user(user: str) -> str | None:
 	return frappe.db.get_value("Employee", {"user_id": user}, "name") or None
 
 
+@frappe.whitelist()
+def my_employee() -> str | None:
+	"""The session user's own Employee record, for the handover form.
+
+	The form cannot ask this itself: filtering Employee on `user_id` from the
+	browser is refused for ordinary staff ("no permission to access field
+	Employee.user_id"), which is exactly who a stand-in usually is. Reads the
+	caller's own link only.
+	"""
+	return employee_for_user(frappe.session.user)
+
+
 def can_prepare_for(employee: str, user: str | None = None) -> bool:
 	"""Whether `user` may prepare or change a handover for `employee`."""
 	user = user or frappe.session.user

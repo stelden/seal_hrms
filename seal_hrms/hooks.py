@@ -340,6 +340,12 @@ app_health_checks = [
 # ---------------------------------------------------------------------------
 seal_desk_group_labels = {"SEAL HRMS": "Staff Tasks"}
 
+# What leave handovers are waiting on each person for: preparing one, answering
+# one, covering for someone, and the note that the work is back.
+seal_desk_providers = [
+    "seal_hrms.desk.providers.handover_work",
+]
+
 # Approvals a member of staff can hand over while on leave (seal_hrms.acting).
 # Read from each app's hooks module, not frappe.get_hooks, because a nested dict
 # is reshaped by get_hooks (SEAL_DEV_RULES §2.17). Other apps declare their own
