@@ -11,6 +11,7 @@
   "naming_series",
   "cb2",
   "posting_date",
+  "status",
   "sb1",
   "employee",
   "employee_name",
@@ -30,6 +31,10 @@
   "task_description",
   "sb3",
   "assignment_todos",
+  "sb4",
+  "activated_at",
+  "cb3",
+  "handed_back_at",
   "amended_from"
  ],
  "fields": [
@@ -50,10 +55,11 @@
   {
    "fieldname": "task_assignee",
    "fieldtype": "Link",
-   "label": "Task Assignee",
+   "label": "Stand-in",
    "options": "Employee",
    "reqd": 1,
-   "description": "Who takes this work on while the member of staff is away."
+   "description": "Who covers this work while the member of staff is away. You can name someone different for a single task below.",
+   "ignore_user_permissions": 1
   },
   {
    "fieldname": "sb1",
@@ -69,7 +75,7 @@
   {
    "fieldname": "sb3",
    "fieldtype": "Section Break",
-   "label": "My Tasks"
+   "label": "Work to Hand Over"
   },
   {
    "fetch_from": "task_assignee.employee_name",
@@ -77,7 +83,7 @@
    "fieldtype": "Read Only",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Assignee Name"
+   "label": "Stand-in Name"
   },
   {
    "fieldname": "employee",
@@ -85,7 +91,8 @@
    "label": "Employee",
    "options": "Employee",
    "reqd": 1,
-   "description": "The member of staff who is away."
+   "description": "The member of staff who is away.",
+   "ignore_user_permissions": 1
   },
   {
    "fieldname": "naming_series",
@@ -122,7 +129,7 @@
    "read_only": 1
   },
   {
-   "description": "Tasks that will be assigned/reassigned to the assignee.",
+   "description": "The work being handed over. It moves to the stand-in's list when the handover takes effect, and comes back when the leave ends.",
    "fieldname": "assignment_todos",
    "fieldtype": "Table",
    "options": "Task Assignment ToDo"
@@ -174,19 +181,57 @@
    "fetch_from": "task_assignee.department",
    "fieldname": "task_assignee_department",
    "fieldtype": "Read Only",
-   "label": "Assignee Department"
+   "label": "Stand-in Department"
   },
   {
    "fetch_from": "task_assignee.user_id",
    "fieldname": "task_assignee_user",
    "fieldtype": "Read Only",
-   "label": "Assignee User"
+   "label": "Stand-in Login"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "default": "Draft",
+   "options": "Draft\nAwaiting Acceptance\nAccepted\nDeclined\nActive\nHanded Back\nCancelled\nLegacy",
+   "description": "Where the handover has got to. You do not set this by hand."
+  },
+  {
+   "fieldname": "sb4",
+   "fieldtype": "Section Break",
+   "label": "Progress",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "activated_at",
+   "fieldtype": "Datetime",
+   "label": "Work Handed Over At",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "When the work moved to the stand-in's list."
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "handed_back_at",
+   "fieldtype": "Datetime",
+   "label": "Work Returned At",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "When whatever was still open came back to the member of staff."
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-09-07 11:02:22.539234",
+ "modified": "2026-09-30 11:18:15.600186",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Task Assignment",
@@ -194,17 +239,65 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "role": "System Manager",
    "create": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
    "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
+   "share": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
-   "share": 1,
+   "print": 1,
+   "email": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "create": 1,
+   "write": 1,
    "submit": 1,
-   "write": 1
+   "cancel": 1,
+   "amend": 1,
+   "delete": 1,
+   "share": 1,
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "email": 1,
+   "export": 1
+  },
+  {
+   "role": "HR User",
+   "create": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "read": 1,
+   "report": 1,
+   "print": 1,
+   "email": 1,
+   "export": 1
+  },
+  {
+   "role": "Employee",
+   "create": 1,
+   "write": 1,
+   "submit": 1,
+   "cancel": 1,
+   "amend": 1,
+   "read": 1,
+   "print": 1,
+   "email": 1
+  },
+  {
+   "role": "Leave Approver",
+   "read": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1
   }
  ],
  "search_fields": "task_assignee_name, task_description",

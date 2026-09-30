@@ -11,15 +11,25 @@
   "cb0",
   "reference_type",
   "reference_name",
+  "task_assignee",
+  "sb1",
+  "row_status",
+  "stand_in_todo",
+  "cb1",
+  "stand_in_notes",
+  "original_assignor",
+  "stand_in_already_had_it",
+  "shared_with_stand_in",
   "todo"
  ],
  "fields": [
   {
    "fieldname": "todo",
    "fieldtype": "Link",
-   "label": "ToDo",
+   "label": "Your To Do",
    "options": "ToDo",
-   "read_only": 1
+   "read_only": 1,
+   "no_copy": 0
   },
   {
    "fetch_from": "todo.description",
@@ -51,21 +61,89 @@
    "fieldname": "reference_type",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Reference Type",
+   "label": "About (Type)",
    "options": "DocType"
   },
   {
    "fieldname": "reference_name",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
-   "label": "Reference Name",
+   "label": "About",
    "options": "reference_type"
+  },
+  {
+   "fieldname": "task_assignee",
+   "fieldtype": "Link",
+   "options": "Employee",
+   "label": "Covered By",
+   "in_list_view": 1,
+   "description": "Leave blank for the stand-in named on the handover.",
+   "ignore_user_permissions": 1
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "While You Are Away"
+  },
+  {
+   "fieldname": "row_status",
+   "fieldtype": "Select",
+   "label": "Progress",
+   "read_only": 1,
+   "no_copy": 1,
+   "options": "\nHanded Over\nDone while away\nHanded Back\nAlready done",
+   "description": "Whether this has moved to the stand-in, been finished, or come back."
+  },
+  {
+   "fieldname": "stand_in_todo",
+   "fieldtype": "Link",
+   "options": "ToDo",
+   "label": "Stand-in's To Do",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "stand_in_notes",
+   "fieldtype": "Small Text",
+   "label": "Stand-in's Notes",
+   "allow_on_submit": 1,
+   "no_copy": 1,
+   "description": "What the stand-in did, so the owner can pick up where they left off."
+  },
+  {
+   "fieldname": "original_assignor",
+   "fieldtype": "Link",
+   "options": "User",
+   "label": "Originally Given Out By",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "stand_in_already_had_it",
+   "fieldtype": "Check",
+   "label": "Stand-in Already Had It",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "shared_with_stand_in",
+   "fieldtype": "Check",
+   "label": "Opened Up for the Stand-in",
+   "read_only": 1,
+   "no_copy": 1,
+   "hidden": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-08-04 13:45:20.864824",
+ "modified": "2026-09-30 11:18:15.600186",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Task Assignment ToDo",

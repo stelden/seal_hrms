@@ -204,6 +204,12 @@ doc_events = {
 permission_query_conditions = {
     # Scope the ToDo list to what a user owns, assigned, or was assigned.
     "ToDo": "seal_hrms.seal_hrms.overrides.todo.get_permission_query_conditions",
+    # The member of staff, their stand-ins, the leave approver, and HR.
+    "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.query_conditions",
+}
+
+has_permission = {
+    "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.has_permission",
 }
 # Scheduled Tasks
 # ---------------
@@ -213,8 +219,11 @@ scheduler_events = {
 	# "all": [
 	# 	"seal_hrms.tasks.all"
 	# ],
-	# Core ships no scheduled jobs — leave planning and imprest each own theirs.
-	"daily": [],
+	# Leave planning and imprest each own theirs. Core's only job returns work
+	# to people whose leave has ended.
+	"daily": [
+		"seal_hrms.seal_hrms.handover_jobs.daily",
+	],
 	# "hourly": [
 	# 	"seal_hrms.tasks.hourly"
 	# ],
@@ -306,6 +315,7 @@ scheduler_events = {
 app_health_checks = [
     "seal_hrms.health.checks.cover_assigned_to_inactive_staff",
     "seal_hrms.health.checks.cover_without_an_assignee",
+    "seal_hrms.health.checks.work_left_with_stand_ins",
     "seal_hrms.health.checks.beneficiary_records_present",
 ]
 

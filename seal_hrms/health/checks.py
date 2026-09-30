@@ -19,6 +19,9 @@ from frappe import _
 from seal_common.app_health import Category, Finding, Severity, State, health_check
 
 ASSIGNMENT = "Task Assignment"
+# Handovers still in play. A returned, cancelled or pre-1.3.0 (Legacy) handover
+# names somebody who is no longer expected to do anything.
+LIVE = ("Awaiting Acceptance", "Accepted", "Active")
 
 
 @health_check(label="Cover during leave", category=Category.DATA)
@@ -30,15 +33,18 @@ def cover_assigned_to_inactive_staff():
     """
     if not frappe.db.table_exists(ASSIGNMENT):
         return []
-    total = frappe.db.count(ASSIGNMENT, {"docstatus": 1})
+    total = frappe.db.count(ASSIGNMENT, {"docstatus": 1, "status": ("in", LIVE)})
     if not total:
         return []
     rows = frappe.db.sql(
         """
-        SELECT COUNT(*) FROM `tabTask Assignment` a
-        INNER JOIN `tabEmployee` e ON e.name = a.task_assignee
-        WHERE a.docstatus = 1 AND e.status != 'Active'
-        """
+        SELECT COUNT(DISTINCT a.name) FROM `tabTask Assignment` a
+        LEFT JOIN `tabTask Assignment ToDo` r
+               ON r.parent = a.name AND r.parenttype = 'Task Assignment'
+        INNER JOIN `tabEmployee` e ON e.name = IFNULL(NULLIF(r.task_assignee, ''), a.task_assignee)
+        WHERE a.docstatus = 1 AND a.status IN %(live)s AND e.status != 'Active'
+        """,
+        {"live": LIVE},
     )
     count = rows[0][0] if rows else 0
     if not count:
@@ -62,11 +68,11 @@ def cover_without_an_assignee():
     """A handover recorded against nobody."""
     if not frappe.db.table_exists(ASSIGNMENT):
         return []
-    total = frappe.db.count(ASSIGNMENT, {"docstatus": 1})
+    total = frappe.db.count(ASSIGNMENT, {"docstatus": 1, "status": ("in", LIVE)})
     if not total:
         return []
     orphaned = frappe.db.count(ASSIGNMENT, {
-        "docstatus": 1, "task_assignee": ("in", ["", None]),
+        "docstatus": 1, "status": ("in", LIVE), "task_assignee": ("is", "not set"),
     })
     if not orphaned:
         return []
@@ -78,6 +84,48 @@ def cover_without_an_assignee():
         total=total,
         state=State.MISSING,
         link="/app/task-assignment",
+    )
+
+
+@health_check(label="Work returned after leave", category=Category.DATA)
+def work_left_with_stand_ins():
+    """Work that stayed on a stand-in's list after the leave it covered ended.
+
+    Two ways it happens: the daily return has not run (scheduler off, or a
+    record it could not process), or it is left over from before 1.3.0 and the
+    one-off return had to skip it — its owner has left, or someone has since
+    moved it on. Either way the owner thinks the stand-in has it, and the
+    stand-in thinks it was only temporary.
+    """
+    if not frappe.db.table_exists(ASSIGNMENT):
+        return []
+    today = frappe.utils.today()
+    overdue = frappe.db.sql(
+        """
+        SELECT COUNT(*) FROM `tabTask Assignment`
+        WHERE docstatus = 1 AND status = 'Active' AND leave_to < %s
+        """,
+        (today,),
+    )[0][0]
+    # The same rule the one-off return used, so the two never disagree. What
+    # the return could move, it did; anything still here was skipped by it.
+    from seal_hrms.seal_hrms.legacy_handover import find_stranded
+
+    returnable, skipped = find_stranded()
+    legacy = len(returnable) + len(skipped)
+    if not (overdue or legacy):
+        return []
+    return Finding(
+        severity=Severity.DEGRADED,
+        title=_("Some work is still with stand-ins after the leave ended"),
+        detail=_(
+            "{0} handover(s) should have been returned by now, and {1} older task(s) "
+            "could not be returned automatically. Open each and return the work, "
+            "or reassign it deliberately."
+        ).format(overdue, legacy),
+        count=overdue + legacy,
+        state=State.MISCONFIGURED,
+        link="/app/task-assignment?status=Active",
     )
 
 

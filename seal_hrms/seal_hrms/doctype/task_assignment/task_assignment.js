@@ -1,9 +1,11 @@
-// Copyright (c) 2024, Stelden EA Ltd and contributors
+// Copyright (c) 2026, Stelden EA Ltd and contributors
 // For license information, please see license.txt
 frappe.ui.form.on("Task Assignment", {
 
     onload: function (frm) {
-        frm.set_value("posting_date", frappe.datetime.nowdate());
+        if (frm.is_new() && !frm.doc.posting_date) {
+            frm.set_value("posting_date", frappe.datetime.nowdate());
+        }
     },
 
     on_submit: function(frm) {
@@ -22,6 +24,16 @@ frappe.ui.form.on("Task Assignment", {
     },
 
     setup: function (frm) {
+		// A different stand-in for one task: the same colleagues who could cover the whole handover.
+		frm.set_query("task_assignee", "assignment_todos", function () {
+			return {
+				query: "seal_hrms.seal_hrms.doctype.task_assignment.task_assignment.get_assignable_employees",
+				filters: {
+					employee: frm.doc.employee,
+					leave_application: frm.doc.leave_application,
+				},
+			};
+		});
 		frm.set_query("reference_type", "assignment_todos", function (doc, cdt, cdn) {
 			let d = locals[cdt][cdn];
 			return {
@@ -34,7 +46,7 @@ frappe.ui.form.on("Task Assignment", {
 
 	refresh(frm) { 
         if (frm.doc.__islocal) {
-            let message = __('You can only assign tasks to employees who are not on leave and, depending on company policy, from the same department.');
+            let message = __('Pick someone who is not on leave themselves over the same dates. Your work moves to them when your leave starts, and comes back when you return.');
             frm.dashboard.add_comment(message, 'orange', true);
         }
 
@@ -76,7 +88,8 @@ frappe.ui.form.on("Task Assignment", {
             return {
                 filters: [
                     ["employee", "=", frm.doc.employee],
-                    ["status", "=", "Open"],
+                    ["status", "in", ["Open", "Approved"]],
+                    ["docstatus", "<", 2],
                     ["to_date", ">=", frappe.datetime.nowdate()], //application is still valid
                 ],
             };

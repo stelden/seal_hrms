@@ -60,7 +60,7 @@ becomes a bank batch there, not here.
 |---|---|
 | **Employee Dependent and Beneficiary** | Who depends on a member of staff, and who benefits if something happens to them. Two different questions, one record, distinguished by `type`. |
 | **Employee Separation Type** | Why someone left — resignation, retirement, end of contract. |
-| **Task Assignment** | Who covers a member of staff's work while they are on leave, and what exactly is being handed over. |
+| **Task Assignment** | Who covers a member of staff's work while they are on leave, and what exactly is being handed over. See §4. |
 | **SEAL HRMS Settings** | The Self Service banner image. |
 
 > ⚠️ **`Task Assignment` also exists in `seal_customizations`.** Two apps ship a
@@ -70,7 +70,55 @@ becomes a bank batch there, not here.
 
 ---
 
-## 4. Self Service
+## 4. Cover during leave (Task Assignment)
+
+A member of staff going on leave lists the work they are handing over and names
+a stand-in. The work moves to the stand-in's list, and **comes back when the
+leave ends**. Design and decisions: `dev_notes/seal_hrms/TASK_ASSIGNMENT_DESIGN.md`.
+
+### How work moves
+
+`seal_hrms/seal_hrms/handover.py` is the only code that moves work, so the form,
+the daily job, the Leave Application hooks and the legacy patch all do it the
+same way.
+
+- **Going:** the stand-in gets a new ToDo through Frappe's own assignment path.
+  That path posts the "assigned" comment, notifies them, and shares the document
+  with them if they could not open it otherwise. The employee's ToDo is set to
+  Cancelled, not edited, so whoever originally gave the work out is kept.
+- **Coming back** (daily job, `handover_jobs.daily`, once the leave has ended):
+  - work the stand-in finished stays finished, as "Done while away";
+  - anything still open comes back to the employee from its original assignor;
+  - a share opened for the stand-in is closed again;
+  - an assignment the stand-in already had before the handover is left with them.
+- **Leave rejected or cancelled:** the handover is cancelled, which gives back
+  anything already moved.
+
+Every step is idempotent. A row records how far it has got, and the handover is
+locked for update before its work moves.
+
+### Who can see it
+
+The member of staff prepares their own. The stand-ins it names and the leave
+approver can read it. HR and System Manager see everything. The Employee links
+ignore User Permissions on purpose: HRMS gives every login an "Employee =
+themselves" User Permission, which would otherwise hide the handover from its
+own stand-in.
+
+### Records from before 1.3.0
+
+Before 1.3.0, a handover edited each ToDo to point at the stand-in and **never
+pointed it back** after normal leave. The patch
+`v1_11.return_stranded_task_assignments` marks those records **Legacy** and, per
+decision T1, returns stranded work to its owner:
+- only the most recent handover listing a task decides;
+- work moved on since is left alone;
+- a handover to oneself is ignored;
+- owners and stand-ins are each emailed once.
+
+The health check *Work returned after leave* shows anything it had to skip.
+
+## 5. Self Service
 
 One workspace (`self_service`) with a Custom HTML Block overview, aimed at a
 member of staff rather than an HR officer. It leans on stock HRMS doctypes —
@@ -83,7 +131,7 @@ does not want.
 
 ---
 
-## 5. Testing
+## 6. Testing
 
 ```bash
 # Browser — 8 tests: every list and form, plus the Settings single
@@ -91,6 +139,8 @@ cd apps/seal_hrms/e2e && npx playwright test
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
+bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment
+bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_legacy_return
 ```
 
 The browser suite asserts on `pageerror` and console errors rather than markup,
@@ -99,7 +149,20 @@ leaves a blank form and no server-side trace.
 
 ---
 
-## 6. Changelog
+## 7. Changelog
+
+- **2026-09-30** — 1.3.0. Task Assignment brings work back.
+  - Work returns to the employee when their leave ends; before, it stayed with
+    the stand-in for good.
+  - The stand-in is given access to documents they could not open, and the
+    original assignor is kept.
+  - Typed-in tasks now record their ToDo.
+  - The "stand-in also away" check tests overlap rather than containment.
+  - Staff can prepare their own handover, and a status field shows how far it
+    has got.
+  - The patch returns work stranded under the old code: 35 ToDos on the MHC
+    restore.
+  - New health check: *Work returned after leave*.
 
 - **2026-09-18** — 1.2.1. On My Desk this app's area chip reads **Staff Tasks**
   instead of "SEAL HRMS" (`hooks.py` → `seal_desk_group_labels`). Chosen because
