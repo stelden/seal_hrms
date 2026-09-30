@@ -12,6 +12,7 @@
   "sb2",
   "min_days",
   "prep_reminder_days",
+  "email_prep_reminder",
   "cb2",
   "leave_types"
  ],
@@ -61,6 +62,13 @@
    "label": "Remind Staff to Hand Over (Days Before)",
    "default": "7",
    "description": "How many days before their leave starts staff are reminded, on My Desk, to prepare a handover."
+  },
+  {
+   "fieldname": "email_prep_reminder",
+   "fieldtype": "Check",
+   "label": "Also Email the Reminder",
+   "default": "1",
+   "description": "Email each member of staff once, that many days before their leave, if nobody has been asked to cover their work yet. The reminder on My Desk shows either way."
   },
   {
    "fieldname": "cb2",
@@ -116,5 +124,5 @@
  "states": [],
  "track_changes": 1,
  "description": "Per company: whether leave needs a stand-in who has agreed to cover before it can be approved.",
- "modified": "2026-09-30 11:36:03.917640"
+ "modified": "2026-09-30 13:07:59.448398"
 }

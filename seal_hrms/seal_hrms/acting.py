@@ -34,12 +34,18 @@ value is a nested dict and `get_hooks` reshapes those lossily (SEAL_DEV_RULES
     task_assignment_authorities = {
         "leave_approval": {
             "label": "Approving leave",
-            "role": "Leave Approver",                     # optional
+            "role": "Leave Approver",                     # optional; or "roles": [...]
             "holds": "dotted.path.fn",                    # fn(user) -> bool
             "pending": "dotted.path.fn",                  # fn(user) -> [(doctype, name)]
+            "covers": ["other_kind"],                     # optional: kinds this one includes
             "enabled": True,                              # optional
         },
     }
+
+A kind that `covers` others answers for them too. A Head of Department hands over
+"their department's approvals" as one line, and anyone asking who approves leave
+for them gets that stand-in. When it is offered, the kinds it covers are not
+offered separately.
 
 There is NO CHAINING. If the stand-in goes on leave too, what they approve for
 someone else does not pass on to their own stand-in; a health check reports it.
@@ -92,7 +98,19 @@ def _run(spec, hook: str, *args, default=None):
 
 
 def what_they_approve(user: str) -> list[frappe._dict]:
-	return [spec for spec in registry().values() if _run(spec, "holds", user, default=False)]
+	"""The kinds of approval `user` gives, leaving out any a broader kind they hold already covers."""
+	held = [spec for spec in registry().values() if _run(spec, "holds", user, default=False)]
+	covered = {key for spec in held for key in (spec.get("covers") or [])}
+	return [spec for spec in held if spec.key not in covered]
+
+
+def kinds_answering(capacity: str) -> list[str]:
+	"""The kinds whose stand-in acts in `capacity`: the kind itself, and any kind covering it."""
+	return [key for key, spec in registry().items() if key == capacity or capacity in (spec.get("covers") or [])] or [capacity]
+
+
+def roles_of(spec) -> list[str]:
+	return list(spec.get("roles") or ([spec.role] if spec.get("role") else []))
 
 
 @frappe.whitelist()
@@ -115,6 +133,11 @@ def _active_rows(**where) -> list[frappe._dict]:
 	"""Accepted approval rows on handovers in effect, with both people's logins."""
 	conditions, values = [], {}
 	for key, value in where.items():
+		if key == "r.authority":
+			# A broader kind (Head of Department) answers for the kinds it covers.
+			conditions.append("r.authority in %(kinds)s")
+			values["kinds"] = kinds_answering(value)
+			continue
 		conditions.append(f"{key} = %({key.replace('.', '_')})s")
 		values[key.replace(".", "_")] = value
 	extra = (" AND " + " AND ".join(conditions)) if conditions else ""
@@ -219,17 +242,19 @@ def grant_for(assignment) -> None:
 		principal = user_for_employee(assignment.employee)
 		if not (spec and stand_in and principal):
 			continue
-		added_role = bool(spec.get("role")) and _give_role(stand_in, spec.role)
+		added = [role for role in roles_of(spec) if _give_role(stand_in, role)]
 		shares = [s for s in (_share(dt, dn, stand_in) for dt, dn in _run(spec, "pending", principal, default=[]) or []) if s]
 		row.db_set({
-			"role_granted": spec.get("role") or "",
-			"role_added_by_assignment": 1 if added_role else 0,
+			# Only the roles this handover added, so only those are taken back.
+			"role_granted": ", ".join(added),
+			"role_added_by_assignment": 1 if added else 0,
 			"shares": json.dumps(shares),
 		}, update_modified=False)
 		assignment.add_comment("Info", _("{0} now approves {1} for {2}, until they are back.").format(
 			frappe.utils.get_fullname(stand_in), _(spec.label).lower(), assignment.employee_name,
 		))
-		_announce(row.authority, principal, stand_in, started=True)
+		for capacity in [row.authority, *(spec.get("covers") or [])]:
+			_announce(capacity, principal, stand_in, started=True)
 
 
 def revoke_for(assignment) -> None:
@@ -244,12 +269,16 @@ def revoke_for(assignment) -> None:
 		if not stand_in:
 			continue
 		if row.acceptance == Answer.ACCEPTED and principal:
-			_announce(row.authority, principal, stand_in, started=False)
+			spec = registry().get(row.authority) or frappe._dict()
+			for capacity in [row.authority, *(spec.get("covers") or [])]:
+				_announce(capacity, principal, stand_in, started=False)
 		for share in json.loads(row.shares or "[]"):
 			if frappe.db.exists("DocShare", share):
 				frappe.delete_doc("DocShare", share, ignore_permissions=True, flags={"ignore_share_permission": True})
-		if row.role_added_by_assignment and row.role_granted and not _still_needed(stand_in, row.role_granted, assignment.name):
-			_take_role(stand_in, row.role_granted)
+		if row.role_added_by_assignment:
+			for role in [r.strip() for r in (row.role_granted or "").split(",") if r.strip()]:
+				if not _still_needed(stand_in, role, assignment.name):
+					_take_role(stand_in, role)
 		row.db_set({"shares": "[]", "role_added_by_assignment": 0}, update_modified=False)
 
 
@@ -261,10 +290,10 @@ def _still_needed(user: str, role: str, returning: str) -> bool:
 		INNER JOIN `tab{ASSIGNMENT}` a ON a.name = r.parent
 		INNER JOIN `tabEmployee` s ON s.name = IFNULL(NULLIF(r.task_assignee, ''), a.task_assignee)
 		WHERE a.status = %s AND a.name != %s AND s.user_id = %s
-		  AND r.role_granted = %s AND r.role_added_by_assignment = 1
+		  AND CONCAT(', ', r.role_granted, ',') LIKE %s AND r.role_added_by_assignment = 1
 		LIMIT 1
 		""",
-		(Status.ACTIVE, returning, user, role),
+		(Status.ACTIVE, returning, user, f"%, {role},%"),
 	))
 
 
@@ -341,3 +370,14 @@ def pending_expense_approvals(user: str) -> list[tuple[str, str]]:
 	return [("Expense Claim", n) for n in frappe.get_all(
 		"Expense Claim", filters={"expense_approver": user, "docstatus": 0, "approval_status": "Draft"}, pluck="name"
 	)]
+
+
+def holds_head_of_department(user: str) -> bool:
+	"""Named on a department's own approver lists: the department head, not a line manager."""
+	return bool(frappe.db.exists(
+		"Department Approver", {"approver": user, "parentfield": ["in", ["leave_approvers", "expense_approvers"]]}
+	))
+
+
+def pending_head_of_department(user: str) -> list[tuple[str, str]]:
+	return pending_leave_approvals(user) + pending_expense_approvals(user)

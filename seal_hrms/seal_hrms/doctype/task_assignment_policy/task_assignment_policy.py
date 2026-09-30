@@ -19,11 +19,13 @@ def policy_for(company: str | None) -> frappe._dict:
 	row = frappe.db.get_value(
 		"Task Assignment Policy",
 		{"company": company} if company else {"name": ""},
-		["name", "requirement", "min_days", "prep_reminder_days"],
+		["name", "requirement", "min_days", "prep_reminder_days", "email_prep_reminder"],
 		as_dict=True,
 	)
 	if not row:
-		return frappe._dict(name=None, requirement=OFF, min_days=0, prep_reminder_days=7, leave_types=set())
+		return frappe._dict(
+			name=None, requirement=OFF, min_days=0, prep_reminder_days=7, email_prep_reminder=0, leave_types=set()
+		)
 	row.leave_types = set(
 		frappe.get_all(
 			"Task Assignment Policy Leave Type",
@@ -36,9 +38,14 @@ def policy_for(company: str | None) -> frappe._dict:
 
 
 def applies_to(policy, leave_type: str, days) -> bool:
-	"""Whether this leave is the kind, and length, the policy covers."""
+	"""Whether the approval rule bites on this leave: switched on, and the kind and length it covers."""
 	if policy.requirement == OFF:
 		return False
+	return covers(policy, leave_type, days)
+
+
+def covers(policy, leave_type: str, days) -> bool:
+	"""Whether this leave is the kind, and length, the policy is about, whatever the approval rule."""
 	if policy.leave_types and leave_type not in policy.leave_types:
 		return False
 	return flt(days) >= flt(policy.min_days)

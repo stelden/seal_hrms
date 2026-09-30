@@ -28,6 +28,12 @@ fixtures = [
         "dt": "Custom HTML Block",
         "filters": [["name", "like", "HRMS ESS%"]],
     },
+    # Every leave-handover email (handover_notifications.py). HR rewords them in
+    # Desk; the code falls back to its own wording if one is missing or broken.
+    {
+        "dt": "Email Template",
+        "filters": [["name", "like", "Task Assignment -%"]],
+    },
 ]
 
 # Each item in the list will be shown as an app in the apps page
@@ -362,6 +368,15 @@ task_assignment_authorities = {
         "role": "Expense Approver",
         "holds": "seal_hrms.seal_hrms.acting.holds_expense_approval",
         "pending": "seal_hrms.seal_hrms.acting.pending_expense_approvals",
+    },
+    # A department head hands over everything they approve for the department in
+    # one line. Offered instead of the two it covers, not beside them.
+    "head_of_department": {
+        "label": "Approving for my department as Head of Department",
+        "roles": ["Leave Approver", "Expense Approver"],
+        "holds": "seal_hrms.seal_hrms.acting.holds_head_of_department",
+        "pending": "seal_hrms.seal_hrms.acting.pending_head_of_department",
+        "covers": ["leave_approval", "expense_approval"],
     },
 }
 

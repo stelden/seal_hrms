@@ -130,6 +130,15 @@ On return, the role and shares the handover added are taken back. A role the
 stand-in already held is left alone. There is no chaining: if the stand-in goes
 on leave too, nobody inherits it, and a health check says so.
 
+**A Head of Department** hands over their department's approvals as one line,
+*Approving for my department as Head of Department*. "Department head" means
+named on a department's own leave or expense approver lists, not a line
+manager. The line grants both approver roles and covers both kinds: anyone
+asking who approves leave or expense claims for them gets the stand-in, and
+seal_leave_planning's plan review follows too. When it is offered, the two kinds
+it covers are not offered separately. A kind declares this with
+`covers: [...]`, and `roles: [...]` for more than one role.
+
 Kinds of approval come from the hook `task_assignment_authorities`. It is read
 from each app's hooks module, because it is a nested dict (SEAL_DEV_RULES §2.17).
 seal_hrms ships **leave** and **expense claims**. Another app declares its own
@@ -179,6 +188,49 @@ approver can read it. HR and System Manager see everything. The Employee links
 ignore User Permissions on purpose: HRMS gives every login an "Employee =
 themselves" User Permission, which would otherwise hide the handover from its
 own stand-in.
+
+### The emails, and rewording them
+
+Every handover email is an **Email Template** named `Task Assignment - ...`,
+shipped as a fixture. HR rewords them in Desk (Email Template list, filter on the
+name), with no code change:
+
+| Template | Sent to | When |
+|---|---|---|
+| Prepare Your Handover | the member of staff | leave coming up and nobody asked to cover (see below) |
+| Asked to Cover | each stand-in | the handover is submitted |
+| Agreed / Declined | the member of staff | everyone agreed / someone declined |
+| Now Covering | each stand-in | the leave starts and the work moves |
+| Back Tomorrow | each stand-in | the day before the return |
+| Welcome Back | the member of staff | the work returns |
+| Called Off | each stand-in | the leave is rejected or cancelled |
+| Old Work Returned to You / to Its Owner | owner / stand-in | the one-off return of pre-1.3.0 work |
+
+Every template gets the same variables:
+- `employee_name`, `stand_in_name`, `leave_from`, `leave_to`, `return_date`;
+- `handover` and `link`;
+- `items` (the work, one line each);
+- `reason`, `done_count`, `has_note`, `days_until`, `leave_application`.
+
+User-entered text is escaped before it reaches a template. Frappe refuses to save
+a template whose Jinja is broken. If one is missing or fails anyway, the
+built-in wording is sent and the problem is logged; a handover email never
+silently stops.
+
+A template reworded in Desk stays reworded until this app ships a newer
+version of the same template (fixtures re-import on migrate when the shipped
+copy is newer).
+
+**The pre-leave reminder email** goes to each member of staff once per leave
+application:
+- only when their company's **Task Assignment Policy** has *Also Email the
+  Reminder* on, and for the leave types and lengths that policy is about;
+- *Remind Staff to Hand Over (Days Before)* sets how far ahead;
+- no email if a handover already exists for that leave;
+- a company with no policy gets no email; My Desk shows the reminder either way.
+
+The flag that stops a second email is the hidden
+`Leave Application.custom_handover_reminder_sent`.
 
 ### Where handovers show up
 
@@ -248,6 +300,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_l
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_lifecycle
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_acting
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_surfaces
+bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_emails
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -264,6 +317,14 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-09-30** — 1.8.0. Editable emails, a pre-leave reminder email, and the
+  Head of Department.
+  - Every handover email is an Email Template HR can reword; a missing or
+    broken one falls back to the built-in wording.
+  - People with leave coming up and no handover are emailed once, when their
+    company's policy says so.
+  - A Head of Department hands over their department's leave and expense
+    approvals as one line (`covers`, `roles`).
 - **2026-09-30** — 1.7.0. Handovers on My Desk, in Self Service, and in two HR
   reports.
   - The browser suite walks the whole path: HR prepares from the leave, and

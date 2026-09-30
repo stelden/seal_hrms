@@ -1,0 +1,102 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Asked to Cover",
+  "response": "<p>{{ employee_name }} will be on leave from {{ leave_from }} to {{ leave_to }}, and has asked you to cover the work below.</p>{% if items %}<ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}<p>Open <a href=\"{{ link }}\">{{ handover }}</a> to accept or decline. Nothing moves to your list until the leave starts.</p>",
+  "response_html": null,
+  "subject": "{{ employee_name }} has asked you to cover their work",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Now Covering",
+  "response": "<p>{{ employee_name }} is on leave from {{ leave_from }}. This work is now on your list.</p>{% if items %}<ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}<p>Add notes on <a href=\"{{ link }}\">{{ handover }}</a> as you go, so {{ employee_name }} can pick up where you left off.</p>",
+  "response_html": null,
+  "subject": "You are now covering for {{ employee_name }}",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Agreed",
+  "response": "<p>Everyone you asked has agreed to cover your work during your leave ({{ leave_from }} to {{ leave_to }}).</p><p>Nothing moves until your leave starts. It all comes back to you on {{ return_date }}.</p>",
+  "response_html": null,
+  "subject": "Your handover has been agreed",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Declined",
+  "response": "<p>Someone you asked to cover your leave ({{ leave_from }} to {{ leave_to }}) has declined: {{ reason }}</p><p>Open <a href=\"{{ link }}\">{{ handover }}</a>, cancel it and amend it with someone else. Nothing has moved yet.</p>",
+  "response_html": null,
+  "subject": "A stand-in cannot cover your work",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Back Tomorrow",
+  "response": "<p>{{ employee_name }} returns on {{ return_date }}, and what you are still covering goes back to them that morning.</p><p>Leave them a note on <a href=\"{{ link }}\">{{ handover }}</a>: what you finished, what is waiting, and who called.</p>",
+  "response_html": null,
+  "subject": "{{ employee_name }} is back tomorrow",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Welcome Back",
+  "response": "<p>Welcome back. Your work has been returned to your list.</p>{% if items %}<ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}{% if done_count %}<p>{{ done_count }} item(s) were finished while you were away; see the notes on <a href=\"{{ link }}\">{{ handover }}</a>.</p>{% endif %}{% if has_note %}<p>Your stand-in left a note for you on <a href=\"{{ link }}\">{{ handover }}</a>.</p>{% endif %}",
+  "response_html": null,
+  "subject": "Welcome back: your work is on your list again",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Called Off",
+  "response": "<p>The leave {{ employee_name }} asked you to cover ({{ leave_from }} to {{ leave_to }}) has been withdrawn. Anything you were given has gone back to them.</p>",
+  "response_html": null,
+  "subject": "You no longer need to cover for {{ employee_name }}",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Prepare Your Handover",
+  "response": "<p>Your leave starts on {{ leave_from }}, and nobody has been asked to cover your work yet.</p><p>Open <a href=\"{{ link }}\">your leave application</a> and click Prepare Handover. It lists your open work, and you name who covers it.</p>",
+  "response_html": null,
+  "subject": "Hand over your work before your leave on {{ leave_from }}",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Old Work Returned to You",
+  "response": "<p>When you went on leave, some of your work was passed to a stand-in and never came back. It is on your list again.</p>{% if items %}<ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}",
+  "response_html": null,
+  "subject": "Work you handed over has been returned to you",
+  "use_html": 0
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Email Template",
+  "modified": "2026-09-30 13:07:20.670810",
+  "name": "Task Assignment - Old Work Returned to Its Owner",
+  "response": "<p>You were covering some of {{ employee_name }}'s work during leave that has since ended. It has gone back to them.</p>{% if items %}<ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}",
+  "response_html": null,
+  "subject": "Work you covered has gone back to its owner",
+  "use_html": 0
+ }
+]

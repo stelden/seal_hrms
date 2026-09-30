@@ -184,6 +184,75 @@ class TestOnReturn(ActingTestCase):
 		self.assertIn("Leave Approver", frappe.get_roles(self.otieno_user), "he was an approver before; he still is")
 
 
+class TestHeadOfDepartment(ActingTestCase):
+	"""Achieng heads Kilimani Operations: her department's leave and expense approvals go as one line."""
+
+	DEPARTMENT = "Kilimani Operations"
+
+	def setUp(self):
+		super().setUp()
+		self._strip(self.otieno_user, "Expense Approver")
+		self.department = self._department()
+
+	def tearDown(self):
+		super().tearDown()
+		if frappe.db.exists("Department", self.department):
+			frappe.delete_doc("Department", self.department, force=1, ignore_permissions=True)
+
+	def _department(self):
+		abbr = frappe.db.get_value("Company", fx.COMPANY, "abbr")
+		name = f"{self.DEPARTMENT} - {abbr}"
+		if frappe.db.exists("Department", name):
+			frappe.delete_doc("Department", name, force=1, ignore_permissions=True)
+		doc = frappe.new_doc("Department")
+		doc.department_name = self.DEPARTMENT
+		doc.company = fx.COMPANY
+		doc.append("leave_approvers", {"approver": self.achieng_user})
+		doc.append("expense_approvers", {"approver": self.achieng_user})
+		doc.insert(ignore_permissions=True)
+		return doc.name
+
+	def _hod_handover(self):
+		la = fx.leave(self.achieng, 0, 4)
+		frappe.db.set_value("Leave Application", la.name, "leave_approver", "Administrator", update_modified=False)
+		ta = frappe.new_doc("Task Assignment")
+		ta.employee, ta.leave_application, ta.task_assignee = self.achieng, la.name, self.otieno
+		ta.task_description = "<p>Approve Kilimani Operations' leave and claims.</p>"
+		ta.append("authorities", {"authority": "head_of_department"})
+		ta.insert(ignore_permissions=True)
+		ta.submit()
+		fx.approve(la)
+		fx.agree(ta, "otieno")
+		fx.as_user(self.otieno_user, actions.respond_authority, ta.name, ta.authorities[0].name, "Accepted")
+		ta.reload()
+		self.assertEqual(ta.status, Status.ACTIVE)
+		return ta
+
+	def test_a_department_head_is_offered_one_line_not_three(self):
+		kinds = [a["authority"] for a in acting.suggest_authorities(self.achieng)]
+		self.assertIn("head_of_department", kinds)
+		self.assertNotIn("leave_approval", kinds, "covered by the department line")
+		self.assertNotIn("expense_approval", kinds, "covered by the department line")
+
+	def test_the_stand_in_approves_both_kinds_and_loses_both_on_return(self):
+		ta = self._hod_handover()
+		roles = frappe.get_roles(self.otieno_user)
+		self.assertIn("Leave Approver", roles)
+		self.assertIn("Expense Approver", roles)
+		self.assertEqual(acting.acting_stand_in(self.achieng_user, "leave_approval"), self.otieno_user)
+		self.assertEqual(acting.acting_stand_in(self.achieng_user, "expense_approval"), self.otieno_user)
+		handover.hand_back(ta.name)
+		roles = frappe.get_roles(self.otieno_user)
+		self.assertNotIn("Leave Approver", roles)
+		self.assertNotIn("Expense Approver", roles)
+
+	def test_leave_raised_for_the_head_reaches_the_stand_in(self):
+		ta = self._hod_handover()
+		new = fx.leave(self.njeri, 6, 2)  # Njeri's approver is Achieng
+		self.assertTrue(frappe.db.exists("DocShare", {"share_doctype": "Leave Application", "share_name": new.name,
+		                                              "user": self.otieno_user}))
+
+
 @unittest.skipUnless("seal_common" in frappe.get_installed_apps(), "seal_common is not installed")
 class TestOtherAppsCanAsk(ActingTestCase):
 	"""seal_common.delegation is how seal_buying and seal_leave_planning learn who is acting."""
