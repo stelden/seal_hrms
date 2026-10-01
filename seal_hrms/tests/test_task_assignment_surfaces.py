@@ -110,28 +110,26 @@ class TestWhatReachesEachPerson(SurfacesTestCase):
 
 
 @unittest.skipUnless(HOST in frappe.get_installed_apps(), f"{HOST} is not installed")
-class TestDeskItems(SurfacesTestCase):
-	def test_records_become_desk_items(self):
-		from seal_desk.desk.schema import Item
+class TestDeskRows(SurfacesTestCase):
+	"""The adapter's rows are what My Desk's list groups take (seal_desk DESIGN §18.2)."""
 
-		from seal_hrms.desk.providers import handover_work as provider
+	def test_records_become_list_rows_that_open_them(self):
+		from frappe.utils import getdate
+		from seal_desk.role_center.schema import DeskContext, ListRow
+
+		from seal_hrms.desk.providers import handover_rows
 
 		fx.leave(self.wanjiku, 3, 2)
+		rows = handover_rows(DeskContext(user=self.wanjiku_user, company=None, today=getdate()))
+		self.assertTrue(rows and all(isinstance(r, ListRow) for r in rows))
+		self.assertTrue(all(r.target.visible and r.target.route.startswith("/app/") for r in rows))
 
-		class Ctx:
-			cache = {}
+	def test_the_desk_finds_the_group(self):
+		from seal_desk.role_center import registry
 
-			def memo(self, key, factory):
-				return self.cache.setdefault(key, factory())
-
-			def priority_from_due(self, due):
-				return 0
-
-		items = provider(self.wanjiku_user, Ctx())
-		self.assertTrue(items and all(isinstance(i, Item) for i in items))
-
-	def test_the_provider_is_declared(self):
-		self.assertIn("seal_hrms.desk.providers.handover_work", frappe.get_hooks("seal_desk_providers", app_name=APP))
+		group = registry.standard_groups()["seal_hrms.handover_work"]
+		self.assertEqual((group.renders_as, group.app), ("list", APP))
+		self.assertTrue(callable(frappe.get_attr(group.provider)))
 
 
 class TestTheFormKnowsWhoIsLooking(SurfacesTestCase):

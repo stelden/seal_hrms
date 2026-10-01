@@ -342,14 +342,18 @@ app_health_checks = [
 # Plain data that only seal_desk reads, and only on sites where it is installed:
 # anywhere else it is inert. seal_desk must never appear in required_apps.
 #
-# What the desk's area chip says for this app's module — the work, not the app.
-# ---------------------------------------------------------------------------
-seal_desk_group_labels = {"SEAL HRMS": "Staff Tasks"}
-
 # What leave handovers are waiting on each person for: preparing one, answering
-# one, covering for someone, and the note that the work is back.
-seal_desk_providers = [
-    "seal_hrms.desk.providers.handover_work",
+# one, covering for someone, and the note that the work is back. A list an admin
+# places on a desk page ("Handovers waiting for you").
+# ---------------------------------------------------------------------------
+seal_desk_cue_groups = [
+    {
+        "key": "seal_hrms.handover_work",
+        "label": "Handovers waiting for you",
+        "renders_as": "list",
+        "provider": "seal_hrms.desk.providers.handover_rows",
+        "watch": ["Task Assignment", "Leave Application"],
+    },
 ]
 
 # Approvals a member of staff can hand over while on leave (seal_hrms.acting).

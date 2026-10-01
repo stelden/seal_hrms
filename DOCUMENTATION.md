@@ -234,9 +234,10 @@ The flag that stops a second email is the hidden
 
 ### Where handovers show up
 
-- **My Desk** (if installed). `seal_hrms/desk/providers.py` subscribes
-  (SEAL_DEV_RULES §3.15; seal_desk is never imported at module level, and a test
-  says so). It shows:
+- **My Desk** (if installed): a "Handovers waiting for you" list an admin places
+  on any desk page (`hooks.py` → `seal_desk_cue_groups`, `renders_as: "list"`;
+  `seal_hrms/desk/providers.py`, SEAL_DEV_RULES §3.15: seal_desk is never imported
+  at module level, and a test says so). It shows:
   - "Hand over your work before your leave on …", within the policy's reminder
     window;
   - an unsent draft;
@@ -317,6 +318,10 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-10-01** — 1.8.1. On My Desk, handovers are now a "Handovers waiting for
+  you" list an admin places on a page (`seal_desk_cue_groups`, `renders_as:
+  "list"`), because My Desk's old feed and its `seal_desk_providers` contract were
+  retired. The rows are the same; the area chip (`seal_desk_group_labels`) is gone.
 - **2026-09-30** — 1.8.0. Editable emails, a pre-leave reminder email, and the
   Head of Department.
   - Every handover email is an Email Template HR can reword; a missing or

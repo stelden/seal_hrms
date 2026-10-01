@@ -5,37 +5,29 @@
 
 An ADAPTER and nothing more. What a handover needs from each person is answered
 by `seal_hrms.seal_hrms.handover_work`, which returns plain records and runs on
-any site. Here each record becomes a desk `Item`.
+any site. Here each record becomes a row of a My Desk "Waiting for you" list
+(seal_desk DESIGN §18.2: a standard group declared through `seal_desk_cue_groups`,
+`renders_as: "list"`), which an admin places on any desk page.
 
 **Nothing at module level may import `seal_desk`.** The desk is optional, and
 most sites running this app do not have it. These functions are only ever
-called by the desk's own runner, so an import inside them only runs where the
-desk exists (SEAL_DEV_RULES §3.15). `tests/test_desk_subscription.py` enforces
+called by the desk itself, so an import inside them only runs where the desk
+exists (SEAL_DEV_RULES §3.15). `tests/test_task_assignment_surfaces.py` enforces
 it. Nothing else in seal_hrms imports this module.
 """
 
-import frappe
+from frappe import _
 
 
-def handover_work(user, ctx):
-	"""What leave handovers are waiting on `user` for."""
-	from seal_desk.desk.schema import Item
+def handover_rows(ctx):
+	"""What leave handovers are waiting on the person looking for."""
+	from seal_desk.role_center.routes import Target
+	from seal_desk.role_center.schema import ListRow
 
 	from seal_hrms.seal_hrms.handover_work import work_for
 
-	group = ctx.memo("seal_hrms:group", lambda: frappe.db.get_value("DocType", "Task Assignment", "module") or "")
-	return [
-		Item(
-			kind=w.kind,
-			source="",  # the runner stamps the provider id
-			doctype=w.doctype,
-			name=w.name,
-			title=w.title,
-			subtitle=w.subtitle,
-			group=group,
-			due=w.due,
-			priority=ctx.priority_from_due(w.due),
-			route=w.route,
-		)
-		for w in work_for(user)
-	]
+	rows = []
+	for w in sorted(work_for(ctx.user), key=lambda w: w.due or "9999"):
+		meta = " · ".join(p for p in (w.subtitle, _("due {0}").format(w.due) if w.due else "") if p)
+		rows.append(ListRow(title=w.title, meta=meta, target=Target("URL", w.route, w.route, None, True)))
+	return rows
