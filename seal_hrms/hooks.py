@@ -354,6 +354,13 @@ seal_desk_cue_groups = [
         "provider": "seal_hrms.desk.providers.handover_rows",
         "watch": ["Task Assignment", "Leave Application"],
     },
+    {
+        "key": "seal_hrms.self_service",
+        "label": "Self-Service",
+        "renders_as": "cues",
+        "provider": "seal_hrms.desk.providers.self_service",
+        "watch": ["Leave Application", "Expense Claim", "Employee Advance", "Timesheet"],
+    },
 ]
 
 # Approvals a member of staff can hand over while on leave (seal_hrms.acting).

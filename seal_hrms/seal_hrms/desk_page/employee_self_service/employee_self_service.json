@@ -1,0 +1,149 @@
+{
+ "actions": [
+  {
+   "area": "Menu",
+   "label": "Leave applications",
+   "menu_group": "My records",
+   "name": "m00222tt7o",
+   "route_type": "List",
+   "target": "Leave Application"
+  },
+  {
+   "area": "Menu",
+   "label": "Expense claims",
+   "menu_group": "My records",
+   "name": "m00m9gv3mv",
+   "route_type": "List",
+   "target": "Expense Claim"
+  },
+  {
+   "area": "Menu",
+   "label": "Employee advances",
+   "menu_group": "My records",
+   "name": "m002ach912",
+   "route_type": "List",
+   "target": "Employee Advance"
+  },
+  {
+   "area": "Menu",
+   "label": "Timesheets",
+   "menu_group": "My records",
+   "name": "m0075avb4u",
+   "route_type": "List",
+   "target": "Timesheet"
+  },
+  {
+   "area": "Menu",
+   "label": "Salary slips",
+   "menu_group": "My records",
+   "name": "m005al5f2e",
+   "route_type": "List",
+   "target": "Salary Slip"
+  },
+  {
+   "area": "Bar",
+   "label": "Self Service",
+   "name": "m00rkp969r",
+   "route_type": "Workspace",
+   "target": "Self Service"
+  },
+  {
+   "area": "Bar",
+   "label": "Leaves",
+   "name": "m00q9btf3p",
+   "route_type": "Workspace",
+   "target": "Leaves"
+  },
+  {
+   "area": "New",
+   "label": "Leave application",
+   "name": "m008decem5",
+   "route_type": "New Form",
+   "target": "Leave Application"
+  },
+  {
+   "area": "New",
+   "label": "Expense claim",
+   "name": "m0090fmjlo",
+   "route_type": "New Form",
+   "target": "Expense Claim"
+  },
+  {
+   "area": "New",
+   "label": "Employee advance",
+   "name": "m00ih1sg79",
+   "route_type": "New Form",
+   "target": "Employee Advance"
+  },
+  {
+   "area": "New",
+   "label": "Timesheet",
+   "name": "m00s9v7462",
+   "route_type": "New Form",
+   "target": "Timesheet"
+  }
+ ],
+ "banner_cta_route_type": "",
+ "banner_enabled": 0,
+ "checklist": [],
+ "creation": "2026-10-02 04:28:44.810342",
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "icon": "users",
+ "idx": 0,
+ "include_app_headlines": 1,
+ "is_fallback": 0,
+ "is_standard": 1,
+ "items": [
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m00vl25gdg",
+   "widget": "seal-hrms-self-service",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m009ebftui",
+   "widget": "seal-desk-approvals",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m00hqdv969",
+   "widget": "seal-desk-my-tasks",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m0029uk6u5",
+   "widget": "seal-hrms-handover-work",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m005g3a8f7",
+   "widget": "seal-desk-report-inbox",
+   "widget_type": "Standard Group"
+  }
+ ],
+ "modified": "2026-10-02 04:28:44.810342",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "employee-self-service",
+ "owner": "Administrator",
+ "page_key": "employee-self-service",
+ "personalization": "Full",
+ "priority": 50,
+ "published_by": null,
+ "published_json": null,
+ "published_on": null,
+ "published_version": 0,
+ "role_profiles": [],
+ "status": "Draft",
+ "title": "Employee Self-Service"
+}

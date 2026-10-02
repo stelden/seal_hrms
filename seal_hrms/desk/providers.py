@@ -31,3 +31,21 @@ def handover_rows(ctx):
 		meta = " · ".join(p for p in (w.subtitle, _("due {0}").format(w.due) if w.due else "") if p)
 		rows.append(ListRow(title=w.title, meta=meta, target=Target("URL", w.route, w.route, None, True)))
 	return rows
+
+
+def self_service(ctx):
+	"""Self-Service: the person's own leave, claims, advances and timesheets in flight."""
+	from seal_desk.role_center.routes import Target
+	from seal_desk.role_center.schema import CueValue
+
+	from seal_hrms.seal_hrms.self_service_status import self_service
+
+	return [
+		CueValue(
+			cue_key=f.key,
+			caption=f.caption,
+			value=f.count,
+			target=Target("List", f.doctype, ["List", f.doctype], f.route_options(), True),
+		)
+		for f in self_service(ctx.user, ctx.readable)
+	]

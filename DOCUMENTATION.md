@@ -245,6 +245,16 @@ The flag that stops a second email is the hidden
   - a request to cover, or to approve in someone's place, to the stand-in;
   - "Covering for … until …";
   - "Welcome back", for three days after the work returns.
+- **Self-Service on My Desk** (since 1.9.0): figures for a person's own Employee —
+  leave awaiting a decision, claims in approval and approved but unpaid, advances not
+  yet paid and to settle, timesheets in draft — each counted through their own
+  permissions and opening the list it counted (`seal_desk_cue_groups` →
+  `seal_hrms.self_service`, `renders_as: "cues"`; questions in
+  `seal_hrms/self_service_status.py`). Someone with no Employee gets none.
+  seal_hrms ships a standard **"Employee Self-Service"** page with its parts
+  (`seal_hrms/desk_page/`, `seal_hrms/desk_widget/`): it arrives as a draft with no
+  audience; an admin chooses who gets it and publishes it (seal_desk D104). Without
+  seal_desk the files are inert.
 
   The questions are answered in `handover_work.py`, which knows nothing about
   the desk.
@@ -318,6 +328,8 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-10-02** — 1.9.0. My Desk "Self-Service" figures and a shipped "Employee
+  Self-Service" page (seal_desk P6).
 - **2026-10-01** — 1.8.1. On My Desk, handovers are now a "Handovers waiting for
   you" list an admin places on a page (`seal_desk_cue_groups`, `renders_as:
   "list"`), because My Desk's old feed and its `seal_desk_providers` contract were
