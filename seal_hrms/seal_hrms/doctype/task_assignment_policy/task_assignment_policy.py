@@ -31,7 +31,8 @@ def is_acceptance_required_before_submission(policy) -> bool:
 	return policy.requirement == REQUIRE_ACCEPTANCE_BEFORE_SUBMISSION
 
 
-def policy_for(company: str | None) -> frappe._dict:
+@frappe.whitelist()
+def policy_for(company: str | None = None) -> dict:
 	"""The company's policy, or Off when it has none. Never raises."""
 	row = frappe.db.get_value(
 		"Task Assignment Policy",
@@ -41,14 +42,12 @@ def policy_for(company: str | None) -> frappe._dict:
 	)
 	if not row:
 		return frappe._dict(
-			name=None, requirement=OFF, min_days=0, prep_reminder_days=7, email_prep_reminder=0, leave_types=set()
+			name=None, requirement=OFF, min_days=0, prep_reminder_days=7, email_prep_reminder=0, leave_types=[]
 		)
-	row.leave_types = set(
-		frappe.get_all(
-			"Task Assignment Policy Leave Type",
-			filters={"parent": row.name, "parenttype": "Task Assignment Policy"},
-			pluck="leave_type",
-		)
+	row.leave_types = frappe.get_all(
+		"Task Assignment Policy Leave Type",
+		filters={"parent": row.name, "parenttype": "Task Assignment Policy"},
+		pluck="leave_type",
 	)
 	row.min_days = flt(row.min_days)
 	return row
