@@ -39,12 +39,7 @@ frappe.ui.form.on("Leave Application", {
 					}
 				} else if (frm.doc.status !== "Rejected" && frm.doc.docstatus === 0) {
 					frm.add_custom_button(__("Prepare Handover"), () => {
-						frappe.call({
-							method: "seal_hrms.seal_hrms.task_assignment_actions.prepare_from_leave",
-							args: { leave_application: frm.doc.name },
-							freeze: true,
-							callback: (r) => r.message && frappe.set_route("Form", "Task Assignment", r.message),
-						});
+						prepare_handover_for_leave(frm);
 					}).addClass("btn-primary");
 
 					// Check HR Settings to display guidance banner
@@ -78,6 +73,36 @@ frappe.ui.form.on("Leave Application", {
 		return check_handover_before_action(frm);
 	},
 });
+
+function prepare_handover_for_leave(frm, dialog) {
+	if (dialog) {
+		dialog.hide();
+	}
+	frappe.dom.unfreeze();
+
+	if (frm.is_new() || frm.is_dirty()) {
+		frm.save().then(() => {
+			call_prepare_from_leave(frm.doc.name);
+		});
+	} else {
+		call_prepare_from_leave(frm.doc.name);
+	}
+}
+
+function call_prepare_from_leave(leave_application_name) {
+	if (!leave_application_name) return;
+	frappe.call({
+		method: "seal_hrms.seal_hrms.task_assignment_actions.prepare_from_leave",
+		args: { leave_application: leave_application_name },
+		freeze: true,
+		freeze_message: __("Preparing Handover..."),
+		callback(r) {
+			if (r && r.message) {
+				frappe.set_route("Form", "Task Assignment", r.message);
+			}
+		},
+	});
+}
 
 function check_handover_before_action(frm) {
 	return new Promise((resolve, reject) => {
@@ -125,19 +150,11 @@ function check_handover_before_action(frm) {
 								primary_action: {
 									label: __("Prepare Handover"),
 									action(dialog) {
-										dialog.hide();
-										frappe.dom.unfreeze();
-										frappe.call({
-											method: "seal_hrms.seal_hrms.task_assignment_actions.prepare_from_leave",
-											args: { leave_application: frm.doc.name },
-											freeze: true,
-											callback: (r) => r.message && frappe.set_route("Form", "Task Assignment", r.message),
-										});
+										prepare_handover_for_leave(frm, dialog);
 									},
 								},
 								on_hide() {
 									frappe.dom.unfreeze();
-									frm.refresh();
 								},
 							});
 							frappe.validated = false;
@@ -158,14 +175,13 @@ function check_handover_before_action(frm) {
 									primary_action: {
 										label: __("Open Handover"),
 										action(dialog) {
-											dialog.hide();
+											dialog && dialog.hide();
 											frappe.dom.unfreeze();
 											frappe.set_route("Form", "Task Assignment", handover.name);
 										},
 									},
 									on_hide() {
 										frappe.dom.unfreeze();
-										frm.refresh();
 									},
 								});
 								frappe.validated = false;
@@ -186,3 +202,4 @@ function check_handover_before_action(frm) {
 			});
 	});
 }
+

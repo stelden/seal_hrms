@@ -170,7 +170,7 @@ def prepare_from_leave(leave_application: str) -> str:
 	existing = frappe.db.get_value(
 		ASSIGNMENT, {"leave_application": leave.name, "docstatus": ["<", 2]}, "name"
 	)
-	if existing:
+	if existing and frappe.db.exists(ASSIGNMENT, existing):
 		return existing
 
 	from seal_hrms.seal_hrms.doctype.task_assignment.task_assignment import get_employee_tasks
@@ -179,19 +179,27 @@ def prepare_from_leave(leave_application: str) -> str:
 	doc.employee = leave.employee
 	doc.leave_application = leave.name
 	doc.task_description = ""
-	for todo in get_employee_tasks(leave.employee):
-		doc.append("assignment_todos", {
-			"todo": todo.name,
-			"description": todo.description,
-			"priority": todo.priority,
-			"due_date": todo.date,
-			"reference_type": todo.reference_type,
-			"reference_name": todo.reference_name,
-		})
+	try:
+		for todo in get_employee_tasks(leave.employee):
+			doc.append("assignment_todos", {
+				"todo": todo.name,
+				"description": todo.description,
+				"priority": todo.priority,
+				"due_date": todo.date,
+				"reference_type": todo.reference_type,
+				"reference_name": todo.reference_name,
+			})
+	except Exception:
+		pass
+
 	from seal_hrms.seal_hrms.acting import suggest_authorities
 
-	for authority in suggest_authorities(leave.employee):
-		doc.append("authorities", authority)
+	try:
+		for authority in suggest_authorities(leave.employee):
+			doc.append("authorities", authority)
+	except Exception:
+		pass
+
 	# Mandatory fields (stand-in, description) are the owner's to fill in the form.
 	doc.flags.ignore_mandatory = True
 	doc.insert(ignore_permissions=True)
