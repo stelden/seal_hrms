@@ -74,12 +74,8 @@ frappe.ui.form.on("Leave Application", {
 	},
 });
 
-function prepare_handover_for_leave(frm, dialog) {
-	if (dialog) {
-		dialog.hide();
-	}
+function prepare_handover_for_leave(frm) {
 	frappe.dom.unfreeze();
-
 	if (frm.is_new() || frm.is_dirty()) {
 		frm.save().then(() => {
 			call_prepare_from_leave(frm.doc.name);
@@ -102,6 +98,48 @@ function call_prepare_from_leave(leave_application_name) {
 			}
 		},
 	});
+}
+
+function show_handover_dialog(frm, title, indicator, message, primary_label, on_primary) {
+	frappe.dom.unfreeze();
+	const d = new frappe.ui.Dialog({
+		title: title,
+		indicator: indicator || "red",
+		fields: [
+			{
+				fieldtype: "HTML",
+				fieldname: "handover_message",
+				options: `<div style="padding: 12px 0; font-size: 14px; line-height: 1.6;">${message}</div>`,
+			},
+		],
+		primary_action_label: primary_label,
+		primary_action() {
+			d.hide();
+			frappe.dom.unfreeze();
+			if (typeof on_primary === "function") {
+				on_primary();
+			}
+		},
+		secondary_action_label: __("Close"),
+		secondary_action() {
+			d.hide();
+			frappe.dom.unfreeze();
+		},
+	});
+
+	// Direct event binding safeguard to guarantee action triggers even if form validation is bypassed
+	d.get_primary_btn().off("click").on("click", function (e) {
+		e.preventDefault();
+		e.stopPropagation();
+		d.hide();
+		frappe.dom.unfreeze();
+		if (typeof on_primary === "function") {
+			on_primary();
+		}
+	});
+
+	d.show();
+	return d;
 }
 
 function check_handover_before_action(frm) {
@@ -140,23 +178,16 @@ function check_handover_before_action(frm) {
 					)
 					.then(({ message: handover }) => {
 						if (!handover || !handover.name || !handover.task_assignee) {
-							frappe.dom.unfreeze();
-							frappe.msgprint({
-								title: __("Handover Mandatory"),
-								indicator: "red",
-								message: __(
+							show_handover_dialog(
+								frm,
+								__("Handover Mandatory"),
+								"red",
+								__(
 									"A handover is mandatory for this leave application. Please click <b>Prepare Handover</b> to choose your stand-in before proceeding."
 								),
-								primary_action: {
-									label: __("Prepare Handover"),
-									action(dialog) {
-										prepare_handover_for_leave(frm, dialog);
-									},
-								},
-								on_hide() {
-									frappe.dom.unfreeze();
-								},
-							});
+								__("Prepare Handover"),
+								() => prepare_handover_for_leave(frm)
+							);
 							frappe.validated = false;
 							return reject();
 						}
@@ -164,26 +195,17 @@ function check_handover_before_action(frm) {
 						const req = settings.custom_leave_handover_requirement;
 						if (req === "Require Acceptance before Submission" || req === "Require on Approval") {
 							if (handover.status !== "Accepted" && handover.status !== "Active") {
-								frappe.dom.unfreeze();
-								frappe.msgprint({
-									title: __("Stand-in Acceptance Required"),
-									indicator: "orange",
-									message: __(
+								show_handover_dialog(
+									frm,
+									__("Stand-in Acceptance Required"),
+									"orange",
+									__(
 										"Your stand-in (<b>{0}</b>) must accept the handover before you can apply or submit this leave application. Current handover status is <b>{1}</b>.",
 										[handover.task_assignee_name || handover.task_assignee, handover.status || __("Draft")]
 									),
-									primary_action: {
-										label: __("Open Handover"),
-										action(dialog) {
-											dialog && dialog.hide();
-											frappe.dom.unfreeze();
-											frappe.set_route("Form", "Task Assignment", handover.name);
-										},
-									},
-									on_hide() {
-										frappe.dom.unfreeze();
-									},
-								});
+									__("Open Handover"),
+									() => frappe.set_route("Form", "Task Assignment", handover.name)
+								);
 								frappe.validated = false;
 								return reject();
 							}
@@ -202,4 +224,5 @@ function check_handover_before_action(frm) {
 			});
 	});
 }
+
 
