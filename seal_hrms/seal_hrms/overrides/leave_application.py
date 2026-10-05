@@ -113,17 +113,18 @@ def check_cover_before_submission(doc, is_workflow_action=False):
     before = doc.get_doc_before_save()
     before_state = before.get("workflow_state") if before else None
 
-    # Allow saving/inserting the initial draft
-    if doc.docstatus == 0 and not is_workflow_action:
-        if before is None:
-            # Inserting a new draft document
-            if not workflow_state or not init_state or workflow_state == init_state:
-                return
-        else:
-            # Updating an existing draft document without transitioning
-            is_same_state = (not workflow_state or not init_state or workflow_state == init_state) and (before_state == workflow_state or not before_state)
-            if is_same_state and doc.status not in ("Approved", "Rejected") and not getattr(doc, "_action", None):
-                return
+    # ONLY allow saving if it is staying in the initial draft state and not being submitted/approved
+    is_new_draft = before is None and doc.docstatus == 0 and (not workflow_state or not init_state or workflow_state == init_state) and doc.status not in ("Approved", "Rejected")
+    is_editing_same_draft = (
+        before is not None
+        and doc.docstatus == 0
+        and (not workflow_state or not init_state or (workflow_state == init_state and before_state == init_state))
+        and doc.status not in ("Approved", "Rejected")
+        and not getattr(doc, "_action", None)
+    )
+
+    if (is_new_draft or is_editing_same_draft) and not is_workflow_action and doc.docstatus == 0:
+        return
 
     # If it's a new document without a name yet being submitted directly
     if not doc.name:
