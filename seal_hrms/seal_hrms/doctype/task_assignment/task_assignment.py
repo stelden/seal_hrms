@@ -173,29 +173,45 @@ def get_employee_tasks(employee: str):
 @frappe.whitelist()
 def get_assignable_employees(doctype, txt, searchfield, start, page_len, filters):
 	"""Colleagues who could cover: active, in the same company, and not away themselves."""
+	if isinstance(filters, str):
+		import json
+		filters = json.loads(filters)
+	filters = filters or {}
 	employee = filters.get("employee")
 	leave_application = filters.get("leave_application")
-	if not employee:
-		return []
 
-	company = frappe.db.get_value("Employee", employee, "company")
+	cond_filters = [["status", "=", "Active"]]
+	if employee:
+		cond_filters.append(["name", "!=", employee])
+		company = frappe.db.get_value("Employee", employee, "company")
+		if company:
+			cond_filters.append(["company", "=", company])
+
+	or_filters = None
+	if txt:
+		or_filters = [
+			["name", "like", f"%{txt}%"],
+			["employee_name", "like", f"%{txt}%"],
+		]
+		if searchfield and searchfield not in ("name", "employee_name"):
+			or_filters.append([searchfield, "like", f"%{txt}%"])
+
+	candidates = frappe.get_all(
+		"Employee",
+		filters=cond_filters,
+		or_filters=or_filters,
+		fields=["name", "employee_name"],
+		order_by="employee_name asc",
+		limit_start=start or 0,
+		limit_page_length=page_len or 20,
+	)
+
 	leave = (
 		frappe.db.get_value("Leave Application", leave_application, ["from_date", "to_date"], as_dict=True)
 		if leave_application
 		else None
 	)
 
-	candidates = frappe.get_all(
-		"Employee",
-		filters=[
-			["company", "=", company],
-			["status", "=", "Active"],
-			["name", "!=", employee],
-			["employee_name", "like", f"%{txt or ''}%"],
-		],
-		fields=["name", "employee_name"],
-		order_by="employee_name asc",
-	)
 	if leave:
 		return [
 			[emp.name, emp.employee_name]
