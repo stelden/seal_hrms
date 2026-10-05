@@ -38,20 +38,25 @@ frappe.ui.form.on("Leave Application", {
 						});
 					}).addClass("btn-primary");
 
-					// Check company policy to display guidance banner
-					frappe.call({
-						method: "seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy.policy_for",
-						args: { company: frm.doc.company },
-						callback(r) {
-							const policy = r.message;
-							if (policy && policy.requirement && policy.requirement !== "Off") {
+					// Check HR Settings to display guidance banner
+					frappe.db
+						.get_value("HR Settings", "HR Settings", [
+							"leave_approver_mandatory_in_leave_application",
+							"custom_leave_handover_requirement",
+						])
+						.then(({ message }) => {
+							if (
+								message &&
+								message.leave_approver_mandatory_in_leave_application &&
+								message.custom_leave_handover_requirement &&
+								message.custom_leave_handover_requirement !== "Off"
+							) {
 								frm.dashboard.set_headline_alert(
 									__("<b>Handover Notice:</b> A handover is required for this leave. Please click <b>Prepare Handover</b> to name your stand-in before submitting."),
 									"orange"
 								);
 							}
-						},
-					});
+						});
 				}
 			});
 	},

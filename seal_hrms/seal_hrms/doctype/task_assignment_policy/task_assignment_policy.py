@@ -34,6 +34,15 @@ def is_acceptance_required_before_submission(policy) -> bool:
 @frappe.whitelist()
 def policy_for(company: str | None = None) -> dict:
 	"""Fetch Leave Handover policy directly from HR Settings. Default is always 'Require on Submission'."""
+	approver_mandatory = frappe.db.get_single_value("HR Settings", "leave_approver_mandatory_in_leave_application")
+	if approver_mandatory is not None and int(approver_mandatory) == 0:
+		return frappe._dict(
+			name="HR Settings",
+			requirement=OFF,
+			min_days=0,
+			leave_types=[],
+		)
+
 	requirement = frappe.db.get_single_value("HR Settings", "custom_leave_handover_requirement")
 	min_days = flt(frappe.db.get_single_value("HR Settings", "custom_leave_handover_min_days"))
 
