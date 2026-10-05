@@ -33,24 +33,19 @@ def is_acceptance_required_before_submission(policy) -> bool:
 
 @frappe.whitelist()
 def policy_for(company: str | None = None) -> dict:
-	"""The company's policy, or Off when it has none. Never raises."""
-	row = frappe.db.get_value(
-		"Task Assignment Policy",
-		{"company": company} if company else {"name": ""},
-		["name", "requirement", "min_days", "prep_reminder_days", "email_prep_reminder"],
-		as_dict=True,
+	"""Fetch Leave Handover policy directly from HR Settings. Default is always 'Require on Submission'."""
+	requirement = frappe.db.get_single_value("HR Settings", "custom_leave_handover_requirement")
+	min_days = flt(frappe.db.get_single_value("HR Settings", "custom_leave_handover_min_days"))
+
+	if not requirement:
+		requirement = REQUIRE_ON_SUBMISSION
+
+	return frappe._dict(
+		name="HR Settings",
+		requirement=requirement,
+		min_days=min_days,
+		leave_types=[],
 	)
-	if not row:
-		return frappe._dict(
-			name=None, requirement=OFF, min_days=0, prep_reminder_days=7, email_prep_reminder=0, leave_types=[]
-		)
-	row.leave_types = frappe.get_all(
-		"Task Assignment Policy Leave Type",
-		filters={"parent": row.name, "parenttype": "Task Assignment Policy"},
-		pluck="leave_type",
-	)
-	row.min_days = flt(row.min_days)
-	return row
 
 
 def applies_to(policy, leave_type: str, days) -> bool:
