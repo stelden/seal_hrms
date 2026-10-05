@@ -84,54 +84,51 @@ def _get_workflow_initial_state(doctype: str) -> str | None:
     return None
 
 
-def _is_being_submitted_or_applied(doc, is_workflow_action=False) -> bool:
-    if is_workflow_action:
-        # In a workflow, intercept the action if the doc is at the initial state moving forward
-        init_state = _get_workflow_initial_state(doc.doctype)
-        curr_state = doc.get("workflow_state")
-        if not init_state or not curr_state or curr_state == init_state:
-            return True
-        return False
-
-    if doc.docstatus == 1 and (doc.is_new() or getattr(doc, "_action", None) == "submit"):
-        return True
-    before = doc.get_doc_before_save()
-    if before and before.docstatus == 0 and doc.docstatus == 1:
-        return True
-
-    # If workflow is active and document is transitioning away from the initial workflow state
-    init_state = _get_workflow_initial_state(doc.doctype)
-    workflow_state = doc.get("workflow_state")
-    if init_state and workflow_state and before:
-        before_state = before.get("workflow_state")
-        if before_state == init_state and workflow_state != init_state:
-            return True
-
-    return False
-
-
 def check_cover_before_submission(doc, is_workflow_action=False):
-    """Enforce handover policy when staff submit or apply for leave."""
-    if not _is_being_submitted_or_applied(doc, is_workflow_action):
-        return
-
+    """Enforce handover policy when staff submit, apply, or forward a leave application."""
     from seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy import (
         is_required_on_submission,
         is_acceptance_required_before_submission,
+        is_required_on_approval,
         applies_to,
         policy_for,
     )
 
     policy = policy_for(doc.company)
-    if not applies_to(policy, doc.leave_type, doc.total_leave_days):
+    
+    # Calculate days safely
+    days = doc.total_leave_days
+    if not days and doc.from_date and doc.to_date:
+        from frappe.utils import date_diff
+        days = date_diff(doc.to_date, doc.from_date) + 1
+
+    if not applies_to(policy, doc.leave_type, days):
         return
 
-    if not is_required_on_submission(policy):
+    if policy.requirement == "Off":
         return
 
+    init_state = _get_workflow_initial_state(doc.doctype)
+    workflow_state = doc.get("workflow_state")
+    before = doc.get_doc_before_save()
+    before_state = before.get("workflow_state") if before else None
+
+    # Allow saving/inserting the initial draft
+    if doc.docstatus == 0 and not is_workflow_action:
+        if before is None:
+            # Inserting a new draft document
+            if not workflow_state or not init_state or workflow_state == init_state:
+                return
+        else:
+            # Updating an existing draft document without transitioning
+            is_same_state = (not workflow_state or not init_state or workflow_state == init_state) and (before_state == workflow_state or not before_state)
+            if is_same_state and doc.status not in ("Approved", "Rejected") and not getattr(doc, "_action", None):
+                return
+
+    # If it's a new document without a name yet being submitted directly
     if not doc.name:
         frappe.throw(
-            _("Please save this Leave Application as draft first, then click 'Prepare Handover' to name your stand-in before submitting."),
+            _("Please save this Leave Application as draft first, then click 'Prepare Handover' to name your stand-in before submitting or applying."),
             title=_("Handover Required"),
         )
 
@@ -143,16 +140,23 @@ def check_cover_before_submission(doc, is_workflow_action=False):
     )
     if not assignments or not assignments[0].task_assignee:
         frappe.throw(
-            _("A handover is mandatory for this leave application. Please click 'Prepare Handover' on the form and choose your stand-in before submitting."),
+            _("A handover is mandatory for this leave application. Please click 'Prepare Handover' on the form and choose your stand-in before submitting or applying."),
             title=_("Handover Required"),
         )
 
-    if is_acceptance_required_before_submission(policy):
+    # Check acceptance requirement
+    needs_acceptance = (
+        is_acceptance_required_before_submission(policy)
+        or is_required_on_approval(policy)
+        or doc.docstatus == 1
+        or doc.status == "Approved"
+    )
+    if needs_acceptance:
         accepted = any(a.status in ("Accepted", "Active") for a in assignments)
         if not accepted:
             current_status = assignments[0].status or _("Draft")
             frappe.throw(
-                _("Your stand-in must accept the handover before you can submit this leave application. Current handover status is '{0}'.").format(
+                _("Your stand-in must accept the handover before this leave application can proceed or be approved. Current handover status is '{0}'.").format(
                     _(current_status)
                 ),
                 title=_("Stand-in Acceptance Required"),
@@ -169,31 +173,36 @@ def _is_being_approved(doc) -> bool:
 
 
 def check_cover_before_approval(doc):
-    """Apply the company's handover policy at the moment leave is approved.
-
-    In validate, not on_submit: the approval has to be refused before it is
-    written, and a status set to Approved without submitting must be caught too.
-    """
+    """Apply the handover policy at the moment leave is approved."""
     if not _is_being_approved(doc):
         return
     from seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy import (
-        WARN, is_required_on_approval, applies_to, policy_for,
+        WARN, is_required_on_approval, is_required_on_submission, applies_to, policy_for,
     )
 
     policy = policy_for(doc.company)
-    if not applies_to(policy, doc.leave_type, doc.total_leave_days):
+    
+    days = doc.total_leave_days
+    if not days and doc.from_date and doc.to_date:
+        from frappe.utils import date_diff
+        days = date_diff(doc.to_date, doc.from_date) + 1
+
+    if not applies_to(policy, doc.leave_type, days):
         return
+
     agreed = frappe.db.exists(
         "Task Assignment",
-        {"leave_application": doc.name, "docstatus": 1, "status": ["in", ["Accepted", "Active"]]},
+        {"leave_application": doc.name, "docstatus": ["<", 2], "status": ["in", ["Accepted", "Active"]]},
     )
     if agreed:
         return
+
     message = _(
         "Nobody has agreed to cover {0}'s work during this leave yet. "
         "Ask them to prepare a handover, and their stand-in to accept it."
     ).format(doc.employee_name or doc.employee)
-    if is_required_on_approval(policy):
+    
+    if is_required_on_approval(policy) or is_required_on_submission(policy):
         frappe.throw(message, title=_("Cover Not Arranged"))
     elif policy.requirement == WARN:
         frappe.msgprint(message, title=_("Cover Not Arranged"), indicator="orange")
