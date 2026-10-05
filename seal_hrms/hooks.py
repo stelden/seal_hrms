@@ -202,6 +202,7 @@ doc_events = {
         # cancelled. Distinct from seal_leave_planning, which gates an
         # application against a declared plan slot.
         "validate": "seal_hrms.seal_hrms.overrides.leave_application.validate",
+        "before_workflow_action": "seal_hrms.seal_hrms.overrides.leave_application.before_workflow_action",
         "on_update": "seal_hrms.seal_hrms.overrides.leave_application.on_update",
         "on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
         "on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",

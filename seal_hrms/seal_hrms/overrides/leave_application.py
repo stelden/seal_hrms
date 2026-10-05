@@ -55,12 +55,108 @@ def on_cancel(doc, method=None):
 
 
 def validate(doc, method=None):
+    check_cover_before_submission(doc)
     check_cover_before_approval(doc)
     if _is_being_approved(doc):
         from seal_hrms.seal_hrms import acting
 
         acting.refuse_self_approval(doc, doc.employee, doc.leave_approver, "leave_approval")
     _check_application_timing(doc)
+
+
+def before_workflow_action(doc, method=None, action=None, **kwargs):
+    """Intercept workflow actions: block applying/forwarding if mandatory handover is missing."""
+    check_cover_before_submission(doc, is_workflow_action=True)
+
+
+def _get_workflow_initial_state(doctype: str) -> str | None:
+    """Get the initial state name of the active workflow for this doctype dynamically."""
+    try:
+        from frappe.model.workflow import get_workflow_name
+        wf_name = get_workflow_name(doctype)
+        if not wf_name:
+            return None
+        wf = frappe.get_cached_doc("Workflow", wf_name)
+        if wf and wf.is_active and wf.states:
+            return wf.states[0].state
+    except Exception:
+        pass
+    return None
+
+
+def _is_being_submitted_or_applied(doc, is_workflow_action=False) -> bool:
+    if is_workflow_action:
+        # In a workflow, intercept the action if the doc is at the initial state moving forward
+        init_state = _get_workflow_initial_state(doc.doctype)
+        curr_state = doc.get("workflow_state")
+        if not init_state or not curr_state or curr_state == init_state:
+            return True
+        return False
+
+    if doc.docstatus == 1 and (doc.is_new() or getattr(doc, "_action", None) == "submit"):
+        return True
+    before = doc.get_doc_before_save()
+    if before and before.docstatus == 0 and doc.docstatus == 1:
+        return True
+
+    # If workflow is active and document is transitioning away from the initial workflow state
+    init_state = _get_workflow_initial_state(doc.doctype)
+    workflow_state = doc.get("workflow_state")
+    if init_state and workflow_state and before:
+        before_state = before.get("workflow_state")
+        if before_state == init_state and workflow_state != init_state:
+            return True
+
+    return False
+
+
+def check_cover_before_submission(doc, is_workflow_action=False):
+    """Enforce handover policy when staff submit or apply for leave."""
+    if not _is_being_submitted_or_applied(doc, is_workflow_action):
+        return
+
+    from seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy import (
+        is_required_on_submission,
+        is_acceptance_required_before_submission,
+        applies_to,
+        policy_for,
+    )
+
+    policy = policy_for(doc.company)
+    if not applies_to(policy, doc.leave_type, doc.total_leave_days):
+        return
+
+    if not is_required_on_submission(policy):
+        return
+
+    if not doc.name:
+        frappe.throw(
+            _("Please save this Leave Application as draft first, then click 'Prepare Handover' to name your stand-in before submitting."),
+            title=_("Handover Required"),
+        )
+
+    # Check for existing Task Assignment for this leave application
+    assignments = frappe.get_all(
+        "Task Assignment",
+        filters={"leave_application": doc.name, "docstatus": ["<", 2]},
+        fields=["name", "status", "task_assignee", "docstatus"],
+    )
+    if not assignments or not assignments[0].task_assignee:
+        frappe.throw(
+            _("A handover is mandatory for this leave application. Please click 'Prepare Handover' on the form and choose your stand-in before submitting."),
+            title=_("Handover Required"),
+        )
+
+    if is_acceptance_required_before_submission(policy):
+        accepted = any(a.status in ("Accepted", "Active") for a in assignments)
+        if not accepted:
+            current_status = assignments[0].status or _("Draft")
+            frappe.throw(
+                _("Your stand-in must accept the handover before you can submit this leave application. Current handover status is '{0}'.").format(
+                    _(current_status)
+                ),
+                title=_("Stand-in Acceptance Required"),
+            )
 
 
 def _is_being_approved(doc) -> bool:
@@ -81,7 +177,7 @@ def check_cover_before_approval(doc):
     if not _is_being_approved(doc):
         return
     from seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy import (
-        REQUIRE, applies_to, policy_for,
+        WARN, is_required_on_approval, applies_to, policy_for,
     )
 
     policy = policy_for(doc.company)
@@ -97,9 +193,10 @@ def check_cover_before_approval(doc):
         "Nobody has agreed to cover {0}'s work during this leave yet. "
         "Ask them to prepare a handover, and their stand-in to accept it."
     ).format(doc.employee_name or doc.employee)
-    if policy.requirement == REQUIRE:
+    if is_required_on_approval(policy):
         frappe.throw(message, title=_("Cover Not Arranged"))
-    frappe.msgprint(message, title=_("Cover Not Arranged"), indicator="orange")
+    elif policy.requirement == WARN:
+        frappe.msgprint(message, title=_("Cover Not Arranged"), indicator="orange")
 
 
 def _check_application_timing(doc):

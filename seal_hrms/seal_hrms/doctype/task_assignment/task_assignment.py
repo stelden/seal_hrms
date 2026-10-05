@@ -175,13 +175,15 @@ def get_assignable_employees(doctype, txt, searchfield, start, page_len, filters
 	"""Colleagues who could cover: active, in the same company, and not away themselves."""
 	employee = filters.get("employee")
 	leave_application = filters.get("leave_application")
-	if not employee or not leave_application:
+	if not employee:
 		return []
 
 	company = frappe.db.get_value("Employee", employee, "company")
-	leave = frappe.db.get_value("Leave Application", leave_application, ["from_date", "to_date"], as_dict=True)
-	if not leave:
-		return []
+	leave = (
+		frappe.db.get_value("Leave Application", leave_application, ["from_date", "to_date"], as_dict=True)
+		if leave_application
+		else None
+	)
 
 	candidates = frappe.get_all(
 		"Employee",
@@ -194,8 +196,11 @@ def get_assignable_employees(doctype, txt, searchfield, start, page_len, filters
 		fields=["name", "employee_name"],
 		order_by="employee_name asc",
 	)
-	return [
-		[emp.name, emp.employee_name]
-		for emp in candidates
-		if not stand_in_leave_overlapping(emp.name, leave.from_date, leave.to_date)
-	]
+	if leave:
+		return [
+			[emp.name, emp.employee_name]
+			for emp in candidates
+			if not stand_in_leave_overlapping(emp.name, leave.from_date, leave.to_date)
+		]
+	return [[emp.name, emp.employee_name] for emp in candidates]
+

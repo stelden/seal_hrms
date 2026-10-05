@@ -37,12 +37,12 @@
   {
    "fieldname": "requirement",
    "fieldtype": "Select",
-   "label": "Before Leave Is Approved",
+   "label": "Handover Requirement",
    "in_list_view": 1,
-   "options": "Off\nWarn\nRequire",
+   "options": "Off\nWarn\nRequire on Approval\nRequire on Submission\nRequire Acceptance before Submission",
    "default": "Off",
    "reqd": 1,
-   "description": "Off: approve leave as usual. Warn: tell the approver when nobody has agreed to cover the work. Require: leave cannot be approved until a stand-in has agreed."
+   "description": "Off: handover optional. Warn: notify if no cover. Require on Approval: must have agreed stand-in before approval. Require on Submission: staff must prepare handover with stand-in before submitting/applying. Require Acceptance before Submission: stand-in must accept before staff can submit/apply."
   },
   {
    "fieldname": "sb2",
