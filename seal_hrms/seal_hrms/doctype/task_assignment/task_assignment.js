@@ -40,6 +40,24 @@ frappe.ui.form.on("Task Assignment", {
 		ta_buttons(frm);
 	},
 
+	task_assignee(frm) {
+		if (frm.doc.task_assignee) {
+			frappe.db.get_value("Employee", frm.doc.task_assignee, ["employee_name", "department", "user_id"], (r) => {
+				if (r) {
+					frm.set_value("task_assignee_name", r.employee_name || "");
+					frm.set_value("task_assignee_department", r.department || "");
+					frm.set_value("task_assignee_user", r.user_id || "");
+					ta_banner(frm);
+				}
+			});
+		} else {
+			frm.set_value("task_assignee_name", "");
+			frm.set_value("task_assignee_department", "");
+			frm.set_value("task_assignee_user", "");
+			ta_banner(frm);
+		}
+	},
+
 	// Load the member of staff's open work when they are chosen.
 	employee(frm) {
 		if (!frm.doc.employee || frm.doc.docstatus !== 0) return;
