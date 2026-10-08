@@ -1,0 +1,24 @@
+{
+ "app": "seal_hrms",
+ "creation": "2026-10-08 10:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Dock",
+ "idx": 0,
+ "items": [
+  {
+   "added": 0,
+   "hidden": 0,
+   "icon": "id-card",
+   "link_to": "Self Service",
+   "link_type": "Sidebar",
+   "title": "Self Service"
+  }
+ ],
+ "modified": "2026-10-08 10:00:00.000000",
+ "modified_by": "Administrator",
+ "mount_on": "hrms",
+ "name": "seal_hrms",
+ "owner": "Administrator",
+ "standard": 1,
+ "user": ""
+}

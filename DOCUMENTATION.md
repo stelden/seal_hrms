@@ -328,6 +328,8 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-10-08** — 1.10.0. Frappe 16.50's new navigation. **Self Service** now sits in the Frappe HR app's left-hand rail, after Frappe HR's own areas, instead of on the desktop: open Frappe HR from the Apps screen and pick Self Service. Its menu is the one it always had. Ships a dock mounted on the host (`dock/`) and the module sidebar; the old `workspace_sidebar/` and `desktop_icon/` files stay for sites on older Frappe. `test_desk_navigation.py` checks the wiring. Needs `bench migrate`.
+
 - **2026-10-02** — 1.9.0. My Desk "Self-Service" figures and a shipped "Employee
   Self-Service" page (seal_desk P6).
 - **2026-10-01** — 1.8.1. On My Desk, handovers are now a "Handovers waiting for
