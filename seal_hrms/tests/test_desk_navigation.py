@@ -147,3 +147,44 @@ class TestDeskNavigation(IntegrationTestCase):
 					self.assertFalse(gate(), "a user who reads none of the app's documents got the tile")
 			finally:
 				frappe.set_user("Administrator")
+
+	def test_the_gate_never_raises(self):
+		"""A gate that throws is not a missing tile — it is a dead desk.
+
+		`frappe.boot.load_desktop_data` calls it inside session boot, so an
+		exception answers `/desk` with 500 SessionBootFailed for every user of
+		the site. That is what an ImportError in this module did on 2026-10-08,
+		across every site on a Frappe older than 16.50.
+		"""
+		user = frappe.new_doc("User")
+		user.update(
+			{"email": "njeri.wambui@stelden.co.ke", "first_name": "Njeri", "last_name": "Wambui"}
+		)
+		user.append("roles", {"role": "System Manager"})
+		user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+		for tile in _apps_screen():
+			gate = frappe.get_attr(tile["has_permission"])
+			# As a plain desk user, not Administrator: the gate answers early for
+			# Administrator and would never reach the failing call.
+			frappe.set_user(user.name)
+			try:
+				with patch("frappe.get_module_list", side_effect=RuntimeError("boom")):
+					self.assertTrue(gate(), "the gate hid the tile instead of failing open")
+			except Exception as raised:  # noqa: BLE001 — the point of the test
+				self.fail(f"the app tile gate raised inside boot: {raised!r}")
+			finally:
+				frappe.set_user("Administrator")
+
+	def test_the_gate_uses_no_version_specific_import(self):
+		"""`frappe.utils.modules` gained and lost names between 16.29 and 16.50.
+
+		Importing one of them inside a boot hook makes the desk's survival a
+		question of which Frappe a site happens to run. Read `User.block_modules`
+		instead: it has been there for years.
+		"""
+		source = (_package() / "desk_navigation.py").read_text()
+		self.assertNotIn(
+			"from frappe.utils.modules import", source,
+			"the Apps-screen gate imports from a module whose contents vary by Frappe version",
+		)
