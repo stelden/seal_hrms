@@ -125,8 +125,8 @@ class TestDeskNavigation(IntegrationTestCase):
 			self.assertTrue(tile.get("route", "").startswith("/desk/"), tile)
 			self.assertTrue(callable(frappe.get_attr(tile["has_permission"])), tile)
 
-	def test_tile_follows_document_access(self):
-		"""Anyone who reads one of the app's documents gets the tile; nobody else does."""
+	def test_tile_follows_page_access(self):
+		"""Anyone who may open Self Service gets the My HR tile; nobody else does."""
 		for tile in _apps_screen():
 			gate = frappe.get_attr(tile["has_permission"])
 
@@ -142,9 +142,10 @@ class TestDeskNavigation(IntegrationTestCase):
 
 			frappe.set_user(user.name)
 			try:
-				self.assertTrue(gate())
-				with patch("frappe.permissions.get_doctypes_with_read", return_value=[]):
-					self.assertFalse(gate(), "a user who reads none of the app's documents got the tile")
+				with patch("frappe.get_roles", return_value=["All", "Guest", "Desk User"]):
+					self.assertFalse(gate(), "a user who may open none of the app's pages got the tile")
+				with patch("frappe.get_roles", return_value=["All", "Employee", "Employee Self Service"]):
+					self.assertTrue(gate(), "a member of staff was refused the My HR tile")
 			finally:
 				frappe.set_user("Administrator")
 
@@ -188,3 +189,19 @@ class TestDeskNavigation(IntegrationTestCase):
 			"from frappe.utils.modules import", source,
 			"the Apps-screen gate imports from a module whose contents vary by Frappe version",
 		)
+
+
+class TestMyHR(IntegrationTestCase):
+	"""1.11.0: Self Service is every site's staff HR, under its own tile and rail."""
+
+	def test_the_my_hr_tile_opens_self_service_on_its_own_rail(self):
+		(tile,) = _apps_screen()
+		self.assertEqual((tile["title"], tile["route"]), ("My HR", "/desk/self-service"))
+		dock = _shipped_dock()
+		self.assertFalse(dock.get("mount_on"), "Self Service has its own rail, not a row in Frappe HR's")
+		self.assertEqual([(r["title"], r["link_to"]) for r in dock["items"]], [("Self Service", "Self Service")])
+
+	def test_the_page_says_it_is_standard(self):
+		"""Without it a NEW site imports the page as its own copy, which the app never updates."""
+		pages = [json.loads(p.read_text()) for p in _package().glob("*/workspace/*/*.json")]
+		self.assertEqual([w["name"] for w in pages if w.get("standard") != 1], [])

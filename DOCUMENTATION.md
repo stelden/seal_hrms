@@ -287,6 +287,14 @@ The health check *Work returned after leave* shows anything it had to skip.
 
 ## 5. Self Service
 
+**Where staff find it (1.11.0).** The **My HR** tile on the Apps screen opens Self
+Service, and its rail is its own (it was a row in Frappe HR's rail). It is the one Self
+Service on every site: client apps ship their own tiles and workspaces for their own
+records, not a Self Service of their own, and each person's daily work is on My Desk.
+The page keeps the name "Self Service", so `/desk/self-service` and people's default
+page do not move. The tile shows to anyone who may open the page (Employee Self Service);
+its gate is `seal_hrms/desk_navigation.py` and never raises.
+
 One workspace (`self_service`) with a Custom HTML Block overview, aimed at a
 member of staff rather than an HR officer. It leans on stock HRMS doctypes —
 Leave Application, Expense Claim, Shift Request, Travel Request — so there is
@@ -327,6 +335,12 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-10-21** — 1.11.0. Self Service gets its own **My HR** tile and its own rail
+  (no longer mounted on Frappe HR), as the one Self Service on every site; client apps stop
+  shipping their own (dev_notes/navigation_v16/CLIENT_SITE_REALIGNMENT.md). The workspace file
+  now says it is standard, so a new site does not hold it as its own copy. Needs
+  `bench migrate` and a restart for the tile.
 
 - **2026-10-08** — 1.10.0. Frappe 16.50's new navigation. **Self Service** now sits in the Frappe HR app's left-hand rail, after Frappe HR's own areas, instead of on the desktop: open Frappe HR from the Apps screen and pick Self Service. Its menu is the one it always had. Ships a dock mounted on the host (`dock/`) and the module sidebar; the old `workspace_sidebar/` and `desktop_icon/` files stay for sites on older Frappe. `test_desk_navigation.py` checks the wiring. Needs `bench migrate`.
 

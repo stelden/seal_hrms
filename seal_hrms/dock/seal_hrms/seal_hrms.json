@@ -14,9 +14,8 @@
    "title": "Self Service"
   }
  ],
- "modified": "2026-10-08 10:00:00.000000",
+ "modified": "2026-10-21 15:00:00.000000",
  "modified_by": "Administrator",
- "mount_on": "hrms",
  "name": "seal_hrms",
  "owner": "Administrator",
  "standard": 1,
