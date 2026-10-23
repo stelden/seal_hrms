@@ -100,31 +100,49 @@ def _mobile_rail(party_type: str, party: str) -> dict | None:
     """
     contact_field = _SOURCES[party_type]["contact"]
     contact = _value(party_type, party, contact_field)
-    if not contact:
-        return None
+    if contact:
+        row = frappe.db.get_value(
+            "Contact", contact,
+            ["name", "full_name", "mobile_no", "phone", "custom_mno"],
+            as_dict=True,
+        )
+        if row:
+            number = row.get("mobile_no") or row.get("phone")
+            if number:
+                return {
+                    "account_name": row.get("full_name") or _party_name(party_type, party),
+                    "account_no": number,
+                    "provider": row.get("custom_mno") or _operator(number),
+                    "source_doctype": "Contact",
+                    "source_name": row["name"],
+                }
 
-    row = frappe.db.get_value(
-        "Contact", contact,
-        ["name", "full_name", "mobile_no", "phone", "custom_mno"],
-        as_dict=True,
-    )
-    if not row:
-        return None
+    # Fallback for Employee: cell_number
+    if party_type == "Employee":
+        cell = frappe.db.get_value("Employee", party, "cell_number")
+        if cell:
+            return {
+                "account_name": _party_name(party_type, party),
+                "account_no": cell,
+                "provider": _operator(cell),
+                "source_doctype": "Employee",
+                "source_name": party,
+            }
 
-    number = row.get("mobile_no") or row.get("phone")
-    if not number:
-        # A Contact with no primary number cannot receive money. Frappe blanks
-        # `mobile_no` whenever no child row carries `is_primary_mobile_no`, so
-        # this is a normal state, not a broken one.
-        return None
+    # Fallback for Supplier: custom_account_no
+    if party_type == "Supplier":
+        acc_no = frappe.db.get_value("Supplier", party, "custom_account_no")
+        if acc_no:
+            acc_name = frappe.db.get_value("Supplier", party, "custom_account_name") or _party_name(party_type, party)
+            return {
+                "account_name": acc_name,
+                "account_no": acc_no,
+                "provider": _operator(acc_no),
+                "source_doctype": "Supplier",
+                "source_name": party,
+            }
 
-    return {
-        "account_name": row.get("full_name") or _party_name(party_type, party),
-        "account_no": number,
-        "provider": row.get("custom_mno") or _operator(number),
-        "source_doctype": "Contact",
-        "source_name": row["name"],
-    }
+    return None
 
 
 def _bank_rail(party_type: str, party: str) -> dict | None:
@@ -141,6 +159,21 @@ def _bank_rail(party_type: str, party: str) -> dict | None:
     if not account:
         account = get_party_bank_account(party_type, party)
     if not account:
+        if party_type == "Supplier":
+            pref = frappe.db.get_value("Supplier", party, "custom_preferred_payment_method")
+            if pref == "Cheque":
+                acc_no = frappe.db.get_value("Supplier", party, "custom_account_no")
+                if acc_no:
+                    acc_name = frappe.db.get_value("Supplier", party, "custom_account_name") or _party_name(party_type, party)
+                    return {
+                        "account_name": acc_name,
+                        "account_no": acc_no,
+                        "provider": "Cheque",
+                        "branch_code": None,
+                        "iban": None,
+                        "source_doctype": "Supplier",
+                        "source_name": party,
+                    }
         return None
 
     row = frappe.db.get_value(
