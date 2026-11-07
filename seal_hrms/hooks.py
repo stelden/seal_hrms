@@ -203,6 +203,10 @@ doc_events = {
         # custom_min_leave_days must not exceed max_leaves_allowed.
         "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
     },
+    # A role profile rebuilds a User's roles on save; keep what a handover granted.
+    "User": {
+        "on_update": "seal_hrms.seal_hrms.acting.keep_granted_roles",
+    },
     "Leave Application": {
         # Posting-date and minimum-notice rules; the handover policy at approval;
         # starting cover once approved leave has begun; keeping a handover's
@@ -248,9 +252,10 @@ scheduler_events = {
 	"daily": [
 		"seal_hrms.seal_hrms.handover_jobs.daily",
 	],
-	# "hourly": [
-	# 	"seal_hrms.tasks.hourly"
-	# ],
+	# What came to wait on someone on leave reaches whoever approves for them.
+	"hourly": [
+		"seal_hrms.seal_hrms.acting.share_pending_while_away",
+	],
 	# "weekly": [
 	# 	"seal_hrms.tasks.weekly"
 	# ],

@@ -201,11 +201,16 @@ def _stand_in_user(assignment, row) -> str | None:
 
 
 def _share(doctype: str, name: str, user: str) -> str | None:
-	"""Share a document for approval. Returns the new share's name, or None if they already had one."""
+	"""Share a document for approval. Returns the new share's name, or None if they already had one.
+
+	Submit only where the document can be submitted: Frappe refuses a submit share on anything
+	else, which stopped a handover whose kind waits on, say, a Supplier (found 2026-11-07).
+	"""
 	if frappe.db.exists("DocShare", {"share_doctype": doctype, "share_name": name, "user": user}):
 		return None
+	submit = 1 if frappe.get_meta(doctype).is_submittable else 0
 	share = frappe.share.add_docshare(
-		doctype, name, user, read=1, write=1, submit=1, flags={"ignore_share_permission": True}
+		doctype, name, user, read=1, write=1, submit=submit, flags={"ignore_share_permission": True}
 	)
 	return share.name if share else None
 
@@ -298,6 +303,58 @@ def _still_needed(user: str, role: str, returning: str) -> bool:
 
 
 # ---------------------------------------------------------------- document events
+
+
+def keep_granted_roles(doc, method=None) -> None:
+	"""User `on_update`: put back a role a handover in effect granted, if this save took it.
+
+	A User with role profiles has its roles rebuilt from them on every save
+	(`User.populate_role_profile_roles`), which drops the role the handover added
+	(`_give_role` adds the Has Role row without saving the User for that reason). A
+	profile change re-saves each of its users, so either way the stand-in lost the
+	right to approve halfway through the leave. Only roles this handover added are
+	restored, and only while it is in effect.
+	"""
+	rows = [row.row for row in _active_rows(**{"stand_in.user_id": doc.name})]
+	if not rows:
+		return
+	granted = frappe.get_all(AUTHORITY_ROW, filters={"name": ["in", rows], "role_added_by_assignment": 1}, pluck="role_granted")
+	restored = False
+	for role in {r.strip() for value in granted for r in (value or "").split(",") if r.strip()}:
+		if not frappe.db.exists("Has Role", {"parent": doc.name, "parenttype": "User", "role": role}):
+			frappe.get_doc({
+				"doctype": "Has Role", "parent": doc.name, "parenttype": "User", "parentfield": "roles", "role": role,
+			}).insert(ignore_permissions=True)
+			restored = True
+	if restored:
+		frappe.clear_cache(user=doc.name)
+
+
+def share_pending_while_away(assignment: str | None = None) -> None:
+	"""Hourly: share with each stand-in what has come to wait on the person they cover since the last pass.
+
+	`grant_for` shares what is waiting when the leave starts, and some kinds share a
+	new document as it is raised (`share_new_document`). Any other kind's documents
+	raised during the leave reached the stand-in only if their own access already
+	covered them, so a request for a company they had no access to waited unseen
+	until the owner came back. Asking each kind again covers every app's kinds the
+	same way. A failing kind is logged and the others carry on. `assignment` limits
+	the pass to one handover.
+	"""
+	kinds = registry()
+	for row in _active_rows(**({"a.name": assignment} if assignment else {})):
+		spec = kinds.get(row.authority)
+		if not (spec and row.principal and row.stand_in):
+			continue
+		try:
+			new = [s for s in (_share(dt, dn, row.stand_in) for dt, dn in _run(spec, "pending", row.principal, default=[]) or []) if s]
+		except Exception:
+			frappe.log_error(title="Handover: sharing waiting documents failed", reference_doctype=AUTHORITY_ROW, reference_name=row.row)
+			continue
+		if new:
+			existing = json.loads(frappe.db.get_value(AUTHORITY_ROW, row.row, "shares") or "[]")
+			frappe.db.set_value(AUTHORITY_ROW, row.row, "shares", json.dumps(existing + new), update_modified=False)
+
 
 
 def share_new_document(doc, approver_user: str | None, authority: str) -> None:

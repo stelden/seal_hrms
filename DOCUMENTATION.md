@@ -336,6 +336,15 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-07** — 1.11.1. Handovers keep what they give (found while seal_procurement's
+  approvals were made to follow an officer on leave). **A role a handover grants survives a save
+  of the stand-in's user record**: a role profile rebuilt their roles on every save and dropped it.
+  **What comes to wait on the person away is shared hourly** with whoever approves for them, for
+  every app's kinds of approval, not only at the start of the leave. **Documents that cannot be
+  submitted can be shared** (a supplier registration): every share asked for submit rights,
+  which Frappe refuses there, and the whole handover stopped. On sites without the leave-planning
+  fields, **Leave Type and Leave Application save again** and the leave calendar loads: each read
+  another app's field as if it were always there.
 - **2026-10-21** — 1.11.0. Self Service gets its own **My HR** tile and its own rail
   (no longer mounted on Frappe HR), as the one Self Service on every site; client apps stop
   shipping their own (dev_notes/navigation_v16/CLIENT_SITE_REALIGNMENT.md). The workspace file

@@ -220,6 +220,10 @@ def _check_application_timing(doc):
     if getdate(doc.posting_date) < getdate(today()):
         frappe.throw(_("Posting date cannot be before today."))
 
+    # The notice period is a field another app adds to Leave Type. Where it is absent there is
+    # none to keep; asking for it anyway failed every new application (wel.local, 2026-11-07).
+    if not frappe.get_meta("Leave Type").has_field("custom_minimum_leave_application_days"):
+        return
     min_application_days = frappe.get_value(
         "Leave Type", doc.leave_type, "custom_minimum_leave_application_days"
     )

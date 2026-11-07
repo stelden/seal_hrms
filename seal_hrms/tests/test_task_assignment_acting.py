@@ -44,6 +44,15 @@ class ActingTestCase(IntegrationTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# These test approving in someone's place, not whether leave needs a handover. A site that
+		# requires one (the default) refused the plain leave these tests raise, so the requirement is
+		# held off here; its own tests cover it.
+		off = patch(
+			"seal_hrms.seal_hrms.doctype.task_assignment_policy.task_assignment_policy.policy_for",
+			return_value=frappe._dict(name="HR Settings", requirement="Off", min_days=0, leave_types=[]),
+		)
+		off.start()
+		self.addCleanup(off.stop)
 		self._clean()
 		self._strip(self.otieno_user, "Leave Approver")
 
@@ -75,9 +84,10 @@ class ActingTestCase(IntegrationTestCase):
 
 	def _in_effect(self):
 		la, ta = self._handover()
-		fx.approve(la)
+		# The stand-in accepts first: where a handover is required, leave is not approved before that.
 		fx.agree(ta, "otieno")
 		fx.as_user(self.otieno_user, actions.respond_authority, ta.name, ta.authorities[0].name, "Accepted")
+		fx.approve(la)
 		ta.reload()
 		self.assertEqual(ta.status, Status.ACTIVE)
 		return la, ta
@@ -182,6 +192,41 @@ class TestOnReturn(ActingTestCase):
 		self.assertFalse(frappe.db.get_value("Task Assignment Authority", ta.authorities[0].name, "role_added_by_assignment"))
 		handover.hand_back(ta.name)
 		self.assertIn("Leave Approver", frappe.get_roles(self.otieno_user), "he was an approver before; he still is")
+
+
+class TestTheHandoverKeepsItsGrants(ActingTestCase):
+	"""Two ways the stand-in lost what the handover gave (found from seal_procurement, 2026-11-07)."""
+
+	def test_saving_the_stand_in_with_a_role_profile_keeps_the_granted_role(self):
+		profile = frappe.get_doc({"doctype": "Role Profile", "role_profile": "Front Office Clerk (handover test)",
+			"roles": [{"role": "Employee"}]}).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Role Profile", profile.name, force=True, ignore_permissions=True)
+		_la, ta = self._in_effect()
+		self.assertIn("Leave Approver", frappe.get_roles(self.otieno_user))
+		user = frappe.get_doc("User", self.otieno_user)
+		user.append("role_profiles", {"role_profile": profile.name})
+		user.save(ignore_permissions=True)
+		self.addCleanup(self._without_profiles, self.otieno_user)
+		self.assertIn("Leave Approver", frappe.get_roles(self.otieno_user), "the profile rebuilt his roles, and kept the granted one")
+		handover.hand_back(ta.name)
+		self.assertNotIn("Leave Approver", frappe.get_roles(self.otieno_user), "and it still goes back on return")
+
+	def _without_profiles(self, user):
+		doc = frappe.get_doc("User", user)
+		doc.set("role_profiles", [])
+		doc.save(ignore_permissions=True)
+
+	def test_what_comes_to_wait_during_the_leave_is_shared_by_the_hourly_pass(self):
+		_la, ta = self._in_effect()
+		raised = frappe.get_doc({"doctype": "ToDo", "description": "Approve the Kisumu field office's request"}).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "ToDo", raised.name, force=True, ignore_permissions=True)
+		waiting = lambda spec, hook, *args, default=None: [("ToDo", raised.name)] if hook == "pending" else default
+		with patch.object(acting, "_run", side_effect=waiting):
+			acting.share_pending_while_away(ta.name)
+		where = {"share_doctype": "ToDo", "share_name": raised.name, "user": self.otieno_user}
+		self.assertTrue(frappe.db.exists("DocShare", where))
+		handover.hand_back(ta.name)
+		self.assertFalse(frappe.db.exists("DocShare", where), "recorded with the handover, so taken back on return")
 
 
 class TestHeadOfDepartment(ActingTestCase):
