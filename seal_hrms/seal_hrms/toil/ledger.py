@@ -13,9 +13,9 @@ claim (`custom_toil_claim`) — the route Compensatory Leave Request takes
 Cancelling a claim writes a matching negative row, as Compensatory Leave
 Request does, so the trail keeps both.
 
-Lapsing time (rolling expiry) comes in 1.13.0: Frappe HR's year-end job never
-lapses an allocation with more than one row, so we will write every lapse
-ourselves (WORKING_TIME_DESIGN.md F1, §5.5).
+Lapsing time is `toil.lapse` (1.13.0): Frappe HR's year-end job never lapses an
+allocation with more than one row, so every lapse is written there
+(WORKING_TIME_DESIGN.md F1, §5.5).
 
 Nothing here is whitelisted; the callers check who is asking (§2.15).
 """
@@ -198,21 +198,6 @@ def credit(claim) -> None:
 		)
 		_move_totals(allocation.name, claim.days_credited)
 	claim.db_set("leave_allocation", allocation.name, update_modified=False)
-
-
-def check_can_cancel(claim) -> None:
-	"""Refuse to take back time that has been used for leave."""
-	if not claim.days_credited or not claim.leave_type:
-		return
-	left = held(claim.employee, claim.leave_type)
-	if left - flt(claim.days_credited) < -0.005:
-		frappe.throw(
-			_(
-				"{0} has used some of this time for leave: taking it back would leave them {1} days short. "
-				"Cancel that leave first."
-			).format(claim.employee_name, round2(flt(claim.days_credited) - left)),
-			title=_("Time Already Used"),
-		)
 
 
 def reverse(claim) -> None:

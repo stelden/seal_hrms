@@ -100,3 +100,31 @@ def note_dropped_dates(doc, method=None) -> None:
 			for day, claim in dropped
 		),
 	)
+
+
+def ledger_row(doc, method=None) -> None:
+	"""Leave Ledger Entry validate: on the time off type, only leave, claims and lapses move the balance.
+
+	Allowed: leave applications' rows; rows written by this app; zero rows (an
+	allocation's anchor); and lapse rows from Frappe HR's year-end job or its
+	"Expire Allocation" button. Those are not refused, because a refusal inside
+	the year-end job's loop would stop expiry for every other leave type;
+	`toil.lapse.reconcile` undoes them instead. Everything else (encashment,
+	adjustment, a hand-made allocation) is refused.
+	"""
+	if ledger.is_ours() or doc.leave_type not in toil_leave_types():
+		return
+	if doc.get("custom_toil_claim"):
+		frappe.throw(
+			_("Only an approved Time Off in Lieu Claim can add time off in lieu."), frappe.PermissionError
+		)
+	if doc.transaction_type == "Leave Application":
+		return
+	if doc.transaction_type == "Leave Allocation" and (doc.is_expired or not flt(doc.leaves)):
+		return
+	frappe.throw(
+		_("{0} is time off in lieu: it is added by approved claims and taken as leave, not by a {1}.").format(
+			doc.leave_type, _(doc.transaction_type)
+		),
+		title=_("Added by Claims"),
+	)

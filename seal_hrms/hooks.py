@@ -217,11 +217,22 @@ doc_events = {
         # dates in step; and calling it off when the leave is rejected or
         # cancelled. Distinct from seal_leave_planning, which gates an
         # application against a declared plan slot.
-        "validate": "seal_hrms.seal_hrms.overrides.leave_application.validate",
+        "validate": [
+            "seal_hrms.seal_hrms.overrides.leave_application.validate",
+            # Time off in lieu: refuse leave that relies on time lapsing first (toil/lapse.py).
+            "seal_hrms.seal_hrms.toil.lapse.leave_uses_live_time",
+        ],
         "before_workflow_action": "seal_hrms.seal_hrms.overrides.leave_application.before_workflow_action",
         "on_update": "seal_hrms.seal_hrms.overrides.leave_application.on_update",
-        "on_submit": "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
-        "on_cancel": "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
+        "on_submit": [
+            "seal_hrms.seal_hrms.overrides.leave_application.on_submit",
+            "seal_hrms.seal_hrms.toil.lapse.after_leave_change",
+        ],
+        # After Frappe HR's own cancel, which may delete a lapse row it had nothing to do with.
+        "on_cancel": [
+            "seal_hrms.seal_hrms.overrides.leave_application.on_cancel",
+            "seal_hrms.seal_hrms.toil.lapse.after_leave_change",
+        ],
     },
     "Expense Claim": {
         # Approval by whoever approves in an absent approver's place (acting.py).
@@ -234,6 +245,9 @@ doc_events = {
     "Leave Allocation": {
         "validate": "seal_hrms.seal_hrms.toil.guards.allocation",
         "before_cancel": "seal_hrms.seal_hrms.toil.guards.allocation_cancel",
+    },
+    "Leave Ledger Entry": {
+        "validate": "seal_hrms.seal_hrms.toil.guards.ledger_row",
     },
     "Compensatory Leave Request": {
         # Before Frappe HR's own checks, so people are pointed at the claim first.
@@ -273,6 +287,8 @@ scheduler_events = {
 	# to people whose leave has ended.
 	"daily": [
 		"seal_hrms.seal_hrms.handover_jobs.daily",
+		# Time off in lieu that fell due lapses (toil/lapse.py).
+		"seal_hrms.seal_hrms.toil.lapse.daily",
 	],
 	# What came to wait on someone on leave reaches whoever approves for them.
 	"hourly": [
@@ -376,6 +392,10 @@ app_health_checks = [
     "seal_hrms.health.working_time.time_off_has_a_leave_period",
     "seal_hrms.health.working_time.time_off_has_grades",
     "seal_hrms.health.working_time.time_off_has_approvers",
+    "seal_hrms.health.working_time.time_off_lapses_in_step",
+    "seal_hrms.health.working_time.time_off_leave_is_covered",
+    "seal_hrms.health.working_time.time_off_not_from_claims",
+    "seal_hrms.health.working_time.time_off_has_next_leave_year",
 ]
 
 # ---------------------------------------------------------------------------

@@ -14,7 +14,7 @@ from frappe.model.document import Document
 from hrms.hr.doctype.leave_application.leave_application import get_employee_leave_approver
 
 from seal_hrms.seal_hrms import acting
-from seal_hrms.seal_hrms.toil import access, approval, ledger, rules
+from seal_hrms.seal_hrms.toil import access, approval, lapse, ledger, rules
 
 EDITABLE = (approval.DRAFT, approval.RETURNED)
 
@@ -69,6 +69,7 @@ class TimeOffinLieuClaim(Document):
 	def on_submit(self):
 		if self.status == approval.APPROVED:
 			ledger.credit(self)
+			lapse.reconcile(self.leave_allocation)
 		acting.record_acting_approval(self, self.approver, access.AUTHORITY)
 
 	def on_update(self):
@@ -79,9 +80,12 @@ class TimeOffinLieuClaim(Document):
 		# The ledger rows tagged with this claim stay, as the record of what happened.
 		self.ignore_linked_doctypes = ("Leave Ledger Entry",)
 		if self.status == approval.APPROVED:
-			ledger.check_can_cancel(self)
+			lapse.check_can_cancel(self)
 			# Written before the cancel lands: a row cannot link to a cancelled claim.
 			ledger.reverse(self)
 
 	def on_cancel(self):
 		self.db_set("status", approval.CANCELLED, update_modified=False)
+		if self.leave_allocation:
+			# Its lapse rows go, and the claims that remain may now lapse differently.
+			lapse.reconcile(self.leave_allocation)

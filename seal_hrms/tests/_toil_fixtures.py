@@ -101,6 +101,21 @@ def assign_holiday_list(employee: str) -> None:
 	doc.submit()
 
 
+def ensure_leave_period() -> None:
+	"""A leave period covering today, so these tests outlive the one dev.local has."""
+	from hrms.hr.utils import get_leave_period
+
+	if get_leave_period(today(), today(), COMPANY):
+		return
+	year = getdate(today()).year
+	doc = frappe.new_doc("Leave Period")
+	doc.from_date = f"{year}-01-01"
+	doc.to_date = f"{year}-12-31"
+	doc.company = COMPANY
+	doc.is_active = 1
+	doc.insert(ignore_permissions=True)
+
+
 def policy(**values):
 	"""Turn time off in lieu on for the test company, with any rules overridden."""
 	if frappe.db.exists("Working Time Policy", COMPANY):

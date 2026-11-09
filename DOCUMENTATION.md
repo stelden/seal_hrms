@@ -312,8 +312,7 @@ through payroll) and **Timesheet**. How to set each up and where each stops is
 in `dev_notes/seal_hrms/GUIDE_TIME_OFF_OVERTIME_TIMESHEETS.md`, written for HR
 and staff.
 
-Timesheet approval, weekly entry and checks, and the rolling lapse of time off
-in lieu, are being added phase by phase; the design and its open decisions are in
+Timesheet approval, weekly entry and checks are being added phase by phase; the design and its open decisions are in
 `dev_notes/seal_hrms/WORKING_TIME_DESIGN.md`. The Frappe HR behaviour that
 design relies on is pinned by `tests/test_hrms_time_behaviour.py`: if it fails
 after an upgrade, re-read the design before anything else.
@@ -356,10 +355,31 @@ Underneath (`seal_hrms/seal_hrms/toil/`): the balance stays Frappe HR's. Each
 person has one allocation of the time off leave type per leave period, started
 at zero, and each approved claim adds one leave ledger row tagged with the claim
 (`Leave Ledger Entry.custom_toil_claim`). Cancelling an approved claim writes a
-matching negative row, and is refused if the time has already been used for
-leave. The time off leave type cannot be allocated by hand, and a Compensatory
-Leave Request on it is refused. Unused time does not lapse yet: that comes in
-1.13.0, with a "Usable until" date already stamped on each approved claim.
+matching negative row, and is refused if leave relies on that time and no other
+banked time could cover it. The time off leave type cannot be allocated, adjusted
+or paid out by hand, and a Compensatory Leave Request on it is refused.
+
+**Time off is taken in full or half days** (Frappe's leave), so a person needs at
+least half a day banked to use it. There is no hourly time off (decided
+2026-11-09); claims still earn in hours, which add up.
+
+**Unused time lapses claim by claim (1.13.0).** Each approved claim is usable
+until its own date (the company's "days the time off can be used for", counted
+from the last day worked or from approval, and never past the end of the leave
+year). Leave uses the time that lapses soonest first, so nothing lapses that
+could have been used. Leave that starts after the time it would need has lapsed
+is refused with what is usable. Each claim shows its days used, lapsed and left,
+and the **Time Off in Lieu** report (Self Service sidebar, Setup: "Time Off in Lieu Balances") shows each person's
+earned, used, lapsed and left, with what lapses in the next 30 days.
+
+Underneath (`toil/lapse.py`, `toil/fifo.py`): Frappe HR's year-end job never
+lapses an allocation that has been topped up, and cancelling any leave
+application can delete an unrelated lapse row (both pinned by
+`tests/test_hrms_time_behaviour.py`). So lapse rows are never trusted once
+written: `reconcile` works out every claim's lapse from scratch and changes only
+the rows that differ. It runs on approval and cancellation, after each leave
+application of the type is submitted or cancelled, and daily. A lapse written
+by Frappe's own job or its "Expire Allocation" button is undone.
 
 Who sees what: the person, their approver, whoever approves in the approver's
 place during their leave (a handover's "Approving time off in lieu" line, which
@@ -396,6 +416,8 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_days
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_claim
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_paid_vs_banked
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_endpoints_guarded
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_fifo
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_lapse
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -412,6 +434,13 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.13.0. **Time off in lieu lapses claim by claim** (§5): each approved claim is
+  usable until its own date, leave uses the time that lapses soonest, leave relying on time that
+  will have lapsed is refused, and a daily run writes the lapses that fall due. Claims show days
+  used, lapsed and left; a new **Time Off in Lieu** report shows each person's balance and what
+  lapses soon. Cancelling a claim is refused only when leave relies on time nothing else covers.
+  The time off leave type can no longer be adjusted or paid out by hand. Four more health checks.
+  Needs `bench migrate`.
 - **2026-11-09** — 1.12.0. **Time off in lieu** (§5): staff in chosen grades claim extra hours
   worked, their leave approver approves, returns or rejects, and approved time is added to their
   leave balance. One **Working Time Policy** per company sets the rules. A day is either paid as

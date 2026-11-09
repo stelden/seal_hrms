@@ -63,3 +63,19 @@ test.describe("every form opens", () => {
 		});
 	}
 });
+
+/** Our script reports: a broken filter script or column definition shows only in the browser. */
+const REPORTS = ["Time Off in Lieu"];
+
+test.describe("every report opens", () => {
+	for (const report of REPORTS) {
+		test(`report: ${report}`, async ({ page }) => {
+			const errors = collectErrors(page);
+			await page.goto(`/app/query-report/${encodeURIComponent(report)}`);
+			await page.waitForLoadState("networkidle");
+			await assertViewRendered(page);
+			await assertNoErrorDialog(page);
+			expect(ourErrors(errors), `${report} report raised:\n${errors.join("\n")}`).toEqual([]);
+		});
+	}
+});

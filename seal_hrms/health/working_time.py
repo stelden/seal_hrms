@@ -167,3 +167,146 @@ def time_off_has_approvers():
 		state=State.MISCONFIGURED,
 		link="/app/employee",
 	)
+
+
+# ---------------------------------------------------------------- lapses (1.13.0)
+
+
+def _watched() -> list[str]:
+	from seal_hrms.seal_hrms.toil.lapse import allocations_to_watch
+
+	return allocations_to_watch()
+
+
+@health_check(label="Time off in lieu: lapses up to date", category="Data")
+def time_off_lapses_in_step():
+	"""Lapse rows that differ from what the claims' dates say: the daily run has not caught up."""
+	from frappe.utils import flt, getdate
+
+	from seal_hrms.seal_hrms.toil import lapse
+
+	allocations = _watched()
+	behind = 0
+	for allocation in allocations:
+		result = lapse.outcome(allocation)
+		written = {}
+		for row in frappe.get_all(
+			"Leave Ledger Entry",
+			filters={
+				"transaction_type": "Leave Allocation",
+				"transaction_name": allocation,
+				"docstatus": 1,
+				"is_expired": 1,
+			},
+			fields=["custom_toil_claim", "leaves", "to_date"],
+		):
+			written.setdefault(row.custom_toil_claim or "", []).append(row)
+		if written.get(""):
+			behind += 1
+			continue
+		for lot in result.lots:
+			if not lot.key:
+				continue
+			rows = written.get(lot.key, [])
+			due = lot.lapsed
+			have = -sum(flt(r.leaves) for r in rows)
+			if abs(due - have) > 0.005 or (rows and due and getdate(rows[0].to_date) != lot.valid_through):
+				behind += 1
+				break
+	if not behind:
+		return []
+	return Finding(
+		severity=Severity.DEGRADED,
+		title=_("Some time off balances do not yet show time that has lapsed"),
+		detail=_(
+			"The daily run brings them in line; if this stays, check the error log for 'Time off in lieu'."
+		),
+		count=behind,
+		total=len(allocations),
+		state=State.STALE,
+		link="/app/error-log?method=%25Time%20off%20in%20lieu%25",
+	)
+
+
+@health_check(label="Time off in lieu: leave covered", category="Data")
+def time_off_leave_is_covered():
+	"""Approved leave of the time off type that no banked time covers."""
+	from seal_hrms.seal_hrms.toil import lapse
+
+	allocations = _watched()
+	short = sum(1 for a in allocations if lapse.outcome(a).unfunded)
+	if not short:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("Some approved time off in lieu leave is not covered by banked time"),
+		detail=_(
+			"Usually leave approved before the time it relied on lapsed or was cancelled. "
+			"The person's balance shows below zero; HR decides whether to change the leave."
+		),
+		count=short,
+		total=len(allocations),
+		state=State.MISCONFIGURED,
+		link="/app/query-report/Time Off in Lieu",
+	)
+
+
+@health_check(label="Time off in lieu: time not from claims", category="Data")
+def time_off_not_from_claims():
+	"""Time on a time off allocation that no claim added: it never lapses on its own."""
+	allocations = _watched()
+	if not allocations:
+		return []
+	rows = frappe.db.sql(
+		"""
+		SELECT COUNT(DISTINCT transaction_name) FROM `tabLeave Ledger Entry`
+		WHERE transaction_type = 'Leave Allocation' AND transaction_name IN %(allocations)s
+		  AND docstatus = 1 AND is_expired = 0 AND leaves > 0 AND IFNULL(custom_toil_claim, '') = ''
+		""",
+		{"allocations": allocations},
+	)
+	count = rows[0][0] if rows else 0
+	if not count:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("Some time off in lieu was added without a claim"),
+		detail=_(
+			"Probably from before the company switched time off in lieu on. It can be used until the end "
+			"of the leave year but does not lapse on its own date."
+		),
+		count=count,
+		total=len(allocations),
+		state=State.MISCONFIGURED,
+		link="/app/leave-allocation",
+	)
+
+
+@health_check(label="Time off in lieu: next leave year", category="Configuration", forms=FORMS)
+def time_off_has_next_leave_year():
+	"""The leave year ends within 30 days and the next one is not set up: approvals will stop."""
+	from frappe.utils import add_days, getdate, today
+	from hrms.hr.utils import get_leave_period
+
+	missing = []
+	for policy in _enabled():
+		period = get_leave_period(today(), today(), policy.company)
+		if not period or getdate(period[0].to_date) > getdate(add_days(today(), 30)):
+			continue
+		following = add_days(period[0].to_date, 1)
+		if not get_leave_period(following, following, policy.company):
+			missing.append(
+				f"{policy.company} ({frappe.format_value(period[0].to_date, {'fieldtype': 'Date'})})"
+			)
+	if not missing:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("The leave year ends soon and the next one is not set up"),
+		detail=_("Claims approved after it ends will be refused until it is: {0}.").format(
+			", ".join(missing)
+		),
+		count=len(missing),
+		state=State.MISSING,
+		link="/app/leave-period",
+	)

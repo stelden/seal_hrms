@@ -31,6 +31,7 @@ class ToilTestCase(IntegrationTestCase):
 		if not frappe.db.exists("Company", tf.COMPANY):
 			raise cls.skipTest(cls, f"{tf.COMPANY} is not on this site")
 		frappe.set_user("Administrator")
+		tf.ensure_leave_period()
 		cls.otieno = tf.set_up_otieno()
 		cls.otieno_user = fx.email("otieno")
 		cls.achieng_user = fx.approver()
