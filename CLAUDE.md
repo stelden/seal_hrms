@@ -16,6 +16,8 @@ Labels name the field. Descriptions explain it. Never use one to do the other's 
 - Check fields: a state or attribute ("Emergency Procurement", "Requires Approval", "Disabled"), not a question.
 - Button fields: a short verb phrase is fine ("Fetch Items", "Get Quotations").
 - Section Break: 1–3 words ("Budget", "Approval", "Supplier Details"). Tab Break: 1–2 words. Column Break: usually no label.
+- Spell "Colour" (UK spelling), and write "and", not "&", in labels, sections, tabs and sidebar entries.
+- Portal section and card headings follow these rules too.
 - Standard abbreviations are fine: No., ID, KRA PIN, VAT, LPO, LSO, AGPO, IFMIS, PPADA. Don't invent new ones.
 - Statutory or regulator-mandated names (e.g. form titles required by PPRA or a government circular) keep their official wording. Flag these instead of shortening them.
 
@@ -66,4 +68,4 @@ commit gate on top of this rule.
 
 ### Labels in this app
 
-Existing labels are being rewritten: this app is number 5 in the order. Programme record: `dev_notes/label_policy/README.md` in the bench.
+Existing labels were brought into line with the policy in November 2026. Keep them there: new and edited fields follow the policy. Programme record: `dev_notes/label_policy/README.md` in the bench.
