@@ -536,6 +536,8 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-10** — 1.19.4. My HR: the greeting is larger, and the overview has tiles for **Time
+  off in lieu** and **Timesheets** (Travel no longer mentions timesheets). Needs `bench migrate`.
 - **2026-11-10** — 1.19.3. Time off claim lines no longer ask for a project and task: nothing used
   them, and on procurement sites they listed tenders. What the work was says what it was for, and a
   claim made from a timesheet links to it, where project and task live. Needs `bench migrate`.
