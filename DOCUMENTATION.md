@@ -536,6 +536,10 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-10** — 1.19.2. **My HR greets the person** ("Good morning, Brian", with their
+  designation and department) instead of a banner picture, which was blank wherever no image had
+  been uploaded. The old block also looked the person up by login, which staff may not do, so it
+  never named them; it now reads their own record through seal_hrms. Needs `bench migrate`.
 - **2026-11-10** — 1.19.1. A new Working Time Policy starts with sensible values (decisions D2,
   D3): an extra hour counts 1.5 on a working day and 2 on a rest day or public holiday (Kenya's
   paid-overtime rates, so time off is worth no less than pay), at least 1 hour a day, no daily cap,

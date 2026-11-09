@@ -50,7 +50,7 @@ def my_employee() -> str | None:
 
 
 #: What a member of staff may read about their own Employee record from a form.
-OWN_FIELDS = ("name", "company", "employee_name", "department")
+OWN_FIELDS = ("name", "company", "employee_name", "department", "first_name", "designation")
 
 
 @frappe.whitelist()

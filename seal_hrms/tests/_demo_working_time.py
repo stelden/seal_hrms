@@ -173,6 +173,11 @@ def seed() -> dict:
 				}
 			)
 			employees[key] = keep(employee.insert(ignore_permissions=True)).name
+			# ERPNext strips Employee Self Service (and more) from a user saved before their
+			# Employee exists, so the roles go on after it.
+			frappe.get_doc("User", user.name).add_roles(
+				"Employee", "Employee Self Service", *(("Leave Approver",) if approves else ())
+			)
 		for key in ("brian", "faith"):
 			frappe.db.set_value("Employee", employees[key], "reports_to", employees["wanjiru"])
 
@@ -194,6 +199,19 @@ def seed() -> dict:
 	_remember(made)
 	frappe.db.commit()
 	return {"logins": {k: _email(k) for k in PEOPLE}, "password": PASSWORD, "made": made}
+
+
+def grant_roles() -> dict:
+	"""Give the demo logins their roles again (for a set seeded before the fix above)."""
+	granted = {}
+	for key, (_first, _last, _gender, _phone, approves) in PEOPLE.items():
+		if frappe.db.exists("User", _email(key)):
+			frappe.get_doc("User", _email(key)).add_roles(
+				"Employee", "Employee Self Service", *(("Leave Approver",) if approves else ())
+			)
+			granted[_email(key)] = frappe.get_roles(_email(key))
+	frappe.db.commit()
+	return granted
 
 
 def remove() -> dict:
