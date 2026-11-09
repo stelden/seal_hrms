@@ -23,6 +23,7 @@ Labels name the field. Descriptions explain it. Never use one to do the other's 
 - Put guidance, rules, constraints, examples and "when to use" text here.
 - Write full sentences in sentence case, ending with a full stop. Keep it brief.
 - Don't add a description that only repeats the label.
+- Settings fields, technical fields and anything whose purpose is not obvious from its label always get a description, written for a non-technical user: what it is for and what changing it does. Aim for 150 characters or fewer.
 
 ### Scope
 This applies to DocType JSON fields, Custom Fields (fixtures and `create_custom_fields` dicts in Python), Property Setters we own, Report columns and filters, Web Forms, Workspace/shortcut labels, list/filter labels set in JS, `frm.set_df_property(..., "label", ...)` calls, and form labels in any Vue/frappe-ui portal code in the app.
