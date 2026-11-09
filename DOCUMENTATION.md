@@ -304,6 +304,21 @@ The shell was copied from `seal_hrms`, not `seal_buying`, when it was reused for
 WEL: the buying workspace assumes a procurement sidebar that a staff portal
 does not want.
 
+### Time off, overtime and timesheets
+
+Self Service links to three stock Frappe HR features: **Compensatory Leave
+Request** (a holiday worked becomes a day off), **paid overtime** (clock-ins
+through payroll) and **Timesheet**. How to set each up and where each stops is
+in `dev_notes/seal_hrms/GUIDE_TIME_OFF_OVERTIME_TIMESHEETS.md`, written for HR
+and staff.
+
+Time off in lieu claims (hours, any day, approved by the leave approver, lapsing
+on a rolling basis) and timesheet approval, weekly entry and checks are being
+added from 1.12.0; the design and its open decisions are in
+`dev_notes/seal_hrms/WORKING_TIME_DESIGN.md`. The Frappe HR behaviour that
+design relies on is pinned by `tests/test_hrms_time_behaviour.py`: if it fails
+after an upgrade, re-read the design before anything else.
+
 ---
 
 ## 6. Testing
@@ -320,6 +335,8 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_l
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_acting
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_surfaces
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_emails
+bench --site dev.local run-tests --module seal_hrms.tests.test_hrms_time_behaviour
+bench --site dev.local run-tests --module seal_hrms.tests.test_seal_hrms_settings
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -336,6 +353,12 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.11.2. **SEAL HRMS Settings save again**: the form still checked the
+  leave-planning settings that moved to seal_leave_planning, so every save failed before it
+  reached the database. Groundwork for time off in lieu and timesheets (§5): a guide to what
+  Frappe HR already does, the design, and tests that pin the Frappe HR behaviour it relies on.
+  Among them: allocations topped up by Compensatory Leave Requests never lapse at year end, and
+  cancelling a leave application deletes an unrelated lapse of the same leave type.
 - **2026-11-07** — 1.11.1. Handovers keep what they give (found while seal_procurement's
   approvals were made to follow an officer on leave). **A role a handover grants survives a save
   of the stand-in's user record**: a role profile rebuilt their roles on every save and dropped it.
