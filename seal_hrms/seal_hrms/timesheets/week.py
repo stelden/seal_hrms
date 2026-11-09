@@ -210,8 +210,18 @@ def week_context(employee: str, week_start: str, timesheet: str | None = None) -
 		{"employee": employee, "custom_week_start": add_days(start, -DAYS), "docstatus": ["<", 2]},
 		"custom_week_entries",
 	)
+	checks = []
+	if timesheet and frappe.db.exists("Timesheet", timesheet):
+		from seal_hrms.seal_hrms.timesheets import effort
+
+		saved = frappe.get_doc("Timesheet", timesheet)
+		if saved.employee == employee:
+			week_check = effort.week_of(saved)
+			checks = effort.describe(week_check) if week_check else []
 	return {
 		"weekly": bool(policy.weekly_timesheets),
+		"checks": checks,
+		"effort_rule": policy.effort_rule,
 		"week_start": str(start),
 		"hours_per_day": flt(policy.hours_per_day),
 		"default_activity_type": policy.default_activity_type,

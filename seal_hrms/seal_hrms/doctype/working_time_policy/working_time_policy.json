@@ -46,7 +46,9 @@
   "weekly_timesheets",
   "default_activity_type",
   "tb3_cb2",
-  "day_starts_at"
+  "day_starts_at",
+  "tb3_sb3",
+  "effort_rule"
  ],
  "fields": [
   {
@@ -317,11 +319,25 @@
    "fieldname": "day_starts_at",
    "fieldtype": "Time",
    "label": "Day starts at"
+  },
+  {
+   "depends_on": "eval:doc.weekly_timesheets",
+   "fieldname": "tb3_sb3",
+   "fieldtype": "Section Break",
+   "label": "Checking the week"
+  },
+  {
+   "default": "Point out gaps",
+   "description": "A week accounts for the time when each working day's hours plus approved leave make a full day. Refusing also stops hours on a full day of leave.",
+   "fieldname": "effort_rule",
+   "fieldtype": "Select",
+   "label": "When a week does not account for the person's time",
+   "options": "Point out gaps\nRefuse to send a week that is not accounted for"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-10 00:30:00.000000",
+ "modified": "2026-11-10 01:30:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Working Time Policy",

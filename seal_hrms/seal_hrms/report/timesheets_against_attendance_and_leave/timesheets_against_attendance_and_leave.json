@@ -1,0 +1,35 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [],
+ "creation": "2026-11-10 01:30:00.000000",
+ "description": "Each person's days: their timesheet hours beside their leave, holidays and attendance, and what does not add up.",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letterhead": null,
+ "modified": "2026-11-10 01:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Timesheets Against Attendance and Leave",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Timesheet",
+ "report_name": "Timesheets Against Attendance and Leave",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "timeout": 0
+}

@@ -206,6 +206,9 @@ def send_for_approval(name: str) -> str:
 			),
 			title=_("No Approver"),
 		)
+	from seal_hrms.seal_hrms.timesheets import effort
+
+	effort.check_before_sending(doc)
 	doc.custom_approval_state = WAITING
 	doc.custom_sent_on = now_datetime()
 	doc.custom_return_reason = None

@@ -9,8 +9,8 @@ Njeri is a colleague who should see none of it. Everything goes through the ORM
 (SEAL_DEV_RULES §1.9), and each test is rolled back to a savepoint.
 
 Otieno gets his own holiday list, relative to today, so the kinds of day are
-fixed whatever date the tests run on: Sundays are rest days, and one Tuesday a
-week or more back is a public holiday.
+fixed whatever date the tests run on: Saturdays and Sundays are rest days, and
+one Tuesday a week or more back is a public holiday.
 """
 
 import frappe
@@ -82,8 +82,10 @@ def ensure_holiday_list() -> str:
 		doc.holiday_list_name = HOLIDAY_LIST
 		doc.from_date = add_days(today(), -120)
 		doc.to_date = add_days(today(), 120)
-		doc.weekly_off = "Sunday"
-		doc.get_weekly_off_dates()
+		# A Monday-to-Friday office: Saturdays and Sundays are rest days.
+		for weekly_off in ("Saturday", "Sunday"):
+			doc.weekly_off = weekly_off
+			doc.get_weekly_off_dates()
 		doc.append(
 			"holidays", {"holiday_date": public_holiday(), "description": "Utamaduni Day", "weekly_off": 0}
 		)
@@ -191,6 +193,13 @@ def browser_set_up(password_otieno: str, password_achieng: str, **rules) -> dict
 		"Employee", employee, ["company", "grade", "leave_approver", "department", "reports_to"], as_dict=True
 	)
 	had_policy = frappe.db.exists("Working Time Policy", COMPANY)
+	masters = (
+		("Leave Type", LEAVE_TYPE),
+		("Employee Grade", GRADE),
+		("Activity Type", "Community Outreach"),
+		("Holiday List", HOLIDAY_LIST),
+	)
+	made = [[dt, name] for dt, name in masters if not frappe.db.exists(dt, name)]
 	ensure_leave_period()
 	started = str(frappe.utils.now_datetime())
 	set_up_otieno()
@@ -213,6 +222,7 @@ def browser_set_up(password_otieno: str, password_achieng: str, **rules) -> dict
 		"rest_day": rest_day(),
 		"working_day": working_day(),
 		"started": started,
+		"made_masters": made,
 	}
 
 
@@ -250,3 +260,7 @@ def browser_tear_down(seed: dict) -> None:
 		frappe.delete_doc("Working Time Policy", COMPANY, force=1, ignore_permissions=True)
 	original = seed["original"]
 	frappe.db.set_value("Employee", employee, original, update_modified=False)
+	# The masters the walk made, now that nothing points at them.
+	for doctype, name in seed.get("made_masters") or []:
+		if frappe.db.exists(doctype, name):
+			frappe.delete_doc(doctype, name, force=1, ignore_permissions=True)

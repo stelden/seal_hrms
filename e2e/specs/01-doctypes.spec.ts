@@ -66,7 +66,7 @@ test.describe("every form opens", () => {
 });
 
 /** Our script reports: a broken filter script or column definition shows only in the browser. */
-const REPORTS = ["Time Off in Lieu"];
+const REPORTS = ["Time Off in Lieu", "Timesheets Against Attendance and Leave"];
 
 test.describe("every report opens", () => {
 	for (const report of REPORTS) {

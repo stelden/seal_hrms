@@ -39,6 +39,7 @@ DEFAULTS = {
 	"weekly_timesheets": 0,
 	"default_activity_type": None,
 	"day_starts_at": "08:00:00",
+	"effort_rule": "Point out gaps",
 }
 
 

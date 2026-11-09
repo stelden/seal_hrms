@@ -269,6 +269,17 @@ const seal_hrms_week = {
 						: ""
 				}
 			</div>`);
+		if ((context.checks || []).length) {
+			const refuses =
+				context.effort_rule === "Refuse to send a week that is not accounted for";
+			const lead = refuses
+				? __("This week cannot be sent for approval until it accounts for your time:")
+				: __("Worth checking before you send it:");
+			$(`<div class="alert alert-warning seal-week-checks" style="margin: 8px 0;">
+				<div>${lead}</div>
+				<ul style="margin: 4px 0 0 0;">${context.checks.map((line) => `<li>${line}</li>`).join("")}</ul>
+			</div>`).appendTo(wrapper.find(".seal-week"));
+		}
 		const tbody = wrapper.find("tbody");
 		entries.forEach((entry, index) =>
 			this.draw_line(frm, tbody, entries, entry, index, editable)

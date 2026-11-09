@@ -416,6 +416,17 @@ after another from the company's "Day starts at", so the form's own time lines
 are read-only and ERPNext's timer is hidden. A second timesheet for the same
 week is refused. Leave and holidays are shown, not written as time lines.
 
+**Checking the week (1.18.0).** Once saved, a weekly timesheet lists under the
+grid what does not add up: a working day not accounted for (hours plus approved
+leave short of a full day), hours on a day of approved leave, and hours where
+attendance does not show the person present (only for people whose attendance
+is kept). A company chooses ("When a week does not account for the person's
+time") whether these are only pointed out or whether such a week cannot be sent
+for approval; day by day, so extra hours one day do not make up a short one.
+HR's report **Timesheets Against Attendance and Leave** (Self Service sidebar,
+Setup) shows the same for everyone at a company over up to 62 days, drafts
+included, with "Only days with something to look at".
+
 Rules a claim must meet: the person's grade banks hours and they are not paid
 by the hour; each date once, not in the future, at least the smallest claim;
 not a day of approved leave, not already claimed, and **not paid as overtime**:
@@ -498,6 +509,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_evidence
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_authorise_first
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_approval
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_week
+bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_effort
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -514,6 +526,10 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-10** — 1.18.0. **Checking the week**: a weekly timesheet lists the days that do not
+  add up against leave, holidays and attendance; a company may refuse to let such a week be sent.
+  New HR report **Timesheets Against Attendance and Leave**. Test walks now remove the masters
+  they made. Needs `bench migrate`.
 - **2026-11-09** — 1.17.0. **Timesheets by the week**, per company: a grid of work lines by day on
   the Timesheet form, with leave, holidays and attendance shown; the time lines are written from it
   on save; one timesheet per person per week; "Copy last week". Needs `bench migrate` and a restart.
