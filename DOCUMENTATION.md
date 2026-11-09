@@ -358,6 +358,25 @@ do (Now / Next / Do), worked out for whoever is looking (`toil/stage.py`, drawn
 by `public/js/where_it_is.js`). Once approved, **Apply for Leave** opens a leave
 application for the time off type.
 
+**Authorise first, then confirm the hours (1.15.0).** A company can choose, in
+its policy ("When extra work is agreed"), that staff ask before the extra work:
+they list the days with the hours planned (future days allowed) and click
+**Send for Authorisation**; the approver clicks **Authorise** (or returns or
+rejects it); after the work the person enters the hours actually worked (or
+fills them from the records) and clicks **Send for Approval**; the approver then
+approves as usual. Only authorised days can be confirmed, and a return after
+authorisation goes back to Authorised, not to the start. The way a claim is
+agreed is stamped on it when it is made, so a change of policy does not move
+claims already in flight.
+
+The approver is emailed when a claim is sent, and the person when it is
+authorised, approved, returned or rejected. The six emails are Email Templates
+named "Time Off in Lieu - ...", created once after migrate and never overwritten,
+so HR's rewording stays. My Desk has a "Time off in lieu waiting for you" list
+(claims to decide, claims returned, hours to confirm, drafts not sent, time
+lapsing within 14 days), and Self Service counts claims waiting for a decision.
+The claim's Approval tab draws its process map.
+
 Rules a claim must meet: the person's grade banks hours and they are not paid
 by the hour; each date once, not in the future, at least the smallest claim;
 not a day of approved leave, not already claimed, and **not paid as overtime**:
@@ -435,6 +454,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_endpoints_gu
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_fifo
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_lapse
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_evidence
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_authorise_first
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -451,6 +471,12 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.15.0. **Authorise first, then confirm the hours**, per company: staff ask
+  before the extra work, the approver authorises, and afterwards the hours worked are confirmed
+  and approved. **Emails** at each step (HR-editable templates, created once), a **My Desk** list
+  "Time off in lieu waiting for you", a Self Service count, the claim's **process map**, and a
+  health check for claims waiting longer than the company allows. Needs `bench migrate` and a
+  restart.
 - **2026-11-09** — 1.14.0. **What the records show** on time off claims: attendance, clock-ins
   and timesheets beside each day, with "Approver only" where none bears it out, and **Fill from
   Records** to add the days they show. The claim form gains the Now / Next / Do banner and an

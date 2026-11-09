@@ -16,6 +16,7 @@ from hrms.hr.doctype.leave_application.leave_application import get_employee_lea
 from seal_hrms.seal_hrms import acting
 from seal_hrms.seal_hrms.handover import user_for_employee
 from seal_hrms.seal_hrms.toil import access, approval, lapse, ledger, rules, stage
+from seal_hrms.seal_hrms.working_time.policy import policy_for
 
 EDITABLE = (approval.DRAFT, approval.RETURNED)
 
@@ -28,6 +29,12 @@ class TimeOffinLieuClaim(Document):
 		self.set_onload("can_send", not self.is_new() and access.can_send(self, user))
 		self.set_onload("where_it_is", stage.where_it_is(self, user))
 		self.set_onload("is_mine", user_for_employee(self.employee) == user)
+
+	def before_insert(self):
+		# The way extra work is agreed is the company's when the claim is made; a later
+		# change of policy does not move claims already in flight.
+		if not self.mode and self.company:
+			self.mode = policy_for(self.company).prior_authorisation
 
 	def validate(self):
 		self._guard_status()
@@ -49,12 +56,16 @@ class TimeOffinLieuClaim(Document):
 
 	def _guard_editing(self):
 		before = self.get_doc_before_save()
-		if before and before.status == approval.WAITING and not approval.in_transition(self):
+		if (
+			before
+			and before.status in (approval.WAITING, approval.WAITING_AUTH)
+			and not approval.in_transition(self)
+		):
 			frappe.throw(
 				_("This claim is with {0}. Ask them to return it before changing it.").format(
 					self.approver_name or self.approver
 				),
-				title=_("Waiting for Approval"),
+				title=_(before.status),
 			)
 
 	def _check_who_claims(self):

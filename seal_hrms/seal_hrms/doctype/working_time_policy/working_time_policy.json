@@ -17,6 +17,7 @@
   "leave_type",
   "tb2_cb1",
   "eligible_grades",
+  "prior_authorisation",
   "tb2_sb2",
   "after_hours_rate",
   "rest_day_rate",
@@ -33,7 +34,8 @@
   "tb2_sb4",
   "evidence_attendance",
   "tb2_cb4",
-  "evidence_timesheets"
+  "evidence_timesheets",
+  "toil_waiting_alert_days"
  ],
  "fields": [
   {
@@ -105,6 +107,15 @@
    "fieldtype": "Table MultiSelect",
    "label": "Who banks extra hours",
    "options": "Working Time Policy Grade"
+  },
+  {
+   "default": "Claim afterwards",
+   "depends_on": "eval:doc.toil_enabled",
+   "description": "\"Authorise first\": staff ask before the work, the approver agrees, and afterwards they confirm the hours actually worked.",
+   "fieldname": "prior_authorisation",
+   "fieldtype": "Select",
+   "label": "When extra work is agreed",
+   "options": "Claim afterwards\nAuthorise first, then confirm the hours"
   },
   {
    "depends_on": "eval:doc.toil_enabled",
@@ -217,11 +228,19 @@
    "fieldname": "evidence_timesheets",
    "fieldtype": "Check",
    "label": "Timesheets"
+  },
+  {
+   "default": "7",
+   "description": "App Health lists claims waiting for a decision longer than this. 0 turns it off.",
+   "fieldname": "toil_waiting_alert_days",
+   "fieldtype": "Int",
+   "label": "Tell HR when a claim waits longer than (days)",
+   "non_negative": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-09 20:00:00.000000",
+ "modified": "2026-11-09 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Working Time Policy",

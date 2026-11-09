@@ -74,6 +74,8 @@ after_migrate = [
     "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels",
     # Employee Self Service users can open their time off claims (working_time/user_type.py).
     "seal_hrms.seal_hrms.working_time.user_type.allow_claims_for_self_service",
+    # Time off in lieu emails HR can reword: created once, never overwritten (§1.18).
+    "seal_hrms.seal_hrms.toil.notifications.ensure_templates",
 ]
 
 # include js, css files in header of web template
@@ -400,6 +402,7 @@ app_health_checks = [
     "seal_hrms.health.working_time.time_off_leave_is_covered",
     "seal_hrms.health.working_time.time_off_not_from_claims",
     "seal_hrms.health.working_time.time_off_has_next_leave_year",
+    "seal_hrms.health.working_time.time_off_claims_waiting",
 ]
 
 # ---------------------------------------------------------------------------
@@ -425,9 +428,21 @@ seal_desk_cue_groups = [
         "label": "Self-Service",
         "renders_as": "cues",
         "provider": "seal_hrms.desk.providers.self_service",
-        "watch": ["Leave Application", "Expense Claim", "Employee Advance", "Timesheet"],
+        "watch": ["Leave Application", "Expense Claim", "Employee Advance", "Timesheet", "Time Off in Lieu Claim"],
+    },
+    {
+        "key": "seal_hrms.time_off_work",
+        "label": "Time off in lieu waiting for you",
+        "renders_as": "list",
+        "provider": "seal_hrms.desk.providers.time_rows",
+        "watch": ["Time Off in Lieu Claim"],
     },
 ]
+
+# seal_common draws it on the form (§3.16).
+seal_process_maps = {
+    "Time Off in Lieu Claim": "seal_hrms.seal_hrms.process_maps.toil_claim.get_definition",
+}
 
 # Approvals a member of staff can hand over while on leave (seal_hrms.acting).
 # Read from each app's hooks module, not frappe.get_hooks, because a nested dict

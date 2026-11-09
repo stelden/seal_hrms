@@ -6,11 +6,13 @@
  "engine": "InnoDB",
  "field_order": [
   "work_date",
+  "planned_hours",
   "hours",
   "work_done",
   "cb1",
   "project",
   "task",
+  "authorised",
   "sb1",
   "day_kind",
   "rate",
@@ -34,13 +36,21 @@
    "reqd": 1
   },
   {
+   "description": "Asked for before the work, where the company authorises extra work first.",
+   "fieldname": "planned_hours",
+   "fieldtype": "Float",
+   "label": "Extra hours planned",
+   "non_negative": 1
+  },
+  {
    "columns": 1,
+   "description": "The extra hours actually worked.",
    "fieldname": "hours",
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Extra hours worked",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 0
   },
   {
    "columns": 3,
@@ -65,6 +75,14 @@
    "fieldtype": "Link",
    "label": "Activity or task",
    "options": "Task"
+  },
+  {
+   "description": "Agreed before the work; only authorised days can be confirmed.",
+   "fieldname": "authorised",
+   "fieldtype": "Check",
+   "label": "Authorised",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "sb1",
@@ -143,7 +161,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-09 20:00:00.000000",
+ "modified": "2026-11-09 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Time Off in Lieu Claim Line",

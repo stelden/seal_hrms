@@ -9,7 +9,9 @@ only the claim's own computed fields (SEAL_DEV_RULES §3.1).
 Rules (WORKING_TIME_DESIGN.md §5.2, §5.6, §5.7):
   * the person's company banks extra hours, and their grade is one that does;
   * they are not paid by the hour (their timesheets are their pay already);
-  * each date once, not in the future, at least the minimum hours;
+  * each date once, not in the future, at least the minimum hours; where the
+    company authorises extra work first, planned days may be in the future
+    until they are authorised, and only authorised days can be confirmed;
   * not a day of approved leave, not claimed on another claim, and not paid as
     overtime: an hour is paid or banked, never both.
 """
@@ -20,15 +22,38 @@ from frappe.utils import add_days, formatdate, get_link_to_form, getdate, today
 
 from seal_hrms.seal_hrms.toil import days as counting
 from seal_hrms.seal_hrms.working_time.calendar import day_kinds
-from seal_hrms.seal_hrms.working_time.policy import policy_for
+from seal_hrms.seal_hrms.working_time.policy import AUTHORISE_FIRST, policy_for
 
 CLAIM = "Time Off in Lieu Claim"
 LINE = "Time Off in Lieu Claim Line"
 # Statuses in which a claim's dates are taken. A draft holds them too, so the
 # same person does not draft one date twice; paid overtime only yields to a
 # claim that has been sent (`banked_dates`).
-LIVE = ("Draft", "Returned", "Waiting for Approval", "Approved")
-SENT = ("Waiting for Approval", "Approved")
+LIVE = ("Draft", "Returned", "Waiting for Authorisation", "Authorised", "Waiting for Approval", "Approved")
+SENT = ("Waiting for Authorisation", "Authorised", "Waiting for Approval", "Approved")
+PLANNING = ("Draft", "Returned", "Waiting for Authorisation")
+
+
+def is_planning(doc) -> bool:
+	"""Authorise-first, and not yet authorised: the days are a plan, in planned hours."""
+	if doc.get("mode") != AUTHORISE_FIRST:
+		return False
+	status = doc.status or "Draft"
+	# Turned down before it was ever authorised: still only a plan.
+	return status in PLANNING or (status == "Rejected" and not doc.get("authorised_by"))
+
+
+def confirming(doc) -> bool:
+	"""Authorised and not yet sent: the hours worked may still be on their way."""
+	return doc.get("mode") == AUTHORISE_FIRST and doc.status == "Authorised"
+
+
+def hours_of(doc, line) -> float:
+	"""The hours a line counts with: planned while planning (and while confirming,
+	until the hours worked are entered), worked otherwise."""
+	if is_planning(doc) or (confirming(doc) and not line.hours):
+		return line.planned_hours or 0
+	return line.hours or 0
 
 
 def check(doc) -> None:
@@ -99,16 +124,29 @@ def _check_lines(doc, policy) -> list:
 		frappe.throw(_("Add the days you worked extra."))
 	seen, dates = set(), []
 	counting_rules = counting.Counting.from_policy(policy)
+	planning = is_planning(doc)
 	for line in doc.lines:
 		day = getdate(line.work_date)
 		if day in seen:
 			frappe.throw(_("Row {0}: {1} is on this claim twice.").format(line.idx, formatdate(day)))
 		seen.add(day)
-		if day > getdate(today()):
-			frappe.throw(_("Row {0}: {1} has not happened yet.").format(line.idx, formatdate(day)))
-		if not line.hours or line.hours <= 0:
-			frappe.throw(_("Row {0}: enter the extra hours worked.").format(line.idx))
-		if counting.below_minimum(line.hours, counting_rules):
+		hours = hours_of(doc, line)
+		if planning:
+			if hours <= 0:
+				frappe.throw(_("Row {0}: enter the extra hours planned.").format(line.idx))
+		else:
+			if day > getdate(today()) and not (confirming(doc) and not line.hours):
+				frappe.throw(_("Row {0}: {1} has not happened yet.").format(line.idx, formatdate(day)))
+			if hours <= 0 or (not line.hours and not confirming(doc)):
+				frappe.throw(_("Row {0}: enter the extra hours worked.").format(line.idx))
+			if doc.get("mode") == AUTHORISE_FIRST and not line.authorised:
+				frappe.throw(
+					_("Row {0}: {1} was not authorised. Make a separate claim for it.").format(
+						line.idx, formatdate(day)
+					),
+					title=_("Not Authorised"),
+				)
+		if counting.below_minimum(hours, counting_rules):
 			frappe.throw(
 				_("Row {0}: extra time under {1} hours on a day does not count.").format(
 					line.idx, frappe.format_value(policy.minimum_hours, {"fieldtype": "Float"})
@@ -123,8 +161,9 @@ def _count(doc, policy, kinds) -> None:
 	total = credited = 0.0
 	for line in doc.lines:
 		line.day_kind = kinds[getdate(line.work_date)]
-		line.rate, line.credited_hours = counting.count_line(line.hours, line.day_kind, rules)
-		total += line.hours
+		hours = hours_of(doc, line)
+		line.rate, line.credited_hours = counting.count_line(hours, line.day_kind, rules)
+		total += hours
 		credited += line.credited_hours
 	doc.total_hours = counting.round2(total)
 	doc.credited_hours = counting.round2(credited)

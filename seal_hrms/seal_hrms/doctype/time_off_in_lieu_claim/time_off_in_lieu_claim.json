@@ -28,11 +28,16 @@
   "status",
   "approver",
   "approver_name",
+  "mode",
   "tb2_cb1",
   "sent_on",
+  "authorised_by",
+  "authorised_on",
   "approved_by",
   "approved_on",
   "decision_note",
+  "tb2_sb3",
+  "process_map",
   "tb3",
   "tb3_sb1",
   "leave_type",
@@ -177,7 +182,7 @@
    "in_standard_filter": 1,
    "label": "Status",
    "no_copy": 1,
-   "options": "Draft\nWaiting for Approval\nReturned\nApproved\nRejected\nCancelled",
+   "options": "Draft\nWaiting for Authorisation\nAuthorised\nWaiting for Approval\nReturned\nApproved\nRejected\nCancelled",
    "read_only": 1
   },
   {
@@ -197,6 +202,14 @@
    "read_only": 1
   },
   {
+   "description": "Set from the company's policy when the claim is made, so a later change of policy does not move it.",
+   "fieldname": "mode",
+   "fieldtype": "Data",
+   "label": "How it is agreed",
+   "no_copy": 0,
+   "read_only": 1
+  },
+  {
    "fieldname": "tb2_cb1",
    "fieldtype": "Column Break"
   },
@@ -204,6 +217,21 @@
    "fieldname": "sent_on",
    "fieldtype": "Datetime",
    "label": "Sent for approval on",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "authorised_by",
+   "fieldtype": "Link",
+   "label": "Authorised by",
+   "no_copy": 1,
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "authorised_on",
+   "fieldtype": "Datetime",
+   "label": "Authorised on",
    "no_copy": 1,
    "read_only": 1
   },
@@ -231,6 +259,16 @@
    "label": "Approver's note",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "tb2_sb3",
+   "fieldtype": "Section Break",
+   "label": "How a claim moves"
+  },
+  {
+   "fieldname": "process_map",
+   "fieldtype": "HTML",
+   "label": "Process map"
   },
   {
    "fieldname": "tb3",
@@ -334,7 +372,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-09 21:00:00.000000",
+ "modified": "2026-11-09 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Time Off in Lieu Claim",

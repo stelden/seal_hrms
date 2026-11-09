@@ -58,6 +58,12 @@ def self_service(user: str, readable=None) -> list[Figure]:
 		Figure("advances_unpaid", _("Advances not yet paid"), "Employee Advance", [mine, ["docstatus", "=", 1], ["status", "=", "Unpaid"]]),
 		Figure("advances_to_settle", _("Advances to settle"), "Employee Advance", [mine, ["docstatus", "=", 1], ["status", "in", ["Paid", "Partially Paid"]]]),
 		Figure("timesheets_draft", _("Timesheets in draft"), "Timesheet", [mine, ["docstatus", "=", 0]]),
+		Figure(
+			"toil_in_approval",
+			_("Time off claims waiting for a decision"),
+			"Time Off in Lieu Claim",
+			[mine, ["docstatus", "=", 0], ["status", "in", ["Waiting for Authorisation", "Waiting for Approval"]]],
+		),
 	]
 	out = []
 	for fig in figures:

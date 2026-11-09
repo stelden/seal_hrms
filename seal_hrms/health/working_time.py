@@ -310,3 +310,40 @@ def time_off_has_next_leave_year():
 		state=State.MISSING,
 		link="/app/leave-period",
 	)
+
+
+@health_check(label="Time off in lieu: claims waiting", category="Data", forms=FORMS)
+def time_off_claims_waiting():
+	"""Claims waiting for a decision longer than the company allows: someone is stuck."""
+	from frappe.utils import add_days, now_datetime
+
+	if not frappe.db.table_exists("Time Off in Lieu Claim"):
+		return []
+	stuck, total = 0, 0
+	for policy in _enabled():
+		alert = frappe.db.get_value(POLICY, policy.name, "toil_waiting_alert_days")
+		waiting = [
+			["company", "=", policy.company],
+			["docstatus", "=", 0],
+			["status", "in", ["Waiting for Authorisation", "Waiting for Approval"]],
+		]
+		total += frappe.db.count("Time Off in Lieu Claim", waiting)
+		if not alert:
+			continue
+		stuck += frappe.db.count(
+			"Time Off in Lieu Claim",
+			[*waiting, ["sent_on", "is", "set"], ["sent_on", "<", add_days(now_datetime(), -int(alert))]],
+		)
+	if not stuck:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("Some time off claims have waited a long time for a decision"),
+		detail=_(
+			"The approver may be away with nobody standing in. Their claims stay with them until decided."
+		),
+		count=stuck,
+		total=total,
+		state=State.STALE,
+		link="/app/time-off-in-lieu-claim?status=Waiting%20for%20Approval",
+	)

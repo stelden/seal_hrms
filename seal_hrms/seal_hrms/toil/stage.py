@@ -61,16 +61,55 @@ def where_it_is(doc, user: str | None = None) -> dict:
 			if status == approval.RETURNED
 			else _("Draft: not yet sent.")
 		)
-		after = _("{0} approves, returns or rejects it once it is sent.").format(approver)
+		first = approval.authorise_first(doc)
+		button = _b(_("Send for Authorisation") if first else _("Send for Approval"))
+		after = (
+			_(
+				"{0} agrees the extra work before it is done; afterwards the hours worked are confirmed."
+			).format(approver)
+			if first
+			else _("{0} approves, returns or rejects it once it is sent.").format(approver)
+		)
 		if access.can_send(doc, user):
-			do = _("List each day you worked extra, then click {0}.").format(_b(_("Send for Approval")))
+			do = (
+				_("List each day of extra work you plan, with the hours, then click {0}.").format(button)
+				if first
+				else _("List each day you worked extra, then click {0}.").format(button)
+			)
 			if not mine:
-				do = _("Check the days with {0}, then click {1} to send it for them.").format(
-					person, _b(_("Send for Approval"))
-				)
+				do = _("Check the days with {0}, then click {1} to send it for them.").format(person, button)
 		else:
 			do = _("Nothing for you: {0} sends it.").format(person)
 		return rows(now, after, do, WARNING if status == approval.RETURNED else INFO)
+
+	if status == approval.WAITING_AUTH:
+		now = _("Waiting for {0} to agree the extra work.").format(approver)
+		after = _("Once agreed, {0} does the work and confirms the hours actually worked.").format(person)
+		if access.can_decide(doc, user):
+			do = _("Check the plan, then click {0}; or {1} or {2} with a reason.").format(
+				_b(_("Authorise")), _b(_("Other → Return")), _b(_("Other → Reject"))
+			)
+		elif mine:
+			do = _("Nothing for now: wait for {0} before doing the extra work.").format(approver)
+		else:
+			do = _("Nothing for you: {0} decides it.").format(approver)
+		return rows(now, after, do)
+
+	if status == approval.AUTHORISED:
+		note = escape_html(doc.decision_note or "")
+		now = (
+			_("Returned by {0} to correct the hours: {1}").format(_who(doc.approved_by, approver), note)
+			if note
+			else _("Authorised by {0}.").format(_who(doc.authorised_by, approver))
+		)
+		after = _("{0} approves the hours worked; the time is then added.").format(approver)
+		if access.can_send(doc, user):
+			do = _(
+				"After the work, enter the extra hours actually worked on each day, then click {0}."
+			).format(_b(_("Send for Approval")))
+		else:
+			do = _("Nothing for you: {0} confirms the hours.").format(person)
+		return rows(now, after, do, WARNING if note else INFO)
 
 	if status == approval.WAITING:
 		now = _("Waiting for {0} to decide, since {1}.").format(

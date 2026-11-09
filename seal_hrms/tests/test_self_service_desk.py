@@ -20,7 +20,7 @@ from seal_hrms.tests import _handover_fixtures as fx
 
 HOST = "seal_desk"
 APP = "seal_hrms"
-DOCTYPES = {"Leave Application", "Expense Claim", "Employee Advance", "Timesheet"}
+DOCTYPES = {"Leave Application", "Expense Claim", "Employee Advance", "Timesheet", "Time Off in Lieu Claim"}
 
 
 class TestSelfServiceFigures(IntegrationTestCase):
@@ -91,7 +91,9 @@ class TestShippedWithTheApp(unittest.TestCase):
 		for path in self.files("desk_page"):
 			data = json.loads(path.read_text())
 			with self.subTest(path.name):
-				self.assertEqual((data["role_profiles"], data["status"], data.get("published_json")), ([], "Draft", None))
+				self.assertEqual(
+					(data["role_profiles"], data["status"], data.get("published_json")), ([], "Draft", None)
+				)
 				self.assertTrue(all(row.get("name") for row in data["items"] + data["actions"]))
 
 	def test_every_group_a_shipped_part_names_is_declared(self):
@@ -111,6 +113,9 @@ class TestSelfServiceOnTheDesk(unittest.TestCase):
 
 		info = registry.standard_groups()["seal_hrms.self_service"]
 		self.assertEqual((info.renders_as, info.app), ("cues", APP))
-		found, error = contract.run_group(info, DeskContext(user="Administrator", company=None, today=getdate(), readable=frozenset(DOCTYPES)))
+		found, error = contract.run_group(
+			info,
+			DeskContext(user="Administrator", company=None, today=getdate(), readable=frozenset(DOCTYPES)),
+		)
 		self.assertIsNone(error)
 		self.assertEqual(found, [])  # Administrator has no Employee

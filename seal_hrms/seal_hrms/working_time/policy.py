@@ -13,6 +13,8 @@ import frappe
 POLICY = "Working Time Policy"
 LAST_DAY_WORKED = "The last day worked"
 DAY_APPROVED = "The day the claim is approved"
+CLAIM_AFTERWARDS = "Claim afterwards"
+AUTHORISE_FIRST = "Authorise first, then confirm the hours"
 
 DEFAULTS = {
 	"hours_per_day": 8.0,
@@ -29,6 +31,8 @@ DEFAULTS = {
 	"balance_cap": 0.0,
 	"evidence_attendance": 1,
 	"evidence_timesheets": 1,
+	"prior_authorisation": CLAIM_AFTERWARDS,
+	"toil_waiting_alert_days": 7,
 }
 
 
