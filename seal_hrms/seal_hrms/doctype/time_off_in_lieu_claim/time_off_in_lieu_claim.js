@@ -12,13 +12,6 @@ const AUTHORISE_FIRST = "Authorise first, then confirm the hours";
 const PLANNING = ["Draft", "Returned", "Waiting for Authorisation"];
 
 frappe.ui.form.on("Time Off in Lieu Claim", {
-	setup(frm) {
-		frm.set_query("task", "lines", (doc, cdt, cdn) => {
-			const line = locals[cdt][cdn];
-			return { filters: line.project ? { project: line.project } : {} };
-		});
-	},
-
 	onload(frm) {
 		if (frm.is_new() && !frm.doc.employee) {
 			frappe.call("seal_hrms.seal_hrms.task_assignment_access.my_employee").then((r) => {
@@ -131,12 +124,6 @@ frappe.ui.form.on("Time Off in Lieu Claim", {
 				});
 			}).addClass("btn-primary");
 		}
-	},
-});
-
-frappe.ui.form.on("Time Off in Lieu Claim Line", {
-	project(frm, cdt, cdn) {
-		frappe.model.set_value(cdt, cdn, "task", null);
 	},
 });
 

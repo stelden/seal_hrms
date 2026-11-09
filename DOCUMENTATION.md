@@ -536,6 +536,9 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-10** — 1.19.3. Time off claim lines no longer ask for a project and task: nothing used
+  them, and on procurement sites they listed tenders. What the work was says what it was for, and a
+  claim made from a timesheet links to it, where project and task live. Needs `bench migrate`.
 - **2026-11-10** — 1.19.2. **My HR greets the person** ("Good morning, Brian", with their
   designation and department) instead of a banner picture, which was blank wherever no image had
   been uploaded. The old block also looked the person up by login, which staff may not do, so it

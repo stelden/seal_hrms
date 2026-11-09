@@ -10,8 +10,6 @@
   "hours",
   "work_done",
   "cb1",
-  "project",
-  "task",
   "authorised",
   "timesheet",
   "sb1",
@@ -64,18 +62,6 @@
   {
    "fieldname": "cb1",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "project",
-   "fieldtype": "Link",
-   "label": "Programme or project",
-   "options": "Project"
-  },
-  {
-   "fieldname": "task",
-   "fieldtype": "Link",
-   "label": "Activity or task",
-   "options": "Task"
   },
   {
    "description": "Agreed before the work; only authorised days can be confirmed.",
@@ -170,7 +156,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-10 02:30:00.000000",
+ "modified": "2026-11-10 06:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Time Off in Lieu Claim Line",
