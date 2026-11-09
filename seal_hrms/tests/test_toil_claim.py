@@ -7,6 +7,8 @@ Otieno claims, Achieng (his leave approver) decides, Njeri is a colleague.
 Each test runs inside a savepoint and is rolled back; a commit fails the test.
 """
 
+from typing import ClassVar
+
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, today
@@ -323,7 +325,7 @@ class TestHealthChecks(ToilTestCase):
 class TestPolicyStartsWithSensibleValues(ToilTestCase):
 	"""A company's new policy starts from these (D2, D3); HR changes them on the form."""
 
-	EXPECTED = {
+	EXPECTED: ClassVar[dict] = {
 		"after_hours_rate": 1.5,
 		"rest_day_rate": 2.0,
 		"public_holiday_rate": 2.0,
