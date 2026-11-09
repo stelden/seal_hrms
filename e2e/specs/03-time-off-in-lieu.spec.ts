@@ -56,7 +56,8 @@ async function signedIn(browser: Browser, baseURL: string | undefined, usr: stri
 }
 
 function banner(page: Page) {
-	return page.locator(".seal-where-it-is");
+	// Desk keeps earlier pages in the DOM: the banner that counts is the one on screen.
+	return page.locator(".seal-where-it-is:visible");
 }
 
 test("Otieno lists the Sunday he worked and sends it", async ({ browser, baseURL }) => {

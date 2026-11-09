@@ -48,10 +48,23 @@ def where_it_is(doc, user: str | None = None) -> dict:
 		return rows(_("Cancelled."), _("Nothing more happens to this timesheet."), _("Nothing."))
 	if doc.docstatus == 1 or state == approval.APPROVED:
 		by = frappe.utils.get_fullname(doc.custom_approved_by) if doc.get("custom_approved_by") else None
+		do = _("Nothing.")
+		if doc.docstatus == 1 and access.can_send(doc, user):
+			from seal_hrms.seal_hrms.timesheets.claim import candidates
+
+			try:
+				found = len(candidates(doc))
+			except frappe.ValidationError:
+				frappe.clear_last_message()
+				found = 0
+			if found:
+				do = _("It records extra hours on {0} days: click {1} to claim them as time off.").format(
+					found, _b(_("Claim as Time Off in Lieu"))
+				)
 		return rows(
 			_("Approved by {0}.").format(_b(by)) if by else _("Approved."),
 			_("Its hours count towards projects, costing and pay."),
-			_("Nothing."),
+			do,
 			SUCCESS,
 		)
 	if state in (approval.NOT_SENT, approval.RETURNED):

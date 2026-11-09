@@ -52,7 +52,8 @@ async function signedIn(browser: Browser, baseURL: string | undefined, usr: stri
 }
 
 function banner(page: Page) {
-	return page.locator(".seal-where-it-is");
+	// Desk keeps earlier pages in the DOM: the banner that counts is the one on screen.
+	return page.locator(".seal-where-it-is:visible");
 }
 
 test("Otieno records a day and sends it for approval", async ({ browser, baseURL }) => {
@@ -71,8 +72,8 @@ test("Otieno records a day and sends it for approval", async ({ browser, baseURL
 			Object.assign(row, {
 				activity_type: "Community Outreach",
 				from_time: `${day} 08:00:00`,
-				to_time: `${day} 16:00:00`,
-				hours: 8,
+				to_time: `${day} 18:00:00`,
+				hours: 10,
 				description: "Household visits in Mathare North",
 			});
 			frm.refresh_field("time_logs");
@@ -102,6 +103,29 @@ test("Achieng approves it", async ({ browser, baseURL }) => {
 	await expect(banner(page)).toContainText("click Approve");
 	await page.getByRole("button", { name: "Approve", exact: true }).click();
 	await expect(banner(page)).toContainText("Approved by");
+	await assertNoErrorDialog(page);
+	expect(ourErrors(errors), errors.join("\n")).toEqual([]);
+	await context.close();
+});
+
+test("Otieno claims the extra two hours as time off", async ({ browser, baseURL }) => {
+	expect(timesheet, "the first test made a timesheet").not.toBe("");
+	const context = await signedIn(browser, baseURL, seed.otieno_user, OTIENO_PASSWORD);
+	const page = await context.newPage();
+	const errors = collectErrors(page);
+
+	await page.goto(`/app/timesheet/${timesheet}`);
+	await assertViewRendered(page);
+	await expect(banner(page)).toContainText("Claim as Time Off in Lieu");
+	await page.getByRole("button", { name: "Claim as Time Off in Lieu" }).click();
+	await page.waitForURL(/time-off-in-lieu-claim\/new/);
+	const lines = await page.evaluate(() =>
+		(window as any).cur_frm.doc.lines.map((l: any) => [l.hours, l.timesheet])
+	);
+	expect(lines).toEqual([[2, timesheet]]);
+	await page.keyboard.press("Control+s");
+	await page.waitForURL(/time-off-in-lieu-claim\/TOIL-/);
+	await expect(banner(page)).toContainText("Draft: not yet sent.");
 	await assertNoErrorDialog(page);
 	expect(ourErrors(errors), errors.join("\n")).toEqual([]);
 	await context.close();

@@ -427,6 +427,14 @@ HR's report **Timesheets Against Attendance and Leave** (Self Service sidebar,
 Setup) shows the same for everyone at a company over up to 62 days, drafts
 included, with "Only days with something to look at".
 
+**Claiming time off from a timesheet (1.19.0).** An approved timesheet that
+records extra hours (any hours on a rest day or holiday, or beyond the working
+day) offers **Claim as Time Off in Lieu** to its owner, where they are in a grade
+that banks hours. It opens a new claim with a line per day, linked to the
+timesheet and with what the work was, leaving out days already claimed, paid as
+overtime or on leave; nothing is saved until the person saves it. An approved
+claim stops its timesheet being cancelled.
+
 Rules a claim must meet: the person's grade banks hours and they are not paid
 by the hour; each date once, not in the future, at least the smallest claim;
 not a day of approved leave, not already claimed, and **not paid as overtime**:
@@ -487,7 +495,8 @@ cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright 
 # 03-time-off-in-lieu.spec.ts walks a claim in two logins (Otieno sends, Achieng approves); it seeds
 # with _toil_fixtures.browser_set_up and puts everything back in browser_tear_down.
 # 04-timesheet-approval.spec.ts does the same for a timesheet (Otieno sends, Achieng approves);
-# 05-week-grid.spec.ts fills a week in the grid and checks the time lines it writes.
+# 05-week-grid.spec.ts fills a week in the grid and checks the time lines it writes;
+# 04 also claims a timesheet's extra hours as time off.
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
@@ -510,6 +519,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_authorise_fi
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_approval
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_week
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_effort
+bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_toil_claim
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -526,6 +536,10 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-10** — 1.19.0. **Claim time off from a timesheet**: an approved timesheet's extra
+  hours become a new time off claim, a line per day linked to the timesheet. Completes the
+  working-time programme (time off in lieu and timesheets, 1.12.0 to 1.19.0). Needs
+  `bench migrate` and a restart.
 - **2026-11-10** — 1.18.0. **Checking the week**: a weekly timesheet lists the days that do not
   add up against leave, holidays and attendance; a company may refuse to let such a week be sent.
   New HR report **Timesheets Against Attendance and Leave**. Test walks now remove the masters

@@ -45,6 +45,14 @@ const TIMESHEET_API = "seal_hrms.seal_hrms.timesheets.approval";
 frappe.ui.form.on("Timesheet", {
 	refresh(frm) {
 		const onload = frm.doc.__onload || {};
+		if (frm.doc.docstatus === 1 && onload.toil_candidates) {
+			frm.add_custom_button(__("Claim as Time Off in Lieu"), () =>
+				frappe.model.open_mapped_doc({
+					method: "seal_hrms.seal_hrms.timesheets.claim.make_toil_claim",
+					frm,
+				})
+			);
+		}
 		if (!onload.approval_on) return;
 		seal_hrms.show_where_it_is(frm, onload.where_it_is);
 		const state = frm.doc.custom_approval_state || "Not Sent";
