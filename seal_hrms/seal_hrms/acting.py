@@ -437,4 +437,6 @@ def holds_head_of_department(user: str) -> bool:
 
 
 def pending_head_of_department(user: str) -> list[tuple[str, str]]:
-	return pending_leave_approvals(user) + pending_expense_approvals(user)
+	from seal_hrms.seal_hrms.toil.access import pending_toil_approvals
+
+	return pending_leave_approvals(user) + pending_expense_approvals(user) + pending_toil_approvals(user)

@@ -312,20 +312,75 @@ through payroll) and **Timesheet**. How to set each up and where each stops is
 in `dev_notes/seal_hrms/GUIDE_TIME_OFF_OVERTIME_TIMESHEETS.md`, written for HR
 and staff.
 
-Time off in lieu claims (hours, any day, approved by the leave approver, lapsing
-on a rolling basis) and timesheet approval, weekly entry and checks are being
-added from 1.12.0; the design and its open decisions are in
+Timesheet approval, weekly entry and checks, and the rolling lapse of time off
+in lieu, are being added phase by phase; the design and its open decisions are in
 `dev_notes/seal_hrms/WORKING_TIME_DESIGN.md`. The Frappe HR behaviour that
 design relies on is pinned by `tests/test_hrms_time_behaviour.py`: if it fails
 after an upgrade, re-read the design before anything else.
+
+### Time off in lieu (1.12.0)
+
+Staff in some grades are given time off for extra hours instead of being paid
+for them. A company switches it on in its **Working Time Policy** (one per
+company, under Setup in the Self Service sidebar): the hours in a normal
+working day, the leave type the time goes into (one marked "Is Compensatory",
+kept for this), which grades bank their hours, how an hour counts on a weekday
+evening, a rest day and a public holiday, the smallest claim, a daily cap, how
+long the time can be used for, how soon a claim must be sent, and the most a
+person may hold.
+
+The steps:
+
+1. The member of staff opens **Time Off in Lieu** in Self Service, lists the
+   days they worked extra (date, hours, what the work was) and saves. The kind
+   of day comes from their holiday list, and the form shows what the hours
+   count as and the days of time off.
+2. **Send for Approval** sends it to their leave approver (on their Employee
+   record, or their department's). While it waits it cannot be changed.
+3. The approver **Approves**, **Returns** it with a reason (the person
+   corrects and sends again) or **Rejects** it with a reason. Approvers do not
+   change hours. Nobody decides their own claim, HR included.
+4. On approval the days are added to the person's balance of that leave type,
+   and they take the time off with an ordinary Leave Application. If the person
+   is near the company's limit, what fits is added and the rest is shown as not
+   added.
+
+Rules a claim must meet: the person's grade banks hours and they are not paid
+by the hour; each date once, not in the future, at least the smallest claim;
+not a day of approved leave, not already claimed, and **not paid as overtime**:
+a day is either paid or given as time off. An Overtime Slip made by payroll
+leaves out a day that has been sent or approved as time off, and says so in its
+timeline; a day typed into a slip by hand is refused.
+
+Underneath (`seal_hrms/seal_hrms/toil/`): the balance stays Frappe HR's. Each
+person has one allocation of the time off leave type per leave period, started
+at zero, and each approved claim adds one leave ledger row tagged with the claim
+(`Leave Ledger Entry.custom_toil_claim`). Cancelling an approved claim writes a
+matching negative row, and is refused if the time has already been used for
+leave. The time off leave type cannot be allocated by hand, and a Compensatory
+Leave Request on it is refused. Unused time does not lapse yet: that comes in
+1.13.0, with a "Usable until" date already stamped on each approved claim.
+
+Who sees what: the person, their approver, whoever approves in the approver's
+place during their leave (a handover's "Approving time off in lieu" line, which
+a Head of Department's line also covers), and HR. Sites with Employee Self
+Service *users* (a User Type) get the claim added to it after each migrate.
+App Health, and a banner on the policy form, report a company that switched it
+on without a leave type, with an unsuitable leave type, without a leave period
+covering today, without grades, or with claimants who have no approver.
+
+The Self Service sidebar's **Compensatory Leave Request** link is replaced by
+**Time Off in Lieu** on every site (decided 2026-11-09). Compensatory Leave
+Request still works from its own list for other leave types.
 
 ---
 
 ## 6. Testing
 
 ```bash
-# Browser — every list and form (ours, plus Leave Application, which carries our script), and the Settings single
-cd apps/seal_hrms/e2e && npx playwright test
+# Browser — every list and form (ours, plus Leave Application, which carries our script), and the Settings single.
+# Point it at dev.local's own nginx port: port 80 may answer from another site (2026-11-09).
+cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright test
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
@@ -337,6 +392,10 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_s
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_emails
 bench --site dev.local run-tests --module seal_hrms.tests.test_hrms_time_behaviour
 bench --site dev.local run-tests --module seal_hrms.tests.test_seal_hrms_settings
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_days
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_claim
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_paid_vs_banked
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_endpoints_guarded
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -353,6 +412,12 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.12.0. **Time off in lieu** (§5): staff in chosen grades claim extra hours
+  worked, their leave approver approves, returns or rejects, and approved time is added to their
+  leave balance. One **Working Time Policy** per company sets the rules. A day is either paid as
+  overtime or given as time off, enforced on both sides. A Head of Department's handover covers
+  these approvals too. The Self Service sidebar shows Time Off in Lieu in place of Compensatory
+  Leave Request. Needs `bench migrate` and a restart.
 - **2026-11-09** — 1.11.2. **SEAL HRMS Settings save again**: the form still checked the
   leave-planning settings that moved to seal_leave_planning, so every save failed before it
   reached the database. Groundwork for time off in lieu and timesheets (§5): a guide to what

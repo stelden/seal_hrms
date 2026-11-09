@@ -1,0 +1,237 @@
+{
+ "actions": [],
+ "autoname": "field:company",
+ "creation": "2026-11-09 16:00:00.000000",
+ "description": "Per company: the working day, and how extra hours are banked as time off.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tb1",
+  "tb1_sb1",
+  "company",
+  "tb1_cb1",
+  "hours_per_day",
+  "tb2",
+  "tb2_sb1",
+  "toil_enabled",
+  "leave_type",
+  "tb2_cb1",
+  "eligible_grades",
+  "tb2_sb2",
+  "after_hours_rate",
+  "rest_day_rate",
+  "public_holiday_rate",
+  "tb2_cb2",
+  "minimum_hours",
+  "daily_cap",
+  "tb2_sb3",
+  "validity_days",
+  "lapse_counted_from",
+  "claim_within_days",
+  "tb2_cb3",
+  "balance_cap"
+ ],
+ "fields": [
+  {
+   "fieldname": "tb1",
+   "fieldtype": "Tab Break",
+   "label": "Working Day"
+  },
+  {
+   "fieldname": "tb1_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "tb1_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "8",
+   "description": "Used to turn hours of extra work into days of time off.",
+   "fieldname": "hours_per_day",
+   "fieldtype": "Float",
+   "label": "Hours in a normal working day",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "tb2",
+   "fieldtype": "Tab Break",
+   "label": "Time Off in Lieu"
+  },
+  {
+   "fieldname": "tb2_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "Staff in the grades below claim time off for extra hours worked, and their leave approver approves it.",
+   "fieldname": "toil_enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Staff can bank extra hours as time off"
+  },
+  {
+   "depends_on": "eval:doc.toil_enabled",
+   "description": "Staff take the time off by applying for this leave as usual. Use a type kept for time off in lieu.",
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "label": "Leave type the time off is added to",
+   "mandatory_depends_on": "eval:doc.toil_enabled",
+   "options": "Leave Type"
+  },
+  {
+   "fieldname": "tb2_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.toil_enabled",
+   "description": "Staff in these grades earn time off; everyone else stays on paid overtime. Leave it empty and nobody can claim.",
+   "fieldname": "eligible_grades",
+   "fieldtype": "Table MultiSelect",
+   "label": "Who banks extra hours",
+   "options": "Working Time Policy Grade"
+  },
+  {
+   "depends_on": "eval:doc.toil_enabled",
+   "fieldname": "tb2_sb2",
+   "fieldtype": "Section Break",
+   "label": "How extra hours count"
+  },
+  {
+   "default": "1",
+   "description": "1 means an hour for an hour; 1.5 means an hour and a half.",
+   "fieldname": "after_hours_rate",
+   "fieldtype": "Float",
+   "label": "Each hour after a normal working day counts as",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "rest_day_rate",
+   "fieldtype": "Float",
+   "label": "Each hour on a rest day counts as",
+   "non_negative": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "public_holiday_rate",
+   "fieldtype": "Float",
+   "label": "Each hour on a public holiday counts as",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "tb2_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "minimum_hours",
+   "fieldtype": "Float",
+   "label": "Shortest extra time that counts on a day (hours)",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "0 means no limit.",
+   "fieldname": "daily_cap",
+   "fieldtype": "Float",
+   "label": "Most extra hours that count on one day",
+   "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.toil_enabled",
+   "fieldname": "tb2_sb3",
+   "fieldtype": "Section Break",
+   "label": "When time off lapses"
+  },
+  {
+   "default": "90",
+   "description": "Unused time off lapses this many days after it was earned.",
+   "fieldname": "validity_days",
+   "fieldtype": "Int",
+   "label": "Days the time off can be used for",
+   "non_negative": 1
+  },
+  {
+   "default": "The last day worked",
+   "fieldname": "lapse_counted_from",
+   "fieldtype": "Select",
+   "label": "Count those days from",
+   "options": "The last day worked\nThe day the claim is approved"
+  },
+  {
+   "default": "30",
+   "description": "0 means any time.",
+   "fieldname": "claim_within_days",
+   "fieldtype": "Int",
+   "label": "Claims must be sent within (days of the work)",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "tb2_cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "0 means no limit. A claim that goes over adds what fits, and shows the rest as not added.",
+   "fieldname": "balance_cap",
+   "fieldtype": "Float",
+   "label": "Most time off a person can hold (days)",
+   "non_negative": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-09 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Working Time Policy",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User"
+  }
+ ],
+ "sort_field": "company",
+ "sort_order": "ASC",
+ "states": [],
+ "track_changes": 1
+}

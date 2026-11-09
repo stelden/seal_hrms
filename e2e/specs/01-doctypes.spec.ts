@@ -23,6 +23,8 @@ const LISTABLE = [
  "Employee Separation Type",
  "Task Assignment",
  "Task Assignment Policy",
+ "Working Time Policy",
+ "Time Off in Lieu Claim",
  // Not ours, but it carries our form script (Prepare Handover / cover indicator).
  "Leave Application"
 ];

@@ -1,0 +1,396 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-11-09 16:00:00.000000",
+ "description": "Extra hours a member of staff worked, sent to their leave approver to be added to their time off.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tb1",
+  "tb1_sb1",
+  "naming_series",
+  "employee",
+  "employee_name",
+  "tb1_cb1",
+  "company",
+  "department",
+  "grade",
+  "tb1_sb2",
+  "lines",
+  "tb1_sb3",
+  "total_hours",
+  "credited_hours",
+  "tb1_cb2",
+  "days",
+  "note",
+  "tb2",
+  "tb2_sb1",
+  "status",
+  "approver",
+  "approver_name",
+  "tb2_cb1",
+  "sent_on",
+  "approved_by",
+  "approved_on",
+  "decision_note",
+  "tb3",
+  "tb3_sb1",
+  "leave_type",
+  "leave_allocation",
+  "earned_on",
+  "lapses_on",
+  "tb3_cb1",
+  "days_credited",
+  "days_not_credited",
+  "sbx",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "tb1",
+   "fieldtype": "Tab Break",
+   "label": "Claim"
+  },
+  {
+   "fieldname": "tb1_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "TOIL-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "no_copy": 1,
+   "options": "TOIL-.YYYY.-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "in_standard_filter": 1,
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb1_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "employee.company",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.department",
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "Department",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "employee.grade",
+   "fieldname": "grade",
+   "fieldtype": "Link",
+   "label": "Grade",
+   "options": "Employee Grade",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb1_sb2",
+   "fieldtype": "Section Break",
+   "label": "Extra time worked"
+  },
+  {
+   "fieldname": "lines",
+   "fieldtype": "Table",
+   "label": "Extra time worked",
+   "options": "Time Off in Lieu Claim Line",
+   "reqd": 1
+  },
+  {
+   "fieldname": "tb1_sb3",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_hours",
+   "fieldtype": "Float",
+   "label": "Extra hours worked",
+   "read_only": 1
+  },
+  {
+   "fieldname": "credited_hours",
+   "fieldtype": "Float",
+   "label": "Counts as (hours)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb1_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "bold": 1,
+   "fieldname": "days",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Days of time off",
+   "read_only": 1
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Anything the approver should know"
+  },
+  {
+   "fieldname": "tb2",
+   "fieldtype": "Tab Break",
+   "label": "Approval"
+  },
+  {
+   "fieldname": "tb2_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "no_copy": 1,
+   "options": "Draft\nWaiting for Approval\nReturned\nApproved\nRejected\nCancelled",
+   "read_only": 1
+  },
+  {
+   "description": "The person's leave approver. Set for you.",
+   "fieldname": "approver",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Approver",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "approver.full_name",
+   "fieldname": "approver_name",
+   "fieldtype": "Data",
+   "label": "Approver's name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb2_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "label": "Sent for approval on",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "approved_by",
+   "fieldtype": "Link",
+   "label": "Decided by",
+   "no_copy": 1,
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "approved_on",
+   "fieldtype": "Datetime",
+   "label": "Decided on",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Why it was returned or rejected: what the person needs to change or know.",
+   "fieldname": "decision_note",
+   "fieldtype": "Small Text",
+   "label": "Approver's note",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb3",
+   "fieldtype": "Tab Break",
+   "label": "Time Off"
+  },
+  {
+   "fieldname": "tb3_sb1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "leave_type",
+   "fieldtype": "Link",
+   "label": "Leave type",
+   "no_copy": 1,
+   "options": "Leave Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "leave_allocation",
+   "fieldtype": "Link",
+   "label": "Added to",
+   "no_copy": 1,
+   "options": "Leave Allocation",
+   "read_only": 1
+  },
+  {
+   "fieldname": "earned_on",
+   "fieldtype": "Date",
+   "label": "Earned on",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "lapses_on",
+   "fieldtype": "Date",
+   "label": "Usable until",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "tb3_cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "days_credited",
+   "fieldtype": "Float",
+   "label": "Days added",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "days_not_credited",
+   "fieldtype": "Float",
+   "label": "Over the limit, not added",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "sbx",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Time Off in Lieu Claim",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-11-09 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Time Off in Lieu Claim",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee Self Service",
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Leave Approver",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}

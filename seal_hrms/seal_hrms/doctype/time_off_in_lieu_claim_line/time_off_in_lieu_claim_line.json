@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "creation": "2026-11-09 16:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "work_date",
+  "hours",
+  "work_done",
+  "cb1",
+  "project",
+  "task",
+  "sb1",
+  "day_kind",
+  "rate",
+  "cb2",
+  "credited_hours"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "work_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Extra hours worked",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "columns": 3,
+   "fieldname": "work_done",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "What the work was",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Programme or project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "task",
+   "fieldtype": "Link",
+   "label": "Activity or task",
+   "options": "Task"
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "How it counts"
+  },
+  {
+   "columns": 2,
+   "fieldname": "day_kind",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Kind of day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Float",
+   "label": "Each hour counts as",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "columns": 1,
+   "fieldname": "credited_hours",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Counts as (hours)",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-09 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Time Off in Lieu Claim Line",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

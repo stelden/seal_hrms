@@ -66,7 +66,11 @@ app_include_js = "/assets/seal_hrms/js/common.js"
 # Installation
 # ------------
 after_install = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
-after_migrate = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
+after_migrate = [
+    "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels",
+    # Employee Self Service users can open their time off claims (working_time/user_type.py).
+    "seal_hrms.seal_hrms.working_time.user_type.allow_claims_for_self_service",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/seal_hrms/css/seal_hrms.css"
@@ -225,6 +229,21 @@ doc_events = {
         "on_update": "seal_hrms.seal_hrms.overrides.expense_claim.on_update",
         "on_submit": "seal_hrms.seal_hrms.overrides.expense_claim.on_submit",
     },
+    # Time off in lieu (toil/guards.py): its leave type is added to only by
+    # approved claims, and a day is either paid as overtime or banked, never both.
+    "Leave Allocation": {
+        "validate": "seal_hrms.seal_hrms.toil.guards.allocation",
+        "before_cancel": "seal_hrms.seal_hrms.toil.guards.allocation_cancel",
+    },
+    "Compensatory Leave Request": {
+        # Before Frappe HR's own checks, so people are pointed at the claim first.
+        "before_validate": "seal_hrms.seal_hrms.toil.guards.compensatory_request",
+    },
+    "Overtime Slip": {
+        "before_validate": "seal_hrms.seal_hrms.toil.guards.drop_banked_dates",
+        "validate": "seal_hrms.seal_hrms.toil.guards.no_banked_dates",
+        "on_update": "seal_hrms.seal_hrms.toil.guards.note_dropped_dates",
+    },
 }
 
 # Permissions
@@ -234,10 +253,13 @@ permission_query_conditions = {
     "ToDo": "seal_hrms.seal_hrms.overrides.todo.get_permission_query_conditions",
     # The member of staff, their stand-ins, the leave approver, and HR.
     "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.query_conditions",
+    # The member of staff, their approver and whoever approves in their place, and HR.
+    "Time Off in Lieu Claim": "seal_hrms.seal_hrms.toil.access.query_conditions",
 }
 
 has_permission = {
     "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.has_permission",
+    "Time Off in Lieu Claim": "seal_hrms.seal_hrms.toil.access.has_permission",
 }
 # Scheduled Tasks
 # ---------------
@@ -348,6 +370,12 @@ app_health_checks = [
     "seal_hrms.health.checks.leave_started_without_agreed_cover",
     "seal_hrms.health.checks.approvals_with_nobody_to_give_them",
     "seal_hrms.health.checks.beneficiary_records_present",
+    # Time off in lieu: shown on the Working Time Policy form as well (health/working_time.py).
+    "seal_hrms.health.working_time.time_off_has_a_leave_type",
+    "seal_hrms.health.working_time.time_off_leave_type_fits",
+    "seal_hrms.health.working_time.time_off_has_a_leave_period",
+    "seal_hrms.health.working_time.time_off_has_grades",
+    "seal_hrms.health.working_time.time_off_has_approvers",
 ]
 
 # ---------------------------------------------------------------------------
@@ -388,6 +416,12 @@ task_assignment_authorities = {
         "holds": "seal_hrms.seal_hrms.acting.holds_leave_approval",
         "pending": "seal_hrms.seal_hrms.acting.pending_leave_approvals",
     },
+    "toil_approval": {
+        "label": "Approving time off in lieu",
+        "role": "Leave Approver",
+        "holds": "seal_hrms.seal_hrms.toil.access.holds_toil_approval",
+        "pending": "seal_hrms.seal_hrms.toil.access.pending_toil_approvals",
+    },
     "expense_approval": {
         "label": "Approving expense claims",
         "role": "Expense Approver",
@@ -401,7 +435,7 @@ task_assignment_authorities = {
         "roles": ["Leave Approver", "Expense Approver"],
         "holds": "seal_hrms.seal_hrms.acting.holds_head_of_department",
         "pending": "seal_hrms.seal_hrms.acting.pending_head_of_department",
-        "covers": ["leave_approval", "expense_approval"],
+        "covers": ["leave_approval", "expense_approval", "toil_approval"],
     },
 }
 
