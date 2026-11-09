@@ -29,7 +29,11 @@
   "lapse_counted_from",
   "claim_within_days",
   "tb2_cb3",
-  "balance_cap"
+  "balance_cap",
+  "tb2_sb4",
+  "evidence_attendance",
+  "tb2_cb4",
+  "evidence_timesheets"
  ],
  "fields": [
   {
@@ -86,6 +90,7 @@
    "fieldname": "leave_type",
    "fieldtype": "Link",
    "label": "Leave type the time off is added to",
+   "link_filters": "[[\"Leave Type\", \"is_compensatory\", \"=\", 1]]",
    "mandatory_depends_on": "eval:doc.toil_enabled",
    "options": "Leave Type"
   },
@@ -188,11 +193,35 @@
    "fieldtype": "Float",
    "label": "Most time off a person can hold (days)",
    "non_negative": 1
+  },
+  {
+   "depends_on": "eval:doc.toil_enabled",
+   "fieldname": "tb2_sb4",
+   "fieldtype": "Section Break",
+   "label": "What approvers see"
+  },
+  {
+   "default": "1",
+   "description": "Show approvers the hours attendance and the clock-in reader record, and let staff fill a claim from them.",
+   "fieldname": "evidence_attendance",
+   "fieldtype": "Check",
+   "label": "Attendance and clock-ins"
+  },
+  {
+   "fieldname": "tb2_cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Show approvers the hours on the person's submitted timesheets, and let staff fill a claim from them.",
+   "fieldname": "evidence_timesheets",
+   "fieldtype": "Check",
+   "label": "Timesheets"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-09 16:00:00.000000",
+ "modified": "2026-11-09 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Working Time Policy",

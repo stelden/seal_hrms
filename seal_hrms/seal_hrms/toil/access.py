@@ -100,6 +100,27 @@ def require_self_or_hr(employee: str) -> None:
 	frappe.throw(_("You can only send your own claims."), frappe.PermissionError)
 
 
+def can_see_time(employee: str, user: str | None = None) -> bool:
+	"""The person themselves, whoever approves their leave (or acts for that approver), and HR."""
+	from hrms.hr.doctype.leave_application.leave_application import get_employee_leave_approver
+
+	from seal_hrms.seal_hrms import acting
+
+	user = user or frappe.session.user
+	if is_backoffice(user) or (employee and employee_for_user(user) == employee):
+		return True
+	approver = get_employee_leave_approver(employee) if employee else None
+	return bool(approver) and (approver == user or acting.acting_stand_in(approver, AUTHORITY) == user)
+
+
+def require_can_see_time(employee: str) -> None:
+	if not can_see_time(employee):
+		frappe.throw(
+			_("You can only see your own time, or the time of staff whose leave you approve."),
+			frappe.PermissionError,
+		)
+
+
 def require_decider(doc) -> None:
 	if user_for_employee(doc.employee) == frappe.session.user:
 		frappe.throw(_("This is your own claim. Someone else must decide it."), frappe.PermissionError)

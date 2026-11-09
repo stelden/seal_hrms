@@ -27,6 +27,8 @@ DEFAULTS = {
 	"lapse_counted_from": LAST_DAY_WORKED,
 	"claim_within_days": 30,
 	"balance_cap": 0.0,
+	"evidence_attendance": 1,
+	"evidence_timesheets": 1,
 }
 
 

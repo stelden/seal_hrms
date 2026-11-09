@@ -14,7 +14,8 @@ from frappe.model.document import Document
 from hrms.hr.doctype.leave_application.leave_application import get_employee_leave_approver
 
 from seal_hrms.seal_hrms import acting
-from seal_hrms.seal_hrms.toil import access, approval, lapse, ledger, rules
+from seal_hrms.seal_hrms.handover import user_for_employee
+from seal_hrms.seal_hrms.toil import access, approval, lapse, ledger, rules, stage
 
 EDITABLE = (approval.DRAFT, approval.RETURNED)
 
@@ -25,6 +26,8 @@ class TimeOffinLieuClaim(Document):
 		user = frappe.session.user
 		self.set_onload("can_decide", not self.is_new() and access.can_decide(self, user))
 		self.set_onload("can_send", not self.is_new() and access.can_send(self, user))
+		self.set_onload("where_it_is", stage.where_it_is(self, user))
+		self.set_onload("is_mine", user_for_employee(self.employee) == user)
 
 	def validate(self):
 		self._guard_status()

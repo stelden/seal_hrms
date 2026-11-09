@@ -40,6 +40,9 @@ def check(doc) -> None:
 	kinds = day_kinds(doc.employee, dates)
 	_count(doc, policy, kinds)
 	_check_conflicts(doc, dates)
+	from seal_hrms.seal_hrms.toil import evidence
+
+	evidence.annotate(doc, policy, kinds)
 
 
 def _check_policy(doc, policy) -> None:
@@ -129,44 +132,18 @@ def _count(doc, policy, kinds) -> None:
 
 
 def _check_conflicts(doc, dates) -> None:
-	first, last = min(dates), max(dates)
-	for leave in frappe.get_all(
-		"Leave Application",
-		filters=[
-			["employee", "=", doc.employee],
-			["docstatus", "=", 1],
-			["status", "=", "Approved"],
-			["from_date", "<=", last],
-			["to_date", ">=", first],
-		],
-		fields=["name", "from_date", "to_date"],
-	):
-		for day in dates:
-			if getdate(leave.from_date) <= day <= getdate(leave.to_date):
-				frappe.throw(
-					_("{0} was a day of approved leave ({1}).").format(
-						formatdate(day), get_link_to_form("Leave Application", leave.name)
-					),
-					title=_("On Leave That Day"),
-				)
-
-	for row in frappe.db.sql(
-		f"""
-		SELECT line.work_date, claim.name FROM `tab{LINE}` line
-		INNER JOIN `tab{CLAIM}` claim ON claim.name = line.parent AND line.parenttype = %(claim)s
-		WHERE claim.employee = %(employee)s AND claim.name != %(name)s AND claim.docstatus < 2
-		  AND claim.status IN %(live)s AND line.work_date IN %(dates)s
-		""",
-		{"claim": CLAIM, "employee": doc.employee, "name": doc.name or "", "live": LIVE, "dates": dates},
-		as_dict=True,
-	):
+	for day, leave in leave_dates(doc.employee, dates).items():
 		frappe.throw(
-			_("{0} is already claimed on {1}.").format(
-				formatdate(row.work_date), get_link_to_form(CLAIM, row.name)
+			_("{0} was a day of approved leave ({1}).").format(
+				formatdate(day), get_link_to_form("Leave Application", leave)
 			),
+			title=_("On Leave That Day"),
+		)
+	for day, claim in claimed_dates(doc.employee, dates, exclude=doc.name).items():
+		frappe.throw(
+			_("{0} is already claimed on {1}.").format(formatdate(day), get_link_to_form(CLAIM, claim)),
 			title=_("Already Claimed"),
 		)
-
 	for day, slip in paid_dates(doc.employee, dates).items():
 		frappe.throw(
 			_("{0} was paid as overtime on {1}. A day is either paid or given as time off, not both.").format(
@@ -174,6 +151,47 @@ def _check_conflicts(doc, dates) -> None:
 			),
 			title=_("Paid as Overtime"),
 		)
+
+
+def leave_dates(employee: str, dates) -> dict:
+	"""{date: leave application} for dates inside approved, submitted leave."""
+	dates = [getdate(d) for d in dates]
+	if not dates:
+		return {}
+	found = {}
+	for leave in frappe.get_all(
+		"Leave Application",
+		filters=[
+			["employee", "=", employee],
+			["docstatus", "=", 1],
+			["status", "=", "Approved"],
+			["from_date", "<=", max(dates)],
+			["to_date", ">=", min(dates)],
+		],
+		fields=["name", "from_date", "to_date"],
+	):
+		for day in dates:
+			if getdate(leave.from_date) <= day <= getdate(leave.to_date):
+				found.setdefault(day, leave.name)
+	return found
+
+
+def claimed_dates(employee: str, dates, exclude: str | None = None) -> dict:
+	"""{date: claim} for dates on another live claim of this person (drafts included)."""
+	dates = [getdate(d) for d in dates]
+	if not dates or not frappe.db.table_exists(CLAIM):
+		return {}
+	rows = frappe.db.sql(
+		f"""
+		SELECT line.work_date, claim.name FROM `tab{LINE}` line
+		INNER JOIN `tab{CLAIM}` claim ON claim.name = line.parent AND line.parenttype = %(claim)s
+		WHERE claim.employee = %(employee)s AND claim.name != %(name)s AND claim.docstatus < 2
+		  AND claim.status IN %(live)s AND line.work_date IN %(dates)s
+		""",
+		{"claim": CLAIM, "employee": employee, "name": exclude or "", "live": LIVE, "dates": dates},
+		as_dict=True,
+	)
+	return {getdate(r.work_date): r.name for r in rows}
 
 
 def paid_dates(employee: str, dates) -> dict:

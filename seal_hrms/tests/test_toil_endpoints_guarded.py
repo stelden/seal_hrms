@@ -17,7 +17,7 @@ import unittest
 import frappe
 
 PACKAGES = ("toil", "working_time")
-GUARDS = {"require_self_or_hr", "require_decider"}
+GUARDS = {"require_self_or_hr", "require_decider", "require_can_see_time"}
 
 
 def _modules():

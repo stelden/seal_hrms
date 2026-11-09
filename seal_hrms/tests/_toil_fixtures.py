@@ -92,6 +92,10 @@ def ensure_holiday_list() -> str:
 
 
 def assign_holiday_list(employee: str) -> None:
+	if frappe.db.exists(
+		"Holiday List Assignment", {"assigned_to": employee, "holiday_list": HOLIDAY_LIST, "docstatus": 1}
+	):
+		return
 	doc = frappe.new_doc("Holiday List Assignment")
 	doc.applicable_for = "Employee"
 	doc.assigned_to = employee
@@ -148,16 +152,10 @@ def set_up_otieno() -> str:
 	"""Otieno: a programme officer in a banking grade, approved by Achieng, on his own calendar."""
 	employee = fx.ensure_employee("otieno")
 	doc = frappe.get_doc("Employee", employee)
-	if doc.company != COMPANY:
-		# Earlier runs on dev.local left his record under another company, while his
-		# login may only see this one. Moved for the test class, and rolled back with it.
-		doc.company = COMPANY
-		doc.department = None
-		doc.reports_to = None
 	doc.grade = ensure_grade()
 	doc.leave_approver = fx.approver()
 	doc.save(ignore_permissions=True)
-	# Links fetch through the process's value cache, which still holds his old record.
+	# Links fetch through the process's value cache; make it read his new grade and approver.
 	frappe.db.value_cache.clear()
 	assign_holiday_list(employee)
 	return employee
@@ -179,3 +177,62 @@ def claim(employee: str, lines: list[tuple[str, float]], as_user: str | None = N
 		else:
 			doc.insert()
 	return doc
+
+
+# ---------------------------------------------------------------- browser walks
+
+
+def browser_set_up(password_otieno: str, password_achieng: str) -> dict:
+	"""Seed a committed browser walk; returns what `browser_tear_down` needs to put things back."""
+	from frappe.utils.password import update_password
+
+	employee = fx.ensure_employee("otieno")
+	original = frappe.db.get_value(
+		"Employee", employee, ["company", "grade", "leave_approver", "department", "reports_to"], as_dict=True
+	)
+	had_policy = frappe.db.exists("Working Time Policy", COMPANY)
+	ensure_leave_period()
+	set_up_otieno()
+	policy()
+	for key, password in (("otieno", password_otieno), ("achieng", password_achieng)):
+		user = frappe.get_doc("User", fx.email(key))
+		user.user_type = "System User"
+		user.save(ignore_permissions=True)
+		update_password(user.name, password)
+	return {
+		"employee": employee,
+		"otieno_user": fx.email("otieno"),
+		"achieng_user": fx.approver(),
+		"original": original,
+		"had_policy": bool(had_policy),
+		"rest_day": rest_day(),
+	}
+
+
+def browser_tear_down(seed: dict) -> None:
+	"""Remove what the walk made (its claims, allocation, ledger rows, calendar) and put Otieno back."""
+	from seal_hrms.seal_hrms.toil.ledger import toil_ledger_writes
+
+	employee = seed["employee"]
+	with toil_ledger_writes():
+		for name in frappe.get_all(CLAIM, filters={"employee": employee}, pluck="name"):
+			frappe.db.delete("Leave Ledger Entry", {"custom_toil_claim": name})
+			frappe.db.set_value(CLAIM, name, "docstatus", 2)  # a submitted claim cannot be deleted
+			frappe.delete_doc(CLAIM, name, force=1, ignore_permissions=True)
+		for name in frappe.get_all(
+			"Leave Allocation", filters={"employee": employee, "leave_type": LEAVE_TYPE}, pluck="name"
+		):
+			frappe.db.delete("Leave Ledger Entry", {"transaction_name": name})
+			frappe.db.set_value("Leave Allocation", name, "docstatus", 2)
+			frappe.delete_doc("Leave Allocation", name, force=1, ignore_permissions=True)
+		for name in frappe.get_all(
+			"Holiday List Assignment",
+			filters={"assigned_to": employee, "holiday_list": HOLIDAY_LIST},
+			pluck="name",
+		):
+			frappe.db.set_value("Holiday List Assignment", name, "docstatus", 2)
+			frappe.delete_doc("Holiday List Assignment", name, force=1, ignore_permissions=True)
+	if not seed.get("had_policy") and frappe.db.exists("Working Time Policy", COMPANY):
+		frappe.delete_doc("Working Time Policy", COMPANY, force=1, ignore_permissions=True)
+	original = seed["original"]
+	frappe.db.set_value("Employee", employee, original, update_modified=False)

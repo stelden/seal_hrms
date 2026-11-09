@@ -61,7 +61,11 @@ add_to_apps_screen = [
 # include js, css files in header of desk.html
 # app_include_css = "/assets/seal_hrms/css/seal_hrms.css"
 # app_include_js = "/assets/seal_hrms/js/seal_hrms.js"
-app_include_js = "/assets/seal_hrms/js/common.js"
+app_include_js = [
+    "/assets/seal_hrms/js/common.js",
+    # Now / Next / Do banner for process forms (time off in lieu, timesheets).
+    "/assets/seal_hrms/js/where_it_is.js",
+]
 
 # Installation
 # ------------

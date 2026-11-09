@@ -344,6 +344,20 @@ The steps:
    is near the company's limit, what fits is added and the rest is shown as not
    added.
 
+**What the records show (1.14.0).** Beside each day, the claim shows the extra
+hours that attendance, the clock-in reader and the person's submitted timesheets
+record, and which of them bears the claim out. "Approver only" means none does:
+the supervisor's word is enough, and the form tells the approver they are
+confirming those days themselves. **Fill from Records → Attendance / Timesheets**
+adds the days the records show extra hours on (up to 62 days at a time), leaving
+out days already claimed, paid as overtime or on leave. A company can stop
+showing either record in its Working Time Policy ("What approvers see").
+
+The form says where the claim is, what happens next and what the reader should
+do (Now / Next / Do), worked out for whoever is looking (`toil/stage.py`, drawn
+by `public/js/where_it_is.js`). Once approved, **Apply for Leave** opens a leave
+application for the time off type.
+
 Rules a claim must meet: the person's grade banks hours and they are not paid
 by the hour; each date once, not in the future, at least the smallest claim;
 not a day of approved leave, not already claimed, and **not paid as overtime**:
@@ -401,6 +415,8 @@ Request still works from its own list for other leave types.
 # Browser — every list and form (ours, plus Leave Application, which carries our script), and the Settings single.
 # Point it at dev.local's own nginx port: port 80 may answer from another site (2026-11-09).
 cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright test
+# 03-time-off-in-lieu.spec.ts walks a claim in two logins (Otieno sends, Achieng approves); it seeds
+# with _toil_fixtures.browser_set_up and puts everything back in browser_tear_down.
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
@@ -418,6 +434,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_paid_vs_bank
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_endpoints_guarded
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_fifo
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_lapse
+bench --site dev.local run-tests --module seal_hrms.tests.test_toil_evidence
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -434,6 +451,12 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.14.0. **What the records show** on time off claims: attendance, clock-ins
+  and timesheets beside each day, with "Approver only" where none bears it out, and **Fill from
+  Records** to add the days they show. The claim form gains the Now / Next / Do banner and an
+  **Apply for Leave** button once approved. Fixed: staff could not save a claim (it linked to
+  the grade master they cannot read), and filling a new claim left a blank first row. A browser
+  walk now covers the two-login path. Needs `bench migrate` and a restart.
 - **2026-11-09** — 1.13.0. **Time off in lieu lapses claim by claim** (§5): each approved claim is
   usable until its own date, leave uses the time that lapses soonest, leave relying on time that
   will have lapsed is refused, and a daily run writes the lapses that fall due. Claims show days
