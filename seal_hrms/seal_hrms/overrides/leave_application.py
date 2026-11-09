@@ -55,6 +55,7 @@ def on_cancel(doc, method=None):
 
 
 def validate(doc, method=None):
+    _reset_amended_draft_state(doc)
     check_cover_before_submission(doc)
     check_cover_before_approval(doc)
     if _is_being_approved(doc):
@@ -62,6 +63,16 @@ def validate(doc, method=None):
 
         acting.refuse_self_approval(doc, doc.employee, doc.leave_approver, "leave_approval")
     _check_application_timing(doc)
+
+
+def _reset_amended_draft_state(doc):
+    """Ensure a newly amended Leave Application starts cleanly as an Open draft."""
+    if doc.get_doc_before_save() is None and doc.docstatus == 0 and doc.get("amended_from") and getattr(doc, "_action", "save") == "save":
+        if doc.status in ("Cancelled", "Approved", "Rejected"):
+            doc.status = "Open"
+        init_state = _get_workflow_initial_state(doc.doctype)
+        if init_state and doc.get("workflow_state") and doc.get("workflow_state") != init_state:
+            doc.workflow_state = init_state
 
 
 def before_workflow_action(doc, method=None, action=None, **kwargs):
@@ -105,22 +116,31 @@ def check_cover_before_submission(doc, is_workflow_action=False):
     if not applies_to(policy, doc.leave_type, days):
         return
 
-    if policy.requirement == "Off":
+    if policy.requirement in ("Off", "Warn"):
+        return
+
+    if is_required_on_approval(policy) and not is_workflow_action and not _is_being_approved(doc):
         return
 
     init_state = _get_workflow_initial_state(doc.doctype)
-    workflow_state = doc.get("workflow_state")
     before = doc.get_doc_before_save()
+    workflow_state = doc.get("workflow_state")
     before_state = before.get("workflow_state") if before else None
 
     # ONLY allow saving if it is staying in the initial draft state and not being submitted/approved
-    is_new_draft = before is None and doc.docstatus == 0 and (not workflow_state or not init_state or workflow_state == init_state) and doc.status not in ("Approved", "Rejected")
+    is_new_draft = (
+        before is None
+        and doc.docstatus == 0
+        and (not workflow_state or not init_state or workflow_state == init_state)
+        and doc.status not in ("Approved", "Rejected")
+        and getattr(doc, "_action", "save") == "save"
+    )
     is_editing_same_draft = (
         before is not None
         and doc.docstatus == 0
         and (not workflow_state or not init_state or (workflow_state == init_state and before_state == init_state))
         and doc.status not in ("Approved", "Rejected")
-        and not getattr(doc, "_action", None)
+        and getattr(doc, "_action", "save") == "save"
     )
 
     if (is_new_draft or is_editing_same_draft) and not is_workflow_action and doc.docstatus == 0:
@@ -236,9 +256,12 @@ def withdraw_task_assignments(doc):
     """Call off the handovers for leave that will not happen.
 
     Cancelling a Task Assignment gives back anything already handed over (see
-    `TaskAssignment.on_cancel`). Drafts are left for their owner to delete: they
-    moved nothing, and may be reused for replacement leave.
+    `TaskAssignment.on_cancel`) and drops the link to the cancelled leave.
+    Draft handovers also have their leave link cleared so they never point at
+    a cancelled Leave Application.
     """
+    from seal_hrms.seal_hrms.doctype.task_assignment.task_assignment import _cancel_open_todos_for
+
     for name in frappe.get_all(
         "Task Assignment",
         filters={"leave_application": doc.name, "docstatus": 1},
@@ -247,3 +270,12 @@ def withdraw_task_assignments(doc):
         assignment = frappe.get_doc("Task Assignment", name)
         assignment.flags.ignore_permissions = True
         assignment.cancel()
+
+    for name in frappe.get_all(
+        "Task Assignment",
+        filters={"leave_application": doc.name, "docstatus": 0},
+        pluck="name",
+    ):
+        frappe.db.set_value("Task Assignment", name, "leave_application", None, update_modified=False)
+
+    _cancel_open_todos_for("Leave Application", doc.name)

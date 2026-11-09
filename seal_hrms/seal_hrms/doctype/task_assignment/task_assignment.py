@@ -19,6 +19,10 @@ from seal_hrms.seal_hrms.task_assignment_access import can_prepare_for
 
 
 class TaskAssignment(Document):
+	def _validate_links(self):
+		self._sanitize_cancelled_links()
+		super()._validate_links()
+
 	def validate(self):
 		if not self.posting_date:
 			self.posting_date = today()
@@ -27,6 +31,33 @@ class TaskAssignment(Document):
 		if self.docstatus == 0:
 			self.status = Status.DRAFT
 			self.return_date = return_date_for(self.employee, self.leave_to)
+
+	def _sanitize_cancelled_links(self):
+		"""Ensure cancelled documents never block creating, saving, or cancelling a handover."""
+		if self.leave_application and not self.is_new():
+			leave_docstatus = frappe.db.get_value("Leave Application", self.leave_application, "docstatus")
+			if leave_docstatus is None or leave_docstatus == 2:
+				self.leave_application = None
+
+		if not self.get("assignment_todos"):
+			return
+
+		kept_rows = []
+		for row in self.assignment_todos:
+			ref_type = getattr(row, "reference_type", None)
+			ref_name = getattr(row, "reference_name", None)
+			if ref_type and ref_name:
+				if not _is_active_reference(ref_type, ref_name):
+					if self.docstatus == 0 and ref_type in ("Leave Application", "Task Assignment"):
+						continue
+					row.reference_type = None
+					row.reference_name = None
+			kept_rows.append(row)
+
+		if len(kept_rows) != len(self.assignment_todos):
+			self.set("assignment_todos", kept_rows)
+			for idx, row in enumerate(self.assignment_todos, start=1):
+				row.idx = idx
 
 	def before_submit(self):
 		self._validate_logins()
@@ -54,6 +85,10 @@ class TaskAssignment(Document):
 			handover_notifications.assignment_withdrawn(self, self.task_assignee)
 		else:
 			self.db_set("status", Status.CANCELLED, update_modified=False)
+		if self.leave_application:
+			self.db_set("leave_application", None, update_modified=False)
+			self.leave_application = None
+		_cancel_open_todos_for("Task Assignment", self.name)
 
 	def _validate_leave_application(self):
 		if not self.leave_application:
@@ -145,6 +180,35 @@ def stand_in_leave_overlapping(employee: str, from_date, to_date):
 	return rows[0] if rows else None
 
 
+def _is_active_reference(reference_type: str, reference_name: str) -> bool:
+	"""Return True if the referenced document exists and is not cancelled."""
+	if not (reference_type and reference_name):
+		return True
+	try:
+		if not frappe.db.exists(reference_type, reference_name):
+			return False
+		meta = frappe.get_meta(reference_type)
+		if meta.is_submittable:
+			docstatus = frappe.db.get_value(reference_type, reference_name, "docstatus")
+			if docstatus == 2:
+				return False
+		return True
+	except Exception:
+		return False
+
+
+def _cancel_open_todos_for(reference_type: str, reference_name: str) -> None:
+	"""Close/cancel any open ToDos pointing at a cancelled leave or handover."""
+	if not (reference_type and reference_name):
+		return
+	for todo_name in frappe.get_all(
+		"ToDo",
+		filters={"reference_type": reference_type, "reference_name": reference_name, "status": "Open"},
+		pluck="name",
+	):
+		frappe.db.set_value("ToDo", todo_name, "status", "Cancelled", update_modified=False)
+
+
 @frappe.whitelist()
 def get_employee_tasks(employee: str):
 	"""The open work on an employee's list, to pre-fill a handover.
@@ -162,12 +226,25 @@ def get_employee_tasks(employee: str):
 
 	# get_all, not get_list: the caller has been checked above, and the ToDo
 	# query condition would otherwise hide an employee's list from HR.
-	return frappe.get_all(
+	todos = frappe.get_all(
 		"ToDo",
 		filters={"allocated_to": user_id, "status": "Open"},
 		fields=["name", "description", "priority", "date", "reference_type", "reference_name"],
 		order_by="date asc",
 	)
+	active_todos = []
+	for todo in todos:
+		ref_type = todo.get("reference_type")
+		ref_name = todo.get("reference_name")
+		if ref_type in ("Leave Application", "Task Assignment"):
+			if ref_name and not _is_active_reference(ref_type, ref_name):
+				frappe.db.set_value("ToDo", todo.name, "status", "Cancelled", update_modified=False)
+			continue
+		if ref_type and ref_name and not _is_active_reference(ref_type, ref_name):
+			frappe.db.set_value("ToDo", todo.name, "status", "Cancelled", update_modified=False)
+			continue
+		active_todos.append(todo)
+	return active_todos
 
 
 @frappe.whitelist()

@@ -16,7 +16,9 @@ REQUIRE = "Require"  # legacy alias for Require on Approval
 
 
 class TaskAssignmentPolicy(Document):
-	pass
+	def validate(self):
+		if self.requirement == REQUIRE:
+			self.requirement = REQUIRE_ON_APPROVAL
 
 
 def is_required_on_approval(policy) -> bool:
@@ -33,13 +35,31 @@ def is_acceptance_required_before_submission(policy) -> bool:
 
 @frappe.whitelist()
 def policy_for(company: str | None = None) -> dict:
-	"""Fetch Leave Handover policy directly from HR Settings. Default is always 'Require on Submission'."""
+	"""Fetch Leave Handover policy for a company (or from HR Settings). Default is 'Require on Submission'."""
+	if company:
+		row = frappe.db.get_value(
+			"Task Assignment Policy",
+			{"company": company},
+			["name", "requirement", "min_days", "prep_reminder_days", "email_prep_reminder"],
+			as_dict=True,
+		)
+		if row:
+			row.leave_types = frappe.get_all(
+				"Task Assignment Policy Leave Type",
+				filters={"parent": row.name, "parenttype": "Task Assignment Policy"},
+				pluck="leave_type",
+			)
+			row.min_days = flt(row.min_days)
+			return row
+
 	approver_mandatory = frappe.db.get_single_value("HR Settings", "leave_approver_mandatory_in_leave_application")
 	if approver_mandatory is not None and int(approver_mandatory) == 0:
 		return frappe._dict(
 			name="HR Settings",
 			requirement=OFF,
 			min_days=0,
+			prep_reminder_days=7,
+			email_prep_reminder=0,
 			leave_types=[],
 		)
 
@@ -53,6 +73,8 @@ def policy_for(company: str | None = None) -> dict:
 		name="HR Settings",
 		requirement=requirement,
 		min_days=min_days,
+		prep_reminder_days=7,
+		email_prep_reminder=0,
 		leave_types=[],
 	)
 

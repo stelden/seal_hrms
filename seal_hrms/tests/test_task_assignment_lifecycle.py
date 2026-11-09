@@ -261,6 +261,71 @@ class TestApprovalPolicy(LifecycleTestCase):
 		doc.set("leave_types", [{"leave_type": leave_type}])
 		doc.save(ignore_permissions=True)
 
+	def test_hr_settings_handover_modes_end_to_end(self):
+		"""Verify HR Settings handover modes (Off, Warn, Require on Approval, Require on Submission, Require Acceptance before Submission, min_days)."""
+		_drop_policy()
+		frappe.db.set_value("HR Settings", None, "leave_approver_mandatory_in_leave_application", 1)
+		frappe.db.set_value("HR Settings", None, "custom_leave_handover_min_days", 3)
+
+		# 1. Require on Submission: draft saves, short leave (< 3 days) submits without handover, >= 3 days requires handover with stand-in
+		frappe.db.set_value("HR Settings", None, "custom_leave_handover_requirement", "Require on Submission")
+		short_la = fx.leave(self.wanjiku, 2, 2)
+		fx.approve(short_la)
+		self.assertEqual(short_la.docstatus, 1)
+		short_la.cancel()
+
+		la = fx.leave(self.wanjiku, 10, 4)
+		# Editing draft in initial state succeeds without handover
+		la.description = "Updated reason while still in draft"
+		la.save(ignore_permissions=True)
+
+		# Approving/submitting without handover is blocked
+		with self.assertRaises(frappe.ValidationError):
+			fx.approve(la)
+
+		# Prepare handover and assign stand-in, but stand-in has not accepted yet -> approval still blocked
+		ta_name = fx.as_user(self.wanjiku_user, actions.prepare_from_leave, la.name)
+		ta = frappe.get_doc("Task Assignment", ta_name)
+		ta.task_assignee = self.otieno
+		ta.task_description = "<p>Cover my desk</p>"
+		ta.save(ignore_permissions=True)
+		ta.submit()
+		with self.assertRaises(frappe.ValidationError):
+			fx.approve(la)
+
+		# Stand-in accepts -> approval succeeds
+		fx.agree(ta, "otieno")
+		fx.approve(la)
+		self.assertEqual(la.docstatus, 1)
+
+		# Cancel leave -> handover is cancelled and unlinked, amend and re-apply works
+		la.reload()
+		la.cancel()
+		ta.reload()
+		self.assertEqual(ta.docstatus, 2)
+		self.assertIsNone(ta.leave_application)
+
+		# 2. Require Acceptance before Submission: blocks workflow/submission until stand-in accepts
+		frappe.db.set_value("HR Settings", None, "custom_leave_handover_requirement", "Require Acceptance before Submission")
+		la_acc = frappe.copy_doc(la)
+		la_acc.amended_from = la.name
+		la_acc.insert(ignore_permissions=True)
+		self.assertEqual(la_acc.status, "Open")
+		ta2_name = fx.as_user(self.wanjiku_user, actions.prepare_from_leave, la_acc.name)
+		ta2 = frappe.get_doc("Task Assignment", ta2_name)
+		ta2.task_assignee = self.otieno
+		ta2.task_description = "<p>Cover my desk (amended)</p>"
+		ta2.save(ignore_permissions=True)
+		ta2.submit()
+		with self.assertRaises(frappe.ValidationError):
+			la_acc.reload()
+			la_acc.submit()
+		fx.agree(ta2, "otieno")
+		fx.approve(la_acc)
+		self.assertEqual(la_acc.docstatus, 1)
+		la_acc.reload()
+		la_acc.cancel()
+
 
 class TestPreparingFromLeave(LifecycleTestCase):
 	def test_prepare_prefills_the_owners_open_work_once(self):
@@ -274,3 +339,61 @@ class TestPreparingFromLeave(LifecycleTestCase):
 		self.assertEqual(fx.as_user(self.wanjiku_user, actions.prepare_from_leave, la.name), name, "one per leave")
 		with self.assertRaises(frappe.PermissionError):
 			fx.as_user(self.njeri_user, actions.prepare_from_leave, la.name)
+
+	def test_cancelled_leave_and_handover_do_not_block_amended_application(self):
+		task = fx.project_task("Audit the Westlands petty cash")
+		fx.assign(task, self.wanjiku_user)
+		la1 = fx.leave(self.wanjiku, 5, 3)
+		ta1_name = fx.as_user(self.wanjiku_user, actions.prepare_from_leave, la1.name)
+		ta1 = frappe.get_doc("Task Assignment", ta1_name)
+		ta1.task_assignee = self.otieno
+		ta1.task_description = "<p>Cover Westlands petty cash</p>"
+		ta1.save(ignore_permissions=True)
+		ta1.submit()
+		fx.agree(ta1, "otieno")
+		fx.approve(la1)
+
+		# Open ToDos referencing the leave and handover before cancellation
+		todo_la = frappe.get_doc({
+			"doctype": "ToDo",
+			"allocated_to": self.wanjiku_user,
+			"reference_type": "Leave Application",
+			"reference_name": la1.name,
+			"description": "Follow up on leave",
+			"status": "Open",
+		}).insert(ignore_permissions=True)
+		todo_ta = frappe.get_doc({
+			"doctype": "ToDo",
+			"allocated_to": self.wanjiku_user,
+			"reference_type": "Task Assignment",
+			"reference_name": ta1.name,
+			"description": "Follow up on handover",
+			"status": "Open",
+		}).insert(ignore_permissions=True)
+
+		la1.reload()
+		la1.cancel()
+		ta1.reload()
+		self.assertEqual(ta1.docstatus, 2)
+		self.assertEqual(ta1.status, Status.CANCELLED)
+		self.assertIsNone(ta1.leave_application)
+		self.assertEqual(frappe.db.get_value("ToDo", todo_la.name, "status"), "Cancelled")
+		self.assertEqual(frappe.db.get_value("ToDo", todo_ta.name, "status"), "Cancelled")
+
+		# Even if a stale open ToDo still points to a cancelled document, amending and preparing a new handover succeeds
+		frappe.db.set_value("ToDo", todo_la.name, "status", "Open", update_modified=False)
+		frappe.db.set_value("ToDo", todo_ta.name, "status", "Open", update_modified=False)
+
+		la2 = frappe.copy_doc(la1)
+		la2.amended_from = la1.name
+		la2.insert(ignore_permissions=True)
+		self.assertEqual(la2.status, "Open")
+
+		ta2_name = fx.as_user(self.wanjiku_user, actions.prepare_from_leave, la2.name)
+		ta2 = frappe.get_doc("Task Assignment", ta2_name)
+		self.assertEqual(ta2.docstatus, 0)
+		self.assertEqual(ta2.leave_application, la2.name)
+		ref_names = [r.reference_name for r in ta2.assignment_todos]
+		self.assertIn(task, ref_names)
+		self.assertNotIn(la1.name, ref_names)
+		self.assertNotIn(ta1.name, ref_names)

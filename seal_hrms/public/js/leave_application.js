@@ -159,7 +159,8 @@ function check_handover_before_action(frm) {
 					!settings ||
 					!settings.leave_approver_mandatory_in_leave_application ||
 					!settings.custom_leave_handover_requirement ||
-					settings.custom_leave_handover_requirement === "Off"
+					settings.custom_leave_handover_requirement === "Off" ||
+					settings.custom_leave_handover_requirement === "Warn"
 				) {
 					return resolve();
 				}
