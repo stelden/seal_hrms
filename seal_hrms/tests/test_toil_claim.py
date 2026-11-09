@@ -180,7 +180,17 @@ class TestDeciding(ToilTestCase):
 			fx.as_user(self.njeri_user, approval.approve, doc.name)
 
 	def test_nobody_decides_their_own_claim_not_even_hr(self):
+		# Frappe's workflow refuses whoever made the claim ("Self approval is not allowed").
 		doc = self._sent([(tf.rest_day(), 3)])
+		frappe.get_doc("User", self.otieno_user).add_roles("HR Manager")
+		with self.assertRaises(frappe.ValidationError):
+			fx.as_user(self.otieno_user, approval.approve, doc.name)
+		self.assertEqual(frappe.db.get_value(tf.CLAIM, doc.name, "docstatus"), 0)
+
+	def test_nor_a_claim_hr_made_for_them(self):
+		# Frappe compares the maker, not the employee: our own check catches this one.
+		doc = tf.claim(self.otieno, [(tf.rest_day(), 3)])
+		fx.as_user(self.otieno_user, approval.send_for_approval, doc.name)
 		frappe.get_doc("User", self.otieno_user).add_roles("HR Manager")
 		with self.assertRaises(frappe.PermissionError) as caught:
 			fx.as_user(self.otieno_user, approval.approve, doc.name)

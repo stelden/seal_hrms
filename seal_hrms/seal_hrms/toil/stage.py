@@ -4,7 +4,8 @@
 """Where a time off claim is, what happens next, and what the person looking at it should do.
 
 Every process form answers Now / Next / Do in that order (house rule), and the
-Do row names a button on the form in the words on it. Worked out here, on the
+Do row names the form's own words: Frappe's Actions menu for sending and deciding
+(the claim moves by Frappe Workflow), a button for anything else. Worked out here, on the
 server, for the person viewing, so the form only draws it and tests can read it.
 """
 
@@ -14,9 +15,15 @@ from frappe.utils import escape_html, flt, format_datetime, formatdate
 
 from seal_hrms.seal_hrms.handover import user_for_employee
 from seal_hrms.seal_hrms.toil import access, approval
+from seal_hrms.seal_hrms.toil import workflow as wf
 from seal_hrms.seal_hrms.toil.evidence import APPROVER_ONLY
 
 INFO, SUCCESS, WARNING, ERROR = "info", "success", "warning", "error"
+
+
+def _action(action: str) -> str:
+	"""A workflow action as the form shows it: in the Actions menu."""
+	return _b(_("Actions") + " → " + _(action))
 
 
 def _b(text) -> str:
@@ -62,7 +69,7 @@ def where_it_is(doc, user: str | None = None) -> dict:
 			else _("Draft: not yet sent.")
 		)
 		first = approval.authorise_first(doc)
-		button = _b(_("Send for Authorisation") if first else _("Send for Approval"))
+		button = _action(wf.SEND_AUTH if first else wf.SEND)
 		after = (
 			_(
 				"{0} agrees the extra work before it is done; afterwards the hours worked are confirmed."
@@ -72,12 +79,14 @@ def where_it_is(doc, user: str | None = None) -> dict:
 		)
 		if access.can_send(doc, user):
 			do = (
-				_("List each day of extra work you plan, with the hours, then click {0}.").format(button)
+				_("List each day of extra work you plan, with the hours, save, then choose {0}.").format(
+					button
+				)
 				if first
-				else _("List each day you worked extra, then click {0}.").format(button)
+				else _("List each day you worked extra, save, then choose {0}.").format(button)
 			)
 			if not mine:
-				do = _("Check the days with {0}, then click {1} to send it for them.").format(person, button)
+				do = _("Check the days with {0}, then choose {1} to send it for them.").format(person, button)
 		else:
 			do = _("Nothing for you: {0} sends it.").format(person)
 		return rows(now, after, do, WARNING if status == approval.RETURNED else INFO)
@@ -86,8 +95,8 @@ def where_it_is(doc, user: str | None = None) -> dict:
 		now = _("Waiting for {0} to agree the extra work.").format(approver)
 		after = _("Once agreed, {0} does the work and confirms the hours actually worked.").format(person)
 		if access.can_decide(doc, user):
-			do = _("Check the plan, then click {0}; or {1} or {2} with a reason.").format(
-				_b(_("Authorise")), _b(_("Other → Return")), _b(_("Other → Reject"))
+			do = _("Check the plan, then choose {0}; or {1} or {2} with a reason.").format(
+				_action(wf.AUTHORISE), _action(wf.RETURN), _action(wf.REJECT)
 			)
 		elif mine:
 			do = _("Nothing for now: wait for {0} before doing the extra work.").format(approver)
@@ -105,8 +114,8 @@ def where_it_is(doc, user: str | None = None) -> dict:
 		after = _("{0} approves the hours worked; the time is then added.").format(approver)
 		if access.can_send(doc, user):
 			do = _(
-				"After the work, enter the extra hours actually worked on each day, then click {0}."
-			).format(_b(_("Send for Approval")))
+				"After the work, enter the extra hours actually worked on each day, save, then choose {0}."
+			).format(_action(wf.SEND))
 		else:
 			do = _("Nothing for you: {0} confirms the hours.").format(person)
 		return rows(now, after, do, WARNING if note else INFO)
@@ -117,8 +126,8 @@ def where_it_is(doc, user: str | None = None) -> dict:
 		)
 		after = _("Approved time is added to {0}'s time off, to take as ordinary leave.").format(person)
 		if access.can_decide(doc, user):
-			do = _("Check the days, then click {0}; or {1} or {2} with a reason.").format(
-				_b(_("Approve")), _b(_("Other → Return")), _b(_("Other → Reject"))
+			do = _("Check the days, then choose {0}; or {1} or {2} with a reason.").format(
+				_action(wf.APPROVE), _action(wf.RETURN), _action(wf.REJECT)
 			)
 			if unsupported:
 				do += " " + _(

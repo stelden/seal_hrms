@@ -152,6 +152,9 @@ def policy(**values):
 
 def set_up_otieno() -> str:
 	"""Otieno: a programme officer in a banking grade, approved by Achieng, on his own calendar."""
+	from seal_hrms.seal_hrms.toil.workflow import ensure_workflow
+
+	ensure_workflow()  # a site migrated before 1.20.0 may not have it yet
 	employee = fx.ensure_employee("otieno")
 	doc = frappe.get_doc("Employee", employee)
 	doc.grade = ensure_grade()

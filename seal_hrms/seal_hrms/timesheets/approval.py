@@ -10,7 +10,8 @@ their leave, or HR approves it (submits) or returns it with a reason. Frappe HR
 lets anyone with Employee Self Service submit their own timesheet
 (WORKING_TIME_DESIGN.md F8); `before_submit` here closes that, list bulk submit
 included. Where approval is off, nothing here does anything and timesheets
-behave as stock.
+behave as stock. Where the site runs its own Frappe Workflow on Timesheet, that
+workflow approves and this stands down (`applies`).
 
 The approver is the leave approver, or the line manager ("Reports To") where the
 company says so, falling back to the leave approver when the line manager has
@@ -57,8 +58,25 @@ def in_transition(doc) -> bool:
 
 
 def applies(doc) -> bool:
-	"""Approval is on for this timesheet: it is a person's, at a company that asks for it."""
-	return bool(doc.get("employee") and doc.get("company") and policy_for(doc.company).timesheet_approval)
+	"""Approval is on for this timesheet: it is a person's, at a company that asks for it.
+
+	A site that put its own Frappe Workflow on timesheets approves them that way,
+	and ours stands down rather than run a second approval beside it (decision
+	2026-11-10, WORKING_TIME_DESIGN.md §9i); App Health says so.
+	"""
+	return bool(
+		doc.get("employee")
+		and doc.get("company")
+		and policy_for(doc.company).timesheet_approval
+		and not site_workflow()
+	)
+
+
+def site_workflow() -> str | None:
+	"""The active Frappe Workflow on Timesheet, if the site has one."""
+	from frappe.model.workflow import get_workflow_name
+
+	return get_workflow_name("Timesheet")
 
 
 def approver_for(employee: str, company: str) -> str | None:

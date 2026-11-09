@@ -119,6 +119,8 @@ test("Otieno claims the extra two hours as time off", async ({ browser, baseURL 
 	await expect(banner(page)).toContainText("Claim as Time Off in Lieu");
 	await page.getByRole("button", { name: "Claim as Time Off in Lieu" }).click();
 	await page.waitForURL(/time-off-in-lieu-claim\/new/);
+	// The address changes before the new form is drawn: wait for the claim to be the current form.
+	await page.waitForFunction(() => (window as any).cur_frm?.doctype === "Time Off in Lieu Claim");
 	const lines = await page.evaluate(() =>
 		(window as any).cur_frm.doc.lines.map((l: any) => [l.hours, l.timesheet])
 	);

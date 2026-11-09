@@ -3,13 +3,16 @@
 
 /* global seal_hrms */
 
-// The banner (Now / Next / Do) and the buttons follow the claim's status and
-// who is looking, as the server worked them out in onload; every action goes
-// through an endpoint that checks again.
+// The banner (Now / Next / Do) follows the claim's status and who is looking,
+// as the server worked it out in onload. Sending and deciding are the Frappe
+// Workflow's (the Actions menu); the server checks who may take each action.
 
 const TOIL_API = "seal_hrms.seal_hrms.toil";
 const AUTHORISE_FIRST = "Authorise first, then confirm the hours";
 const PLANNING = ["Draft", "Returned", "Waiting for Authorisation"];
+const WAITING = ["Waiting for Approval", "Waiting for Authorisation"];
+/** Actions that send a claim back or refuse it: the person must be told why. */
+const NEEDS_REASON = ["Return", "Reject"];
 
 frappe.ui.form.on("Time Off in Lieu Claim", {
 	onload(frm) {
@@ -31,6 +34,10 @@ frappe.ui.form.on("Time Off in Lieu Claim", {
 				frm.doc.mode = r.message;
 				frm.trigger("refresh");
 			});
+	},
+
+	before_workflow_action(frm) {
+		if (NEEDS_REASON.includes(frm.selected_workflow_action)) return ask_reason(frm);
 	},
 
 	refresh(frm) {
@@ -77,45 +84,8 @@ frappe.ui.form.on("Time Off in Lieu Claim", {
 		}
 		if (frm.is_new()) return;
 
-		if (editable && onload.can_send) {
-			const label = first ? __("Send for Authorisation") : __("Send for Approval");
-			const method = first
-				? "approval.send_for_authorisation"
-				: "approval.send_for_approval";
-			frm.add_custom_button(label, () => act(frm, method)).addClass("btn-primary");
-		}
-		if (confirming && onload.can_send) {
-			frm.add_custom_button(__("Send for Approval"), () =>
-				act(frm, "approval.send_for_approval")
-			).addClass("btn-primary");
-		}
-		const waiting = ["Waiting for Approval", "Waiting for Authorisation"].includes(
-			frm.doc.status
-		);
-		if (frm.doc.docstatus === 0 && waiting) {
-			frm.disable_save();
-			if (onload.can_decide) {
-				if (frm.doc.status === "Waiting for Authorisation") {
-					frm.add_custom_button(__("Authorise"), () =>
-						act(frm, "approval.authorise")
-					).addClass("btn-primary");
-				} else {
-					frm.add_custom_button(__("Approve"), () =>
-						act(frm, "approval.approve")
-					).addClass("btn-primary");
-				}
-				frm.add_custom_button(
-					__("Return"),
-					() => with_reason(frm, "approval.return_claim", __("Return the claim")),
-					__("Other")
-				);
-				frm.add_custom_button(
-					__("Reject"),
-					() => with_reason(frm, "approval.reject", __("Reject the claim")),
-					__("Other")
-				);
-			}
-		}
+		// Sending and deciding are the workflow's: the form's Actions menu.
+		if (frm.doc.docstatus === 0 && WAITING.includes(frm.doc.status)) frm.disable_save();
 		if (frm.doc.status === "Approved" && onload.is_mine && frm.doc.days_left > 0) {
 			frm.add_custom_button(__("Apply for Leave"), () => {
 				frappe.new_doc("Leave Application", {
@@ -223,30 +193,48 @@ function apply_found(frm, found) {
 	}
 }
 
-function act(frm, method, args = {}) {
-	const go = () =>
-		frappe
-			.call({
-				method: `${TOIL_API}.${method}`,
-				args: { name: frm.doc.name, ...args },
-				freeze: true,
-			})
-			.then(() => frm.reload_doc());
-	return frm.is_dirty() ? frm.save().then(go) : go();
-}
-
-function with_reason(frm, method, title) {
-	frappe.prompt(
-		[
-			{
-				fieldname: "reason",
-				fieldtype: "Small Text",
-				label: __("What the person needs to change or know"),
-				reqd: 1,
+/**
+ * Ask for the reason before Return or Reject, and save it first: Frappe reloads
+ * the claim before acting, so the reason must already be on it. Closing the
+ * dialog cancels the action. Same shape as seal_iam's decision note.
+ */
+function ask_reason(frm) {
+	const action = frm.selected_workflow_action;
+	frappe.dom.unfreeze();
+	return new Promise((resolve, reject) => {
+		let settled = false;
+		const d = new frappe.ui.Dialog({
+			title: action === "Reject" ? __("Reject the claim") : __("Return the claim"),
+			fields: [
+				{
+					fieldname: "reason",
+					fieldtype: "Small Text",
+					label: __("Reason"),
+					reqd: 1,
+					description:
+						action === "Reject"
+							? __("Say why it is refused; the person reads this.")
+							: __(
+									"Say what to change; the person reads this before sending it again."
+							  ),
+				},
+			],
+			primary_action_label: __(action),
+			primary_action(values) {
+				settled = true;
+				d.hide();
+				frappe
+					.call({
+						method: `${TOIL_API}.workflow.set_decision_note`,
+						args: { name: frm.doc.name, note: values.reason },
+					})
+					.then(() => {
+						frappe.dom.freeze();
+						resolve();
+					}, reject);
 			},
-		],
-		(values) => act(frm, method, { reason: values.reason }),
-		title,
-		__("Send")
-	);
+		});
+		d.onhide = () => settled || reject();
+		d.show();
+	});
 }

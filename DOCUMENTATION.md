@@ -334,10 +334,11 @@ The steps:
    days they worked extra (date, hours, what the work was) and saves. The kind
    of day comes from their holiday list, and the form shows what the hours
    count as and the days of time off.
-2. **Send for Approval** sends it to their leave approver (on their Employee
+2. **Actions → Send for Approval** sends it to their leave approver (on their Employee
    record, or their department's). While it waits it cannot be changed.
-3. The approver **Approves**, **Returns** it with a reason (the person
-   corrects and sends again) or **Rejects** it with a reason. Approvers do not
+3. The approver chooses **Actions → Approve**, **Return** with a reason (the
+   person corrects and sends again) or **Reject** with a reason (a box asks for
+   it before the action goes ahead). Approvers do not
    change hours. Nobody decides their own claim, HR included.
 4. On approval the days are added to the person's balance of that leave type,
    and they take the time off with an ordinary Leave Application. If the person
@@ -360,10 +361,10 @@ application for the time off type.
 
 **Authorise first, then confirm the hours (1.15.0).** A company can choose, in
 its policy ("When extra work is agreed"), that staff ask before the extra work:
-they list the days with the hours planned (future days allowed) and click
-**Send for Authorisation**; the approver clicks **Authorise** (or returns or
-rejects it); after the work the person enters the hours actually worked (or
-fills them from the records) and clicks **Send for Approval**; the approver then
+they list the days with the hours planned (future days allowed) and choose
+**Actions → Send for Authorisation**; the approver chooses **Authorise** (or
+returns or rejects it); after the work the person enters the hours actually
+worked (or fills them from the records), saves and chooses **Send for Approval**; the approver then
 approves as usual. Only authorised days can be confirmed, and a return after
 authorisation goes back to Authorised, not to the start. The way a claim is
 agreed is stamped on it when it is made, so a change of policy does not move
@@ -376,6 +377,19 @@ so HR's rewording stays. My Desk has a "Time off in lieu waiting for you" list
 (claims to decide, claims returned, hours to confirm, drafts not sent, time
 lapsing within 14 days), and Self Service counts claims waiting for a decision.
 The claim's Approval tab draws its process map.
+
+**The steps are a Frappe Workflow (1.20.0).** The claim's states and actions
+are a Workflow named "Time Off in Lieu Claim" (Workflow list), created after
+migrate if the site has none and never overwritten. HR can change which role
+takes each action, rename an action, or add a step (for example HR signs off
+large claims) without a code change; Frappe's own approvers' to-do list
+(Workflow Action) comes with it. What stays in code is what a workflow cannot
+say: only the claim's named approver or their stand-in decides (never the
+claimant, whoever created it), the reason on Return and Reject, the lock while a
+claim waits, and adding or taking back the time. Keep the eight states the
+code relies on; App Health reports a workflow that is missing, switched off or
+short of one (`toil/workflow.py`). Its broadcast emails stay off: ours go to the
+named approver only.
 
 ### Timesheet approval (1.16.0)
 
@@ -390,7 +404,9 @@ chooses it (the leave approver steps in when the line manager has no login).
 Someone covering an approver's leave approves in their place (handover line
 "Approving timesheets", also covered by a Head of Department's line). Where the
 company does not ask for approval, the Timesheet form is exactly as ERPNext
-ships it.
+ships it. Where the site runs its own Frappe Workflow on Timesheet, that
+workflow approves timesheets and this approval stands down (1.20.0); App Health
+says so where a company's policy also asks for approval.
 
 Also fixed for staff on every site: opening **New Timesheet** raised a
 Permission Error, because ERPNext looks the person up by their login and this
@@ -535,6 +551,14 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-10** — 1.20.0. Time off claims move by a Frappe **Workflow** ("Time Off in Lieu
+  Claim", created after migrate, the site's to change): send, authorise, approve, return and
+  reject are in the form's **Actions** menu, and Return or Reject ask for the reason first. The
+  claim's own endpoints for those steps are gone (`toil/workflow.py` replaces them); code keeps
+  who decides, the reason, the lock while waiting and the leave ledger. Timesheet approval stands
+  down where the site has its own Timesheet workflow. Two App Health checks. Needs `bench migrate`
+  and a web server restart. Design: `WORKING_TIME_DESIGN.md` §9i.
 
 - **2026-11-10** — 1.19.4. My HR: the greeting is larger, and the overview has tiles for **Time
   off in lieu** and **Timesheets** (Travel no longer mentions timesheets). Needs `bench migrate`.

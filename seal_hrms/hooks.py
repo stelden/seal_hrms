@@ -77,6 +77,8 @@ after_migrate = [
     # Time off in lieu emails HR can reword: created once, never overwritten (§1.18).
     "seal_hrms.seal_hrms.toil.notifications.ensure_templates",
     "seal_hrms.seal_hrms.timesheets.notifications.ensure_templates",
+    # The Frappe Workflow that moves time off claims: created once, then the site's (toil/workflow.py).
+    "seal_hrms.seal_hrms.toil.workflow.ensure_workflow",
 ]
 
 # include js, css files in header of web template

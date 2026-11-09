@@ -66,9 +66,10 @@ class TestAuthoriseFirst(AuthoriseFirstTestCase):
 
 	def test_it_cannot_go_straight_to_approval(self):
 		doc = self._planned([(tf.rest_day(), 6)])
-		with self.assertRaises(frappe.ValidationError) as caught:
+		# The workflow offers only "Send for Authorisation" while the company authorises first.
+		with self.assertRaises(frappe.PermissionError):
 			fx.as_user(self.otieno_user, approval.send_for_approval, doc.name)
-		self.assertIn("authorised first", str(caught.exception))
+		self.assertEqual(frappe.db.get_value(tf.CLAIM, doc.name, "status"), approval.DRAFT)
 
 	def test_the_whole_path(self):
 		doc = self._authorised([(tf.rest_day(), 6)])

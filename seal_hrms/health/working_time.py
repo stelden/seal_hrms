@@ -430,6 +430,50 @@ def timesheets_waiting():
 	)
 
 
+@health_check(label="Time off in lieu: approval steps", category="Configuration", forms=FORMS)
+def time_off_workflow_in_place():
+	"""Claims move by a Frappe Workflow; without it, or with one missing a step, none can be sent."""
+	if not _enabled():
+		return []
+	from seal_hrms.seal_hrms.toil.workflow import problems
+
+	found = problems()
+	if not found:
+		return []
+	return Finding(
+		severity=Severity.BLOCKING,
+		title=_("Time off claims cannot be sent or decided"),
+		detail=" ".join(found)
+		+ " "
+		+ _("Running Migrate puts the standard steps back if there is no workflow."),
+		count=len(found),
+		state=State.MISCONFIGURED,
+		link="/app/workflow?document_type=Time%20Off%20in%20Lieu%20Claim",
+	)
+
+
+@health_check(label="Timesheets: approval by workflow", category="Configuration", forms=FORMS)
+def timesheet_approval_by_site_workflow():
+	"""A company asks for timesheet approval, but the site approves timesheets with its own workflow."""
+	from seal_hrms.seal_hrms.timesheets.approval import site_workflow
+
+	companies = _approval_companies()
+	workflow = site_workflow() if companies else None
+	if not workflow:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("Timesheets are approved by the site's own workflow"),
+		detail=_(
+			"The workflow {0} decides timesheets, so the approval set on this policy is not used for: {1}. "
+			"Turn one of them off to avoid confusion."
+		).format(workflow, ", ".join(companies)),
+		count=len(companies),
+		state=State.MISCONFIGURED,
+		link=f"/app/workflow/{workflow}",
+	)
+
+
 @health_check(label="Timesheets: deadline and approval", category="Configuration", forms=FORMS)
 def timesheet_cutoff_with_approval():
 	"""A submission deadline on timesheets judges the approver's approval, not the person's sending.
