@@ -194,11 +194,11 @@ def browser_set_up(password_otieno: str, password_achieng: str, **rules) -> dict
 	ensure_leave_period()
 	started = str(frappe.utils.now_datetime())
 	set_up_otieno()
-	policy(**rules)
-	if rules.get("timesheet_approval") and not frappe.db.exists("Activity Type", "Community Outreach"):
+	if not frappe.db.exists("Activity Type", "Community Outreach"):
 		activity = frappe.new_doc("Activity Type")
 		activity.activity_type = "Community Outreach"
 		activity.insert(ignore_permissions=True)
+	policy(**rules)
 	for key, password in (("otieno", password_otieno), ("achieng", password_achieng)):
 		user = frappe.get_doc("User", fx.email(key))
 		user.user_type = "System User"

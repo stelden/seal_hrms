@@ -36,6 +36,9 @@ DEFAULTS = {
 	"timesheet_approval": 0,
 	"timesheet_approver": "Leave approver",
 	"timesheet_waiting_alert_days": 7,
+	"weekly_timesheets": 0,
+	"default_activity_type": None,
+	"day_starts_at": "08:00:00",
 }
 
 

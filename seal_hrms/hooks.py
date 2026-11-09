@@ -258,7 +258,12 @@ doc_events = {
     # Timesheet approval (timesheets/approval.py): stock wherever the company does not ask for it.
     "Timesheet": {
         "onload": "seal_hrms.seal_hrms.timesheets.approval.onload",
-        "validate": "seal_hrms.seal_hrms.timesheets.approval.validate",
+        # The week grid writes the time lines (timesheets/week.py).
+        "before_validate": "seal_hrms.seal_hrms.timesheets.week.before_validate",
+        "validate": [
+            "seal_hrms.seal_hrms.timesheets.approval.validate",
+            "seal_hrms.seal_hrms.timesheets.week.validate",
+        ],
         "on_update": "seal_hrms.seal_hrms.timesheets.approval.on_update",
         "before_submit": "seal_hrms.seal_hrms.timesheets.approval.before_submit",
         "on_submit": "seal_hrms.seal_hrms.timesheets.approval.on_submit",

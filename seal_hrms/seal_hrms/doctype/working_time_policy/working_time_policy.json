@@ -41,7 +41,12 @@
   "timesheet_approval",
   "timesheet_approver",
   "tb3_cb1",
-  "timesheet_waiting_alert_days"
+  "timesheet_waiting_alert_days",
+  "tb3_sb2",
+  "weekly_timesheets",
+  "default_activity_type",
+  "tb3_cb2",
+  "day_starts_at"
  ],
  "fields": [
   {
@@ -281,11 +286,42 @@
    "fieldtype": "Int",
    "label": "Tell HR when a timesheet waits longer than (days)",
    "non_negative": 1
+  },
+  {
+   "fieldname": "tb3_sb2",
+   "fieldtype": "Section Break",
+   "label": "Filling them in"
+  },
+  {
+   "default": "0",
+   "description": "Staff enter hours in a grid, a line per piece of work and a column per day; the form shows their leave, holidays and attendance.",
+   "fieldname": "weekly_timesheets",
+   "fieldtype": "Check",
+   "label": "One timesheet per person per week, filled in as a week"
+  },
+  {
+   "depends_on": "eval:doc.weekly_timesheets",
+   "fieldname": "default_activity_type",
+   "fieldtype": "Link",
+   "label": "Kind of work a new line starts with",
+   "options": "Activity Type"
+  },
+  {
+   "fieldname": "tb3_cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "08:00:00",
+   "depends_on": "eval:doc.weekly_timesheets",
+   "description": "Each day's hours are recorded from this time, one piece of work after another.",
+   "fieldname": "day_starts_at",
+   "fieldtype": "Time",
+   "label": "Day starts at"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-09 23:00:00.000000",
+ "modified": "2026-11-10 00:30:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Working Time Policy",

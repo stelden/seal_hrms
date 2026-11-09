@@ -403,6 +403,19 @@ waiting too long, and a timesheet submission deadline (SEAL Common) left on
 where approval is on: the deadline is checked when the approver approves, so a
 timesheet sent on time would be refused.
 
+### Timesheets by the week (1.17.0)
+
+A company can say, in its Working Time Policy ("Filling them in"), that each
+person keeps one timesheet per week, filled in as a week. The Timesheet form
+then shows a grid at the top: a line per piece of work (kind of work, project,
+task, what it was) and a column per day, with each day's total and the person's
+attendance hours underneath; rest days, public holidays and leave are marked on
+the day. **Add a line** adds one; **Copy last week** starts from last week's
+lines. On save the time lines are written from the grid, one piece of work
+after another from the company's "Day starts at", so the form's own time lines
+are read-only and ERPNext's timer is hidden. A second timesheet for the same
+week is refused. Leave and holidays are shown, not written as time lines.
+
 Rules a claim must meet: the person's grade banks hours and they are not paid
 by the hour; each date once, not in the future, at least the smallest claim;
 not a day of approved leave, not already claimed, and **not paid as overtime**:
@@ -462,7 +475,8 @@ Request still works from its own list for other leave types.
 cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright test
 # 03-time-off-in-lieu.spec.ts walks a claim in two logins (Otieno sends, Achieng approves); it seeds
 # with _toil_fixtures.browser_set_up and puts everything back in browser_tear_down.
-# 04-timesheet-approval.spec.ts does the same for a timesheet (Otieno sends, Achieng approves).
+# 04-timesheet-approval.spec.ts does the same for a timesheet (Otieno sends, Achieng approves);
+# 05-week-grid.spec.ts fills a week in the grid and checks the time lines it writes.
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
@@ -483,6 +497,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_lapse
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_evidence
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_authorise_first
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_approval
+bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_week
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -499,6 +514,9 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.17.0. **Timesheets by the week**, per company: a grid of work lines by day on
+  the Timesheet form, with leave, holidays and attendance shown; the time lines are written from it
+  on save; one timesheet per person per week; "Copy last week". Needs `bench migrate` and a restart.
 - **2026-11-09** — 1.16.0. **Timesheet approval**, per company: staff send, their approver (leave
   approver or line manager) approves or returns; approving submits; staff no longer submit or
   cancel their own. Stand-ins and Heads of Department approve in an approver's place. My Desk list,
