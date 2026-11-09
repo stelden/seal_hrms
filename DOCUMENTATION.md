@@ -379,8 +379,8 @@ lapsing within 14 days), and Self Service counts claims waiting for a decision.
 The claim's Approval tab draws its process map.
 
 **The steps are a Frappe Workflow (1.20.0).** The claim's states and actions
-are a Workflow named "Time Off in Lieu Claim" (Workflow list), created after
-migrate if the site has none and never overwritten. HR can change which role
+are a Workflow named "Time Off in Lieu Claim" (Workflow list), created on
+install and after migrate if the site has none, and never overwritten. HR can change which role
 takes each action, rename an action, or add a step (for example HR signs off
 large claims) without a code change; Frappe's own approvers' to-do list
 (Workflow Action) comes with it. What stays in code is what a workflow cannot
@@ -551,6 +551,15 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-10** — 1.20.1. A brand-new site gets the time off claims workflow, the time off and
+  timesheet email templates, and time off claims in the Self Service list when the app is installed,
+  not only after its first migrate. They run from `after_sync`, which Frappe runs after the app's
+  fixtures (`after_install` runs before them). `tests/test_install.py` keeps the install and migrate
+  steps in step. Proved on a fresh site, which also showed that listing time off claims for
+  Self Service users had never worked on a site where the claim's permissions were not yet
+  customised (a Frappe User Type quirk: it failed quietly into the Error Log). Fixed, with a
+  test that reproduces it. Live will get it on its next migrate.
 
 - **2026-11-10** — 1.20.0. Time off claims move by a Frappe **Workflow** ("Time Off in Lieu
   Claim", created after migrate, the site's to change): send, authorise, approve, return and

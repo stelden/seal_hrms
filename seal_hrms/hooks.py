@@ -69,9 +69,12 @@ app_include_js = [
 
 # Installation
 # ------------
-after_install = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
-after_migrate = [
-    "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels",
+# What a site needs that is not a fixture, because the site may change it afterwards
+# (§1.18): each step creates what is missing and leaves the rest alone. They run after
+# every migrate and once on install. On install they go in `after_sync`, which Frappe
+# runs after the app's fixtures and customisations, not in `after_install`, which runs
+# before them (SEAL_DEV_RULES §2.24). tests/test_install.py keeps the lists in step.
+_SITE_SETUP = [
     # Employee Self Service users can open their time off claims (working_time/user_type.py).
     "seal_hrms.seal_hrms.working_time.user_type.allow_claims_for_self_service",
     # Time off in lieu emails HR can reword: created once, never overwritten (§1.18).
@@ -80,6 +83,10 @@ after_migrate = [
     # The Frappe Workflow that moves time off claims: created once, then the site's (toil/workflow.py).
     "seal_hrms.seal_hrms.toil.workflow.ensure_workflow",
 ]
+
+after_install = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
+after_sync = list(_SITE_SETUP)
+after_migrate = ["seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels", *_SITE_SETUP]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/seal_hrms/css/seal_hrms.css"
