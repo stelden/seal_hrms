@@ -122,12 +122,12 @@
   {
    "fieldname": "tb1_sb2",
    "fieldtype": "Section Break",
-   "label": "Extra time worked"
+   "label": "Extra Time Worked"
   },
   {
    "fieldname": "lines",
    "fieldtype": "Table",
-   "label": "Extra time worked",
+   "label": "Extra Hours",
    "options": "Time Off in Lieu Claim Line",
    "reqd": 1
   },
@@ -138,13 +138,14 @@
   {
    "fieldname": "total_hours",
    "fieldtype": "Float",
-   "label": "Extra hours worked",
+   "label": "Total Extra Hours",
    "read_only": 1
   },
   {
+   "description": "The hours of time off the extra hours count as.",
    "fieldname": "credited_hours",
    "fieldtype": "Float",
-   "label": "Counts as (hours)",
+   "label": "Hours Credited",
    "read_only": 1
   },
   {
@@ -156,13 +157,14 @@
    "fieldname": "days",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Days of time off",
+   "label": "Time Off (Days)",
    "read_only": 1
   },
   {
+   "description": "Anything the approver should know.",
    "fieldname": "note",
    "fieldtype": "Small Text",
-   "label": "Anything the approver should know"
+   "label": "Note"
   },
   {
    "fieldname": "tb2",
@@ -198,14 +200,14 @@
    "fetch_from": "approver.full_name",
    "fieldname": "approver_name",
    "fieldtype": "Data",
-   "label": "Approver's name",
+   "label": "Approver Name",
    "read_only": 1
   },
   {
-   "description": "Set from the company's policy when the claim is made, so a later change of policy does not move it.",
+   "description": "How extra work is agreed. Set from the company's policy when the claim is made, so a later change of policy does not move it.",
    "fieldname": "mode",
    "fieldtype": "Data",
-   "label": "How it is agreed",
+   "label": "Authorisation",
    "no_copy": 0,
    "read_only": 1
   },
@@ -216,14 +218,14 @@
   {
    "fieldname": "sent_on",
    "fieldtype": "Datetime",
-   "label": "Sent for approval on",
+   "label": "Sent for Approval On",
    "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "authorised_by",
    "fieldtype": "Link",
-   "label": "Authorised by",
+   "label": "Authorised By",
    "no_copy": 1,
    "options": "User",
    "read_only": 1
@@ -231,7 +233,7 @@
   {
    "fieldname": "authorised_on",
    "fieldtype": "Datetime",
-   "label": "Authorised on",
+   "label": "Authorised On",
    "no_copy": 1,
    "read_only": 1
   },
@@ -239,7 +241,7 @@
    "allow_on_submit": 1,
    "fieldname": "approved_by",
    "fieldtype": "Link",
-   "label": "Decided by",
+   "label": "Decided By",
    "no_copy": 1,
    "options": "User",
    "read_only": 1
@@ -248,7 +250,7 @@
    "allow_on_submit": 1,
    "fieldname": "approved_on",
    "fieldtype": "Datetime",
-   "label": "Decided on",
+   "label": "Decided On",
    "no_copy": 1,
    "read_only": 1
   },
@@ -256,19 +258,19 @@
    "description": "Why it was returned or rejected: what the person needs to change or know.",
    "fieldname": "decision_note",
    "fieldtype": "Small Text",
-   "label": "Approver's note",
+   "label": "Approver's Note",
    "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "tb2_sb3",
    "fieldtype": "Section Break",
-   "label": "How a claim moves"
+   "label": "Process"
   },
   {
    "fieldname": "process_map",
    "fieldtype": "HTML",
-   "label": "Process map"
+   "label": "Process Map"
   },
   {
    "fieldname": "tb3",
@@ -282,15 +284,16 @@
   {
    "fieldname": "leave_type",
    "fieldtype": "Link",
-   "label": "Leave type",
+   "label": "Leave Type",
    "no_copy": 1,
    "options": "Leave Type",
    "read_only": 1
   },
   {
+   "description": "The leave allocation this time off was added to.",
    "fieldname": "leave_allocation",
    "fieldtype": "Link",
-   "label": "Added to",
+   "label": "Leave Allocation",
    "no_copy": 1,
    "options": "Leave Allocation",
    "read_only": 1
@@ -298,14 +301,14 @@
   {
    "fieldname": "earned_on",
    "fieldtype": "Date",
-   "label": "Earned on",
+   "label": "Earned On",
    "no_copy": 1,
    "read_only": 1
   },
   {
    "fieldname": "lapses_on",
    "fieldtype": "Date",
-   "label": "Usable until",
+   "label": "Usable Until",
    "no_copy": 1,
    "read_only": 1
   },
@@ -315,33 +318,37 @@
   },
   {
    "allow_on_submit": 1,
+   "description": "Days of time off added to the person's leave.",
    "fieldname": "days_credited",
    "fieldtype": "Float",
-   "label": "Days added",
+   "label": "Days Credited",
    "no_copy": 1,
    "read_only": 1
   },
   {
    "allow_on_submit": 1,
+   "description": "Days over the most time off a person can hold, so not added.",
    "fieldname": "days_not_credited",
    "fieldtype": "Float",
-   "label": "Over the limit, not added",
+   "label": "Days Not Credited",
    "no_copy": 1,
    "read_only": 1
   },
   {
    "allow_on_submit": 1,
+   "description": "Days of this time off taken as leave.",
    "fieldname": "days_used",
    "fieldtype": "Float",
-   "label": "Days used for leave",
+   "label": "Days Used",
    "no_copy": 1,
    "read_only": 1
   },
   {
    "allow_on_submit": 1,
+   "description": "Days that lapsed before they were used.",
    "fieldname": "days_lapsed",
    "fieldtype": "Float",
-   "label": "Days lapsed unused",
+   "label": "Days Lapsed",
    "no_copy": 1,
    "read_only": 1
   },
@@ -351,7 +358,7 @@
    "fieldname": "days_left",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Days left",
+   "label": "Days Left",
    "no_copy": 1,
    "read_only": 1
   },
@@ -372,7 +379,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-11-09 22:00:00.000000",
+ "modified": "2026-11-10 00:20:58.967896",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Time Off in Lieu Claim",

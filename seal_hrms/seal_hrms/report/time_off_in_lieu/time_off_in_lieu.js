@@ -13,7 +13,7 @@ frappe.query_reports["Time Off in Lieu"] = {
 		{ fieldname: "employee", label: __("Employee"), fieldtype: "Link", options: "Employee" },
 		{
 			fieldname: "only_with_time_left",
-			label: __("Only people with time left"),
+			label: __("Time Left Only"),
 			fieldtype: "Check",
 			default: 1,
 		},

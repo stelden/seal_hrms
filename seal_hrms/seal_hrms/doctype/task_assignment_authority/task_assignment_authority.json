@@ -21,19 +21,19 @@
   {
    "fieldname": "authority_label",
    "fieldtype": "Data",
-   "label": "What You Approve",
+   "label": "Approval",
    "read_only": 1,
    "in_list_view": 1,
-   "description": "Found from who you approve for. Add these with Find What I Approve."
+   "description": "What you approve, found from who you approve for. Add these with Find What I Approve."
   },
   {
    "fieldname": "task_assignee",
    "fieldtype": "Link",
    "options": "Employee",
-   "label": "Approves in Your Place",
+   "label": "Acting Approver",
    "in_list_view": 1,
    "ignore_user_permissions": 1,
-   "description": "Leave blank for the stand-in named on the handover. They approve on your behalf only while you are away."
+   "description": "Who approves in your place. Leave blank for the stand-in named on the handover. They approve on your behalf only while you are away."
   },
   {
    "fieldname": "cb0",
@@ -42,7 +42,7 @@
   {
    "fieldname": "acceptance",
    "fieldtype": "Select",
-   "label": "Their Answer",
+   "label": "Answer",
    "options": "\nPending\nAccepted\nDeclined",
    "read_only": 1,
    "no_copy": 1,
@@ -53,7 +53,8 @@
   {
    "fieldname": "decline_reason",
    "fieldtype": "Small Text",
-   "label": "Why They Declined",
+   "label": "Decline Reason",
+   "description": "What they said when they declined.",
    "read_only": 1,
    "no_copy": 1,
    "allow_on_submit": 1,
@@ -62,7 +63,7 @@
   {
    "fieldname": "sb1",
    "fieldtype": "Section Break",
-   "label": "While You Are Away",
+   "label": "During Leave",
    "collapsible": 1
   },
   {
@@ -83,7 +84,8 @@
   {
    "fieldname": "role_added_by_assignment",
    "fieldtype": "Check",
-   "label": "Access Added for This Leave",
+   "label": "Access Added",
+   "description": "Set when this access was added for the leave, so it is taken away again when you return. Access they already had is left alone.",
    "read_only": 1,
    "no_copy": 1,
    "hidden": 1
@@ -91,7 +93,8 @@
   {
    "fieldname": "shares",
    "fieldtype": "Small Text",
-   "label": "Documents Opened for Them",
+   "label": "Shared Documents",
+   "description": "Documents shared with them for the leave, unshared again when you return.",
    "read_only": 1,
    "no_copy": 1,
    "hidden": 1
@@ -106,5 +109,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "modified": "2026-09-30 11:59:19.459271"
+ "modified": "2026-11-10 00:20:58.967896"
 }

@@ -49,7 +49,7 @@ def _columns():
 		{"label": _("Timesheet Hours"), "fieldname": "logged", "fieldtype": "Float", "width": 120},
 		{"label": _("Expected"), "fieldname": "expected", "fieldtype": "Float", "width": 90},
 		{"label": _("Accounted For"), "fieldname": "accounted", "fieldtype": "Float", "width": 110},
-		{"label": _("To Look At"), "fieldname": "flags", "fieldtype": "Data", "width": 260},
+		{"label": _("Issues"), "fieldname": "flags", "fieldtype": "Data", "width": 260},
 	]
 
 

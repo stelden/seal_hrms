@@ -45,7 +45,7 @@ frappe.query_reports["Timesheets Against Attendance and Leave"] = {
 		},
 		{
 			fieldname: "only_issues",
-			label: __("Only days with something to look at"),
+			label: __("Issues Only"),
 			fieldtype: "Check",
 			default: 1,
 		},

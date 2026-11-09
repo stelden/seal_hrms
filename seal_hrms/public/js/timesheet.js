@@ -96,7 +96,8 @@ function return_with_reason(frm) {
 			{
 				fieldname: "reason",
 				fieldtype: "Small Text",
-				label: __("What needs changing"),
+				label: __("Return Reason"),
+				description: __("What needs changing. The person reads this, corrects the timesheet and sends it again."),
 				reqd: 1,
 			},
 		],
@@ -236,7 +237,7 @@ const seal_hrms_week = {
 						<th style="min-width: 160px;">${__("Activity Type")}</th>
 						<th style="min-width: 150px;">${__("Project")}</th>
 						<th style="min-width: 150px;">${__("Task")}</th>
-						<th style="min-width: 160px;">${__("What the work was")}</th>
+						<th style="min-width: 160px;">${__("Work Done")}</th>
 						${head}
 						<th class="text-right">${__("Total")}</th>
 						${editable ? "<th></th>" : ""}

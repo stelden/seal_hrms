@@ -35,10 +35,10 @@
    "reqd": 1
   },
   {
-   "description": "Asked for before the work, where the company authorises extra work first.",
+   "description": "Extra hours asked for before the work, where the company authorises extra work first.",
    "fieldname": "planned_hours",
    "fieldtype": "Float",
-   "label": "Extra hours planned",
+   "label": "Planned Hours",
    "non_negative": 1
   },
   {
@@ -47,16 +47,17 @@
    "fieldname": "hours",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Extra hours worked",
+   "label": "Hours Worked",
    "non_negative": 1,
    "reqd": 0
   },
   {
    "columns": 3,
+   "description": "What the extra work was.",
    "fieldname": "work_done",
    "fieldtype": "Small Text",
    "in_list_view": 1,
-   "label": "What the work was",
+   "label": "Work Done",
    "reqd": 1
   },
   {
@@ -75,27 +76,28 @@
    "description": "The approved timesheet these hours were claimed from.",
    "fieldname": "timesheet",
    "fieldtype": "Link",
-   "label": "From timesheet",
+   "label": "Timesheet",
    "options": "Timesheet",
    "read_only": 1
   },
   {
    "fieldname": "sb1",
    "fieldtype": "Section Break",
-   "label": "How it counts"
+   "label": "Credit"
   },
   {
    "columns": 1,
    "fieldname": "day_kind",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Kind of day",
+   "label": "Kind of Day",
    "read_only": 1
   },
   {
+   "description": "Each hour of extra work on this day counts as this many hours of time off.",
    "fieldname": "rate",
    "fieldtype": "Float",
-   "label": "Each hour counts as",
+   "label": "Rate",
    "read_only": 1
   },
   {
@@ -104,16 +106,17 @@
   },
   {
    "columns": 1,
+   "description": "The hours of time off these extra hours count as.",
    "fieldname": "credited_hours",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Counts as (hours)",
+   "label": "Hours Credited",
    "read_only": 1
   },
   {
    "fieldname": "sb2",
    "fieldtype": "Section Break",
-   "label": "What the records show"
+   "label": "Evidence"
   },
   {
    "columns": 1,
@@ -121,13 +124,13 @@
    "fieldname": "supported_by",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Borne out by",
+   "label": "Supporting Record",
    "read_only": 1
   },
   {
    "fieldname": "normal_hours",
    "fieldtype": "Float",
-   "label": "Normal working day (hours)",
+   "label": "Normal Working Day (Hours)",
    "read_only": 1
   },
   {
@@ -135,28 +138,31 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Extra hours shown by attendance.",
    "fieldname": "attendance_hours",
    "fieldtype": "Float",
-   "label": "Extra hours by attendance",
+   "label": "Attendance (Hours)",
    "read_only": 1
   },
   {
+   "description": "Extra hours shown by clock-ins.",
    "fieldname": "clocked_hours",
    "fieldtype": "Float",
-   "label": "Extra hours by clock-ins",
+   "label": "Clock-ins (Hours)",
    "read_only": 1
   },
   {
+   "description": "Extra hours shown by timesheets.",
    "fieldname": "timesheet_hours",
    "fieldtype": "Float",
-   "label": "Extra hours by timesheets",
+   "label": "Timesheets (Hours)",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-11-10 06:00:00.000000",
+ "modified": "2026-11-10 00:20:58.967896",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Time Off in Lieu Claim Line",

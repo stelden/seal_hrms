@@ -42,31 +42,31 @@
    "options": "Off\nWarn\nRequire on Approval\nRequire on Submission\nRequire Acceptance before Submission",
    "default": "Off",
    "reqd": 1,
-   "description": "Off: handover optional. Warn: notify if no cover. Require on Approval: must have agreed stand-in before approval. Require on Submission: staff must prepare handover with stand-in before submitting/applying. Require Acceptance before Submission: stand-in must accept before staff can submit/apply."
+   "description": "Whether leave needs someone to cover the work. Off: no check. Warn: the approver is warned. The Require options stop leave going ahead until cover is arranged."
   },
   {
    "fieldname": "sb2",
    "fieldtype": "Section Break",
-   "label": "Which Leave"
+   "label": "Leave and Reminders"
   },
   {
    "fieldname": "min_days",
    "fieldtype": "Float",
-   "label": "Only for Leave of at Least (Days)",
+   "label": "Minimum Leave (Days)",
    "default": "0",
-   "description": "Short absences often need no handover. Leave at 0 to apply to every length of leave."
+   "description": "Only leave of at least this many days needs a handover. Short absences often need no handover. Leave at 0 to apply to every length of leave."
   },
   {
    "fieldname": "prep_reminder_days",
    "fieldtype": "Int",
-   "label": "Remind Staff to Hand Over (Days Before)",
+   "label": "Reminder Lead Time (Days)",
    "default": "7",
    "description": "How many days before their leave starts staff are reminded, on My Desk, to prepare a handover."
   },
   {
    "fieldname": "email_prep_reminder",
    "fieldtype": "Check",
-   "label": "Also Email the Reminder",
+   "label": "Email Reminder",
    "default": "1",
    "description": "Email each member of staff once, that many days before their leave, if nobody has been asked to cover their work yet. The reminder on My Desk shows either way."
   },
@@ -78,8 +78,8 @@
    "fieldname": "leave_types",
    "fieldtype": "Table MultiSelect",
    "options": "Task Assignment Policy Leave Type",
-   "label": "Only for These Kinds of Leave",
-   "description": "Leave empty to apply to every kind. Sick leave, for instance, is often taken without warning."
+   "label": "Leave Types",
+   "description": "Only these kinds of leave need a handover. Leave empty to apply to every kind. Sick leave, for instance, is often taken without warning."
   }
  ],
  "index_web_pages_for_search": 1,
@@ -124,5 +124,5 @@
  "states": [],
  "track_changes": 1,
  "description": "Per company: whether leave needs a stand-in who has agreed to cover before it can be approved.",
- "modified": "2026-09-30 13:07:59.448398"
+ "modified": "2026-11-10 00:20:58.967896"
 }

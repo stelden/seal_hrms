@@ -152,7 +152,7 @@ def records(employee: str, dates, kinds: dict, policy) -> dict:
 
 
 def annotate(doc, policy, kinds: dict) -> None:
-	"""Fill each claim line's "What the records show"."""
+	"""Fill each claim line's "Evidence" section."""
 	found = records(doc.employee, [line.work_date for line in doc.lines if line.work_date], kinds, policy)
 	for line in doc.lines:
 		day = found.get(getdate(line.work_date), {"normal": flt(policy.hours_per_day)})

@@ -223,9 +223,9 @@ copy is newer).
 
 **The pre-leave reminder email** goes to each member of staff once per leave
 application:
-- only when their company's **Task Assignment Policy** has *Also Email the
-  Reminder* on, and for the leave types and lengths that policy is about;
-- *Remind Staff to Hand Over (Days Before)* sets how far ahead;
+- only when their company's **Task Assignment Policy** has *Email Reminder*
+  on, and for the leave types and lengths that policy is about;
+- *Reminder Lead Time (Days)* sets how far ahead;
 - no email if a handover already exists for that leave;
 - a company with no policy gets no email; My Desk shows the reminder either way.
 
@@ -345,14 +345,14 @@ The steps:
    is near the company's limit, what fits is added and the rest is shown as not
    added.
 
-**What the records show (1.14.0).** Beside each day, the claim shows the extra
+**Evidence (1.14.0).** Beside each day, the claim shows the extra
 hours that attendance, the clock-in reader and the person's submitted timesheets
 record, and which of them bears the claim out. "Approver only" means none does:
 the supervisor's word is enough, and the form tells the approver they are
 confirming those days themselves. **Fill from Records → Attendance / Timesheets**
 adds the days the records show extra hours on (up to 62 days at a time), leaving
 out days already claimed, paid as overtime or on leave. A company can stop
-showing either record in its Working Time Policy ("What approvers see").
+showing either record in its Working Time Policy ("Evidence" on the Time Off in Lieu tab).
 
 The form says where the claim is, what happens next and what the reader should
 do (Now / Next / Do), worked out for whoever is looking (`toil/stage.py`, drawn
@@ -360,7 +360,7 @@ by `public/js/where_it_is.js`). Once approved, **Apply for Leave** opens a leave
 application for the time off type.
 
 **Authorise first, then confirm the hours (1.15.0).** A company can choose, in
-its policy ("When extra work is agreed"), that staff ask before the extra work:
+its policy ("Authorisation"), that staff ask before the extra work:
 they list the days with the hours planned (future days allowed) and choose
 **Actions → Send for Authorisation**; the approver chooses **Authorise** (or
 returns or rejects it); after the work the person enters the hours actually
@@ -421,27 +421,26 @@ timesheet sent on time would be refused.
 
 ### Timesheets by the week (1.17.0)
 
-A company can say, in its Working Time Policy ("Filling them in"), that each
+A company can say, in its Working Time Policy ("Weekly Timesheets"), that each
 person keeps one timesheet per week, filled in as a week. The Timesheet form
 then shows a grid at the top: a line per piece of work (kind of work, project,
 task, what it was) and a column per day, with each day's total and the person's
 attendance hours underneath; rest days, public holidays and leave are marked on
 the day. **Add a line** adds one; **Copy last week** starts from last week's
 lines. On save the time lines are written from the grid, one piece of work
-after another from the company's "Day starts at", so the form's own time lines
+after another from the company's "Day Start Time", so the form's own time lines
 are read-only and ERPNext's timer is hidden. A second timesheet for the same
 week is refused. Leave and holidays are shown, not written as time lines.
 
-**Checking the week (1.18.0).** Once saved, a weekly timesheet lists under the
+**Weekly Check (1.18.0).** Once saved, a weekly timesheet lists under the
 grid what does not add up: a working day not accounted for (hours plus approved
 leave short of a full day), hours on a day of approved leave, and hours where
 attendance does not show the person present (only for people whose attendance
-is kept). A company chooses ("When a week does not account for the person's
-time") whether these are only pointed out or whether such a week cannot be sent
+is kept). A company chooses ("Unaccounted Time") whether these are only pointed out or whether such a week cannot be sent
 for approval; day by day, so extra hours one day do not make up a short one.
 HR's report **Timesheets Against Attendance and Leave** (Self Service sidebar,
-Setup) shows the same for everyone at a company over up to 62 days, drafts
-included, with "Only days with something to look at".
+Setup: "Timesheet Cross-Check") shows the same for everyone at a company over up to 62 days, drafts
+included, with "Issues Only".
 
 **Claiming time off from a timesheet (1.19.0).** An approved timesheet that
 records extra hours (any hours on a rest day or holiday, or beyond the working
@@ -471,12 +470,12 @@ least half a day banked to use it. There is no hourly time off (decided
 2026-11-09); claims still earn in hours, which add up.
 
 **Unused time lapses claim by claim (1.13.0).** Each approved claim is usable
-until its own date (the company's "days the time off can be used for", counted
+until its own date (the company's "Validity (Days)", counted
 from the last day worked or from approval, and never past the end of the leave
 year). Leave uses the time that lapses soonest first, so nothing lapses that
 could have been used. Leave that starts after the time it would need has lapsed
 is refused with what is usable. Each claim shows its days used, lapsed and left,
-and the **Time Off in Lieu** report (Self Service sidebar, Setup: "Time Off in Lieu Balances") shows each person's
+and the **Time Off in Lieu** report (Self Service sidebar, Setup: "TOIL Balances", TOIL being time off in lieu) shows each person's
 earned, used, lapsed and left, with what lapses in the next 30 days.
 
 Underneath (`toil/lapse.py`, `toil/fifo.py`): Frappe HR's year-end job never
@@ -551,6 +550,16 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-10** — 1.21.0. **Field labels follow the labelling policy**: short Title Case names, with the
+  explanation moved into each field's description. Time off claims and their lines ("Hours Worked",
+  "Hours Credited", "Days Credited", "Evidence"), the Working Time Policy ("Time Off in Lieu",
+  "After-Hours Rate", "Validity (Days)", "Weekly Timesheets", "Unaccounted Time"), handovers ("Handover
+  Notes", "Return Note", "Answer", "Decline Reason", "Acting Approver"), the handover policy, the
+  Employee statutory numbers ("KRA PIN", "SHA No.", "NSSF No."), Timesheet approval ("Approval Status",
+  "Return Reason"), the return and decline dialogs, two report filters and two report columns, and the
+  Self Service sidebar ("TOIL Balances", "Timesheet Cross-Check"). Clearer descriptions for the handover
+  settings and the Employee payment fields. No field, record or option was renamed. Needs `bench migrate`.
 
 - **2026-11-10** — 1.20.1. A brand-new site gets the time off claims workflow, the time off and
   timesheet email templates, and time off claims in the Self Service list when the app is installed,

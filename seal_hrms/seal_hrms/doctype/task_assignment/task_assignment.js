@@ -241,8 +241,8 @@ function ta_buttons(frm) {
 			}
 			frm.add_custom_button(__("Decline: {0}", [label]), () => {
 				frappe.prompt(
-					{ fieldname: "reason", fieldtype: "Small Text", reqd: 1, label: __("Why can you not approve this?"),
-					  description: __("{0} reads this to decide who to ask instead.", [doc.employee_name]) },
+					{ fieldname: "reason", fieldtype: "Small Text", reqd: 1, label: __("Reason"),
+					  description: __("Why you cannot approve this. {0} reads this to decide who to ask instead.", [doc.employee_name]) },
 					(v) => ta_call(frm, "respond_authority", { row: row.name, answer: "Declined", reason: v.reason }),
 					__("Decline"),
 					__("Decline")
@@ -257,8 +257,8 @@ function ta_buttons(frm) {
 		}
 		frm.add_custom_button(__("Decline"), () => {
 			frappe.prompt(
-				{ fieldname: "reason", fieldtype: "Small Text", reqd: 1, label: __("Why can you not cover it?"),
-				  description: __("{0} reads this to decide who to ask instead.", [doc.employee_name]) },
+				{ fieldname: "reason", fieldtype: "Small Text", reqd: 1, label: __("Reason"),
+				  description: __("Why you cannot cover this work. {0} reads this to decide who to ask instead.", [doc.employee_name]) },
 				(v) => ta_call(frm, "respond", { answer: "Declined", reason: v.reason }),
 				__("Decline to Cover"),
 				__("Decline")
@@ -272,10 +272,10 @@ function ta_buttons(frm) {
 			frm.add_custom_button(__("Leave a Note"), () => {
 				frappe.prompt(
 					[
-						{ fieldname: "row", fieldtype: "Select", reqd: 1, label: __("Which Task"),
+						{ fieldname: "row", fieldtype: "Select", reqd: 1, label: __("Task"),
 						  options: mine.map((r) => ({ value: r.name, label: frappe.utils.html2text(r.description || "").slice(0, 80) })) },
-						{ fieldname: "note", fieldtype: "Small Text", reqd: 1, label: __("What You Did"),
-						  description: __("So {0} can pick up where you left off.", [doc.employee_name]) },
+						{ fieldname: "note", fieldtype: "Small Text", reqd: 1, label: __("Note"),
+						  description: __("What you did, so {0} can pick up where you left off.", [doc.employee_name]) },
 					],
 					(v) => ta_call(frm, "add_note", v),
 					__("Leave a Note"),
@@ -285,9 +285,9 @@ function ta_buttons(frm) {
 		}
 		frm.add_custom_button(__("Note for Return"), () => {
 			frappe.prompt(
-				{ fieldname: "note", fieldtype: "Text Editor", reqd: 1, label: __("Note for When They Are Back"),
+				{ fieldname: "note", fieldtype: "Text Editor", reqd: 1, label: __("Return Note"),
 				  default: doc.return_summary || "",
-				  description: __("What you finished, what is waiting, and who called.") },
+				  description: __("For when they are back: what you finished, what is waiting, and who called.") },
 				(v) => ta_call(frm, "leave_return_note", v),
 				__("Note for Return"),
 				__("Save Note")

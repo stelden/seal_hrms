@@ -78,7 +78,7 @@
    "description": "Used to turn hours of extra work into days of time off.",
    "fieldname": "hours_per_day",
    "fieldtype": "Float",
-   "label": "Hours in a normal working day",
+   "label": "Normal Working Day (Hours)",
    "non_negative": 1,
    "reqd": 1
   },
@@ -93,18 +93,18 @@
   },
   {
    "default": "0",
-   "description": "Staff in the grades below claim time off for extra hours worked, and their leave approver approves it.",
+   "description": "Staff can bank extra hours as time off. Staff in the grades below claim time off for extra hours worked, and their leave approver approves it.",
    "fieldname": "toil_enabled",
    "fieldtype": "Check",
    "in_list_view": 1,
-   "label": "Staff can bank extra hours as time off"
+   "label": "Time Off in Lieu"
   },
   {
    "depends_on": "eval:doc.toil_enabled",
-   "description": "Staff take the time off by applying for this leave as usual. Use a type kept for time off in lieu.",
+   "description": "The leave type the time off is added to. Staff take the time off by applying for this leave as usual. Use a type kept for time off in lieu.",
    "fieldname": "leave_type",
    "fieldtype": "Link",
-   "label": "Leave type the time off is added to",
+   "label": "Leave Type",
    "link_filters": "[[\"Leave Type\", \"is_compensatory\", \"=\", 1]]",
    "mandatory_depends_on": "eval:doc.toil_enabled",
    "options": "Leave Type"
@@ -118,46 +118,46 @@
    "description": "Staff in these grades earn time off; everyone else stays on paid overtime. Leave it empty and nobody can claim.",
    "fieldname": "eligible_grades",
    "fieldtype": "Table MultiSelect",
-   "label": "Who banks extra hours",
+   "label": "Eligible Grades",
    "options": "Working Time Policy Grade"
   },
   {
    "default": "Claim afterwards",
    "depends_on": "eval:doc.toil_enabled",
-   "description": "\"Authorise first\": staff ask before the work, the approver agrees, and afterwards they confirm the hours actually worked.",
+   "description": "When extra work is agreed. \"Authorise first\": staff ask before the work, the approver agrees, and afterwards they confirm the hours actually worked.",
    "fieldname": "prior_authorisation",
    "fieldtype": "Select",
-   "label": "When extra work is agreed",
+   "label": "Authorisation",
    "options": "Claim afterwards\nAuthorise first, then confirm the hours"
   },
   {
    "depends_on": "eval:doc.toil_enabled",
    "fieldname": "tb2_sb2",
    "fieldtype": "Section Break",
-   "label": "How extra hours count"
+   "label": "Rates and Limits"
   },
   {
    "default": "1.5",
-   "description": "Starts at 1.5, Kenya's rate for paid overtime on a working day, so time off is worth no less than pay would be. Change it to your own policy.",
+   "description": "Each hour after a normal working day counts as this many hours of time off. Starts at 1.5, Kenya's rate for paid overtime on a working day, so time off is worth no less than pay would be. Change it to your own policy.",
    "fieldname": "after_hours_rate",
    "fieldtype": "Float",
-   "label": "Each hour after a normal working day counts as",
+   "label": "After-Hours Rate",
    "non_negative": 1
   },
   {
    "default": "2",
-   "description": "Starts at 2, Kenya's rate for paid overtime on a rest day. Change it to your own policy.",
+   "description": "Each hour on a rest day counts as this many hours of time off. Starts at 2, Kenya's rate for paid overtime on a rest day. Change it to your own policy.",
    "fieldname": "rest_day_rate",
    "fieldtype": "Float",
-   "label": "Each hour on a rest day counts as",
+   "label": "Rest Day Rate",
    "non_negative": 1
   },
   {
    "default": "2",
-   "description": "Starts at 2, Kenya's rate for paid overtime on a public holiday. Change it to your own policy.",
+   "description": "Each hour on a public holiday counts as this many hours of time off. Starts at 2, Kenya's rate for paid overtime on a public holiday. Change it to your own policy.",
    "fieldname": "public_holiday_rate",
    "fieldtype": "Float",
-   "label": "Each hour on a public holiday counts as",
+   "label": "Public Holiday Rate",
    "non_negative": 1
   },
   {
@@ -166,47 +166,48 @@
   },
   {
    "default": "1",
-   "description": "Shorter extra time on a day is not counted.",
+   "description": "The shortest extra time that counts on a day. Shorter extra time on a day is not counted.",
    "fieldname": "minimum_hours",
    "fieldtype": "Float",
-   "label": "Shortest extra time that counts on a day (hours)",
+   "label": "Daily Minimum (Hours)",
    "non_negative": 1
   },
   {
    "default": "0",
-   "description": "0 means no limit.",
+   "description": "The most extra hours that count on one day. 0 means no limit.",
    "fieldname": "daily_cap",
    "fieldtype": "Float",
-   "label": "Most extra hours that count on one day",
+   "label": "Daily Limit (Hours)",
    "non_negative": 1
   },
   {
    "depends_on": "eval:doc.toil_enabled",
    "fieldname": "tb2_sb3",
    "fieldtype": "Section Break",
-   "label": "When time off lapses"
+   "label": "Time Limits"
   },
   {
    "default": "90",
-   "description": "Unused time off lapses this many days after it was earned.",
+   "description": "How long the time off can be used. Unused time off lapses this many days after it was earned.",
    "fieldname": "validity_days",
    "fieldtype": "Int",
-   "label": "Days the time off can be used for",
+   "label": "Validity (Days)",
    "non_negative": 1
   },
   {
    "default": "The last day worked",
+   "description": "The day the validity is counted from.",
    "fieldname": "lapse_counted_from",
    "fieldtype": "Select",
-   "label": "Count those days from",
+   "label": "Validity Start",
    "options": "The last day worked\nThe day the claim is approved"
   },
   {
    "default": "30",
-   "description": "0 means any time.",
+   "description": "Claims must be sent within this many days of the work. 0 means any time.",
    "fieldname": "claim_within_days",
    "fieldtype": "Int",
-   "label": "Claims must be sent within (days of the work)",
+   "label": "Claim Deadline (Days)",
    "non_negative": 1
   },
   {
@@ -215,24 +216,25 @@
   },
   {
    "default": "10",
-   "description": "Starts at 10 days, so time off is taken rather than saved up. 0 means no limit. A claim that goes over adds what fits and shows the rest as not added.",
+   "description": "The most time off a person can hold. Starts at 10 days, so time off is taken rather than saved up. 0 means no limit. A claim that goes over adds what fits and shows the rest as not added.",
    "fieldname": "balance_cap",
    "fieldtype": "Float",
-   "label": "Most time off a person can hold (days)",
+   "label": "Balance Limit (Days)",
    "non_negative": 1
   },
   {
    "depends_on": "eval:doc.toil_enabled",
+   "description": "What approvers see beside each claim, and what staff can fill a claim from.",
    "fieldname": "tb2_sb4",
    "fieldtype": "Section Break",
-   "label": "What approvers see"
+   "label": "Evidence"
   },
   {
    "default": "1",
    "description": "Show approvers the hours attendance and the clock-in reader record, and let staff fill a claim from them.",
    "fieldname": "evidence_attendance",
    "fieldtype": "Check",
-   "label": "Attendance and clock-ins"
+   "label": "Attendance and Clock-ins"
   },
   {
    "fieldname": "tb2_cb4",
@@ -247,10 +249,10 @@
   },
   {
    "default": "7",
-   "description": "App Health lists claims waiting for a decision longer than this. 0 turns it off.",
+   "description": "Tell HR when a claim waits longer than this many days. App Health lists claims waiting for a decision longer than this. 0 turns it off.",
    "fieldname": "toil_waiting_alert_days",
    "fieldtype": "Int",
-   "label": "Tell HR when a claim waits longer than (days)",
+   "label": "Overdue Claim Alert (Days)",
    "non_negative": 1
   },
   {
@@ -268,15 +270,15 @@
    "description": "Staff send their timesheets to their approver, who approves or returns them. Staff can no longer submit their own.",
    "fieldname": "timesheet_approval",
    "fieldtype": "Check",
-   "label": "Timesheets need approval"
+   "label": "Requires Approval"
   },
   {
    "default": "Leave approver",
    "depends_on": "eval:doc.timesheet_approval",
-   "description": "Line manager is the person's \"Reports To\"; where they have no login, the leave approver approves instead.",
+   "description": "Who approves timesheets. Line manager is the person's \"Reports To\"; where they have no login, the leave approver approves instead.",
    "fieldname": "timesheet_approver",
    "fieldtype": "Select",
-   "label": "Who approves timesheets",
+   "label": "Approver",
    "options": "Leave approver\nLine manager"
   },
   {
@@ -286,29 +288,30 @@
   {
    "default": "7",
    "depends_on": "eval:doc.timesheet_approval",
-   "description": "App Health lists timesheets waiting for approval longer than this. 0 turns it off.",
+   "description": "Tell HR when a timesheet waits longer than this many days. App Health lists timesheets waiting for approval longer than this. 0 turns it off.",
    "fieldname": "timesheet_waiting_alert_days",
    "fieldtype": "Int",
-   "label": "Tell HR when a timesheet waits longer than (days)",
+   "label": "Overdue Timesheet Alert (Days)",
    "non_negative": 1
   },
   {
    "fieldname": "tb3_sb2",
    "fieldtype": "Section Break",
-   "label": "Filling them in"
+   "label": "Entry"
   },
   {
    "default": "0",
-   "description": "Staff enter hours in a grid, a line per piece of work and a column per day; the form shows their leave, holidays and attendance.",
+   "description": "One timesheet per person per week, filled in as a week. Staff enter hours in a grid, a line per piece of work and a column per day; the form shows their leave, holidays and attendance.",
    "fieldname": "weekly_timesheets",
    "fieldtype": "Check",
-   "label": "One timesheet per person per week, filled in as a week"
+   "label": "Weekly Timesheets"
   },
   {
    "depends_on": "eval:doc.weekly_timesheets",
+   "description": "The kind of work a new line starts with.",
    "fieldname": "default_activity_type",
    "fieldtype": "Link",
-   "label": "Kind of work a new line starts with",
+   "label": "Default Activity Type",
    "options": "Activity Type"
   },
   {
@@ -321,26 +324,26 @@
    "description": "Each day's hours are recorded from this time, one piece of work after another.",
    "fieldname": "day_starts_at",
    "fieldtype": "Time",
-   "label": "Day starts at"
+   "label": "Day Start Time"
   },
   {
    "depends_on": "eval:doc.weekly_timesheets",
    "fieldname": "tb3_sb3",
    "fieldtype": "Section Break",
-   "label": "Checking the week"
+   "label": "Weekly Check"
   },
   {
    "default": "Point out gaps",
-   "description": "A week accounts for the time when each working day's hours plus approved leave make a full day. Refusing also stops hours on a full day of leave.",
+   "description": "What happens when a week does not account for the person's time. A week accounts for the time when each working day's hours plus approved leave make a full day. Refusing also stops hours on a full day of leave.",
    "fieldname": "effort_rule",
    "fieldtype": "Select",
-   "label": "When a week does not account for the person's time",
+   "label": "Unaccounted Time",
    "options": "Point out gaps\nRefuse to send a week that is not accounted for"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-10 03:30:00.000000",
+ "modified": "2026-11-10 00:20:58.967896",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Working Time Policy",

@@ -519,7 +519,7 @@
    "idx": 33,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Time Off in Lieu Balances",
+   "label": "TOIL Balances",
    "link_to": "Time Off in Lieu",
    "link_type": "Report",
    "parentfield": "items",
@@ -535,7 +535,7 @@
    "idx": 34,
    "indent": 0,
    "keep_closed": 0,
-   "label": "Timesheets Against Attendance and Leave",
+   "label": "Timesheet Cross-Check",
    "link_to": "Timesheets Against Attendance and Leave",
    "link_type": "Report",
    "parentfield": "items",
@@ -544,7 +544,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-11-10 01:30:00.000000",
+ "modified": "2026-11-10 02:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Self Service",

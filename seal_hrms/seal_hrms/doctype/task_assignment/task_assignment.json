@@ -135,7 +135,7 @@
   {
    "fieldname": "return_date",
    "fieldtype": "Date",
-   "label": "Back At Work",
+   "label": "Return Date",
    "read_only": 1,
    "no_copy": 1,
    "description": "The first working day after the leave. Whatever is still open comes back to you that morning."
@@ -203,7 +203,7 @@
   {
    "fieldname": "acceptance",
    "fieldtype": "Select",
-   "label": "Stand-in's Answer",
+   "label": "Answer",
    "options": "\nPending\nAccepted\nDeclined",
    "read_only": 1,
    "no_copy": 1,
@@ -213,7 +213,8 @@
   {
    "fieldname": "decline_reason",
    "fieldtype": "Small Text",
-   "label": "Why They Declined",
+   "label": "Decline Reason",
+   "description": "What the stand-in said when they declined.",
    "read_only": 1,
    "no_copy": 1,
    "allow_on_submit": 1,
@@ -226,9 +227,9 @@
   {
    "fieldname": "task_description",
    "fieldtype": "Text Editor",
-   "label": "What Your Stand-in Needs to Know",
+   "label": "Handover Notes",
    "reqd": 1,
-   "description": "What has to be covered, in enough detail for someone who does not do this job."
+   "description": "What your stand-in needs to know: what has to be covered, in enough detail for someone who does not do this job."
   },
   {
    "fieldname": "tb2",
@@ -273,7 +274,7 @@
   {
    "fieldname": "return_summary",
    "fieldtype": "Text Editor",
-   "label": "Note for When You Are Back",
+   "label": "Return Note",
    "read_only": 1,
    "no_copy": 1,
    "allow_on_submit": 1,
@@ -307,7 +308,8 @@
   {
    "fieldname": "return_reminder_sent",
    "fieldtype": "Check",
-   "label": "Stand-in Reminded to Write Their Note",
+   "label": "Reminder Sent",
+   "description": "Set once the stand-in has been reminded to write their return note.",
    "read_only": 1,
    "no_copy": 1,
    "hidden": 1
@@ -331,7 +333,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-30 11:59:19.459271",
+ "modified": "2026-11-10 00:20:58.967896",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Task Assignment",

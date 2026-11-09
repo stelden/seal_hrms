@@ -27,7 +27,7 @@ def _columns():
 		{"label": _("Away"), "fieldname": "employee_name", "fieldtype": "Data", "width": 170},
 		{"label": _("Department"), "fieldname": "department", "fieldtype": "Link", "options": "Department", "width": 150},
 		{"label": _("From"), "fieldname": "leave_from", "fieldtype": "Date", "width": 100},
-		{"label": _("Back"), "fieldname": "return_date", "fieldtype": "Date", "width": 100},
+		{"label": _("Return Date"), "fieldname": "return_date", "fieldtype": "Date", "width": 100},
 		{"label": _("Stand-in"), "fieldname": "task_assignee_name", "fieldtype": "Data", "width": 170},
 		{"label": _("Others Covering"), "fieldname": "others", "fieldtype": "Data", "width": 200},
 		{"label": _("Tasks"), "fieldname": "tasks", "fieldtype": "Int", "width": 70},

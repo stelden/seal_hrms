@@ -18,7 +18,7 @@ and these flags:
     short           a working day not accounted for
     extra           hours on a rest day or holiday, or beyond the working day (time off in lieu, maybe)
 
-A company chooses (policy "Checking the week") whether gaps are only pointed out
+A company chooses (policy "Unaccounted Time") whether gaps are only pointed out
 or whether a week with a working day not accounted for, or with hours on a full
 day of leave, cannot be sent for approval. Day by day: extra hours on one day do
 not make up a short one. No tolerance (decision D10, recommended, `[unsupervised — review]`).
