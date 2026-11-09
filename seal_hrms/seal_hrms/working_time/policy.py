@@ -33,6 +33,9 @@ DEFAULTS = {
 	"evidence_timesheets": 1,
 	"prior_authorisation": CLAIM_AFTERWARDS,
 	"toil_waiting_alert_days": 7,
+	"timesheet_approval": 0,
+	"timesheet_approver": "Leave approver",
+	"timesheet_waiting_alert_days": 7,
 }
 
 

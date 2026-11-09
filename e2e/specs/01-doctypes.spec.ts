@@ -25,8 +25,9 @@ const LISTABLE = [
  "Task Assignment Policy",
  "Working Time Policy",
  "Time Off in Lieu Claim",
- // Not ours, but it carries our form script (Prepare Handover / cover indicator).
- "Leave Application"
+ // Not ours, but they carry our form scripts (Prepare Handover / cover indicator; approval).
+ "Leave Application",
+ "Timesheet"
 ];
 
 /** Singles have no list view — `/app/<single>` lands straight on the form. */

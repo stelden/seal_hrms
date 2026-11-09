@@ -16,7 +16,7 @@ import unittest
 
 import frappe
 
-PACKAGES = ("toil", "working_time")
+PACKAGES = ("toil", "working_time", "timesheets")
 GUARDS = {"require_self_or_hr", "require_decider", "require_can_see_time"}
 
 

@@ -49,6 +49,30 @@ def my_employee() -> str | None:
 	return employee_for_user(frappe.session.user)
 
 
+#: What a member of staff may read about their own Employee record from a form.
+OWN_FIELDS = ("name", "company", "employee_name", "department")
+
+
+@frappe.whitelist()
+def my_employee_fields(fields: str | list | None = None) -> dict:
+	"""The session user's own Employee record, the fields in OWN_FIELDS only.
+
+	For forms that look the person up by login, which Frappe refuses for staff
+	(Employee.user_id sits at a permission level they cannot read): ERPNext's new
+	Timesheet does this on load. Answers for the caller's own record only, and
+	only the harmless fields; anything else is refused.
+	"""
+	if isinstance(fields, str):
+		fields = frappe.parse_json(fields) if fields.startswith("[") else [fields]
+	fields = list(fields or ["name"])
+	if any(f not in OWN_FIELDS for f in fields):
+		frappe.throw(frappe._("Only {0} can be read this way.").format(", ".join(OWN_FIELDS)), frappe.PermissionError)
+	me = employee_for_user(frappe.session.user)
+	if not me:
+		return {}
+	return frappe.db.get_value("Employee", me, fields, as_dict=True) or {}
+
+
 def can_prepare_for(employee: str, user: str | None = None) -> bool:
 	"""Whether `user` may prepare or change a handover for `employee`."""
 	user = user or frappe.session.user

@@ -347,3 +347,119 @@ def time_off_claims_waiting():
 		state=State.STALE,
 		link="/app/time-off-in-lieu-claim?status=Waiting%20for%20Approval",
 	)
+
+
+# ---------------------------------------------------------------- timesheet approval (1.16.0)
+
+
+def _approval_companies() -> list[str]:
+	if not frappe.db.table_exists(POLICY):
+		return []
+	return frappe.get_all(POLICY, filters={"timesheet_approval": 1}, pluck="company")
+
+
+@health_check(label="Timesheets: approvers", category="Data", forms=FORMS)
+def timesheets_have_approvers():
+	"""Staff whose timesheets need approval, with nobody to approve them."""
+	from seal_hrms.seal_hrms.timesheets.approval import approver_for
+
+	companies = _approval_companies()
+	if not companies:
+		return []
+	staff = frappe.get_all(
+		"Employee", filters={"company": ["in", companies], "status": "Active"}, fields=["name", "company"]
+	)
+	stranded = sum(1 for person in staff if not approver_for(person.name, person.company))
+	if not stranded:
+		return []
+	return Finding(
+		severity=Severity.DEGRADED,
+		title=_("Some staff cannot send their timesheets: nobody approves them"),
+		detail=_(
+			"Give them a leave approver (or a line manager with a login, where the line manager approves)."
+		),
+		count=stranded,
+		total=len(staff),
+		state=State.MISCONFIGURED,
+		link="/app/employee",
+	)
+
+
+@health_check(label="Timesheets: waiting", category="Data", forms=FORMS)
+def timesheets_waiting():
+	"""Timesheets waiting for approval longer than the company allows."""
+	from frappe.utils import add_days, now_datetime
+
+	if not frappe.db.table_exists(POLICY) or not frappe.get_meta("Timesheet").has_field(
+		"custom_approval_state"
+	):
+		return []
+	stuck = total = 0
+	for policy in frappe.get_all(
+		POLICY, filters={"timesheet_approval": 1}, fields=["company", "timesheet_waiting_alert_days"]
+	):
+		waiting = [
+			["company", "=", policy.company],
+			["docstatus", "=", 0],
+			["custom_approval_state", "=", "Waiting for Approval"],
+		]
+		total += frappe.db.count("Timesheet", waiting)
+		if policy.timesheet_waiting_alert_days:
+			stuck += frappe.db.count(
+				"Timesheet",
+				[
+					*waiting,
+					["custom_sent_on", "is", "set"],
+					[
+						"custom_sent_on",
+						"<",
+						add_days(now_datetime(), -int(policy.timesheet_waiting_alert_days)),
+					],
+				],
+			)
+	if not stuck:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("Some timesheets have waited a long time for approval"),
+		detail=_("The approver may be away with nobody standing in."),
+		count=stuck,
+		total=total,
+		state=State.STALE,
+		link="/app/timesheet?custom_approval_state=Waiting%20for%20Approval",
+	)
+
+
+@health_check(label="Timesheets: deadline and approval", category="Configuration", forms=FORMS)
+def timesheet_cutoff_with_approval():
+	"""A submission deadline on timesheets judges the approver's approval, not the person's sending.
+
+	The deadline (seal_common's Document Submission Cutoff) checks the moment of
+	submitting, and with approval that is when the approver approves, so a
+	timesheet sent on time is refused if approved late. Until the deadline can
+	count from when it was sent (an add-only seal_common change, decision D11),
+	a company should not use both. `[unsupervised — review]`
+	"""
+	if not frappe.db.exists("DocType", "Document Submission Cutoff"):
+		return []
+	companies = _approval_companies()
+	if not companies:
+		return []
+	clashing = frappe.get_all(
+		"Document Submission Cutoff",
+		filters={"document_type": "Timesheet", "company": ["in", companies], "enabled": 1},
+		pluck="company",
+	)
+	if not clashing:
+		return []
+	return Finding(
+		severity=Severity.DEGRADED,
+		title=_("A timesheet deadline is on where timesheets need approval"),
+		detail=_(
+			"The deadline is checked when the approver approves, so timesheets sent on time can be refused. "
+			"Turn the deadline off for: {0}."
+		).format(", ".join(clashing)),
+		count=len(clashing),
+		state=State.MISCONFIGURED,
+		link="/app/document-submission-cutoff",
+	)

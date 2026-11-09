@@ -59,6 +59,12 @@ def self_service(user: str, readable=None) -> list[Figure]:
 		Figure("advances_to_settle", _("Advances to settle"), "Employee Advance", [mine, ["docstatus", "=", 1], ["status", "in", ["Paid", "Partially Paid"]]]),
 		Figure("timesheets_draft", _("Timesheets in draft"), "Timesheet", [mine, ["docstatus", "=", 0]]),
 		Figure(
+			"timesheets_waiting",
+			_("Timesheets waiting for approval"),
+			"Timesheet",
+			[mine, ["docstatus", "=", 0], ["custom_approval_state", "=", "Waiting for Approval"]],
+		),
+		Figure(
 			"toil_in_approval",
 			_("Time off claims waiting for a decision"),
 			"Time Off in Lieu Claim",
@@ -69,6 +75,9 @@ def self_service(user: str, readable=None) -> list[Figure]:
 	for fig in figures:
 		if not frappe.db.exists("DocType", fig.doctype) or (readable is not None and fig.doctype not in readable):
 			continue
+		meta = frappe.get_meta(fig.doctype)
+		if any(f[0] != "docstatus" and not meta.has_field(f[0]) for f in fig.filters):
+			continue  # a field another release adds, not on this site yet
 		rows = frappe.get_list(fig.doctype, filters=fig.filters, fields=[{"COUNT": "*", "as": "n"}], order_by=None)
 		fig.count = int(rows[0].n or 0) if rows else 0
 		out.append(fig)

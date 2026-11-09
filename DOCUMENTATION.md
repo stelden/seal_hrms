@@ -377,6 +377,32 @@ so HR's rewording stays. My Desk has a "Time off in lieu waiting for you" list
 lapsing within 14 days), and Self Service counts claims waiting for a decision.
 The claim's Approval tab draws its process map.
 
+### Timesheet approval (1.16.0)
+
+A company can say, in its Working Time Policy ("Timesheets" tab), that
+timesheets need approval. Then a person's timesheet is submitted only by
+approving it: they (or HR) click **Send for Approval**; their approver opens it
+from My Desk ("Timesheets waiting for you") or the email, and clicks **Approve**
+(which submits it) or **Return** with what to change. Staff can no longer submit
+or cancel their own; nobody approves their own, HR included. The approver is the
+person's leave approver, or their line manager ("Reports To") where the company
+chooses it (the leave approver steps in when the line manager has no login).
+Someone covering an approver's leave approves in their place (handover line
+"Approving timesheets", also covered by a Head of Department's line). Where the
+company does not ask for approval, the Timesheet form is exactly as ERPNext
+ships it.
+
+Also fixed for staff on every site: opening **New Timesheet** raised a
+Permission Error, because ERPNext looks the person up by their login and this
+app keeps the login field at a level staff cannot read. The form now gets the
+person's own record through `task_assignment_access.my_employee_fields`
+(own record, harmless fields only).
+
+App Health reports staff with nobody to approve their timesheets, timesheets
+waiting too long, and a timesheet submission deadline (SEAL Common) left on
+where approval is on: the deadline is checked when the approver approves, so a
+timesheet sent on time would be refused.
+
 Rules a claim must meet: the person's grade banks hours and they are not paid
 by the hour; each date once, not in the future, at least the smallest claim;
 not a day of approved leave, not already claimed, and **not paid as overtime**:
@@ -436,6 +462,7 @@ Request still works from its own list for other leave types.
 cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright test
 # 03-time-off-in-lieu.spec.ts walks a claim in two logins (Otieno sends, Achieng approves); it seeds
 # with _toil_fixtures.browser_set_up and puts everything back in browser_tear_down.
+# 04-timesheet-approval.spec.ts does the same for a timesheet (Otieno sends, Achieng approves).
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
@@ -455,6 +482,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_toil_fifo
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_lapse
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_evidence
 bench --site dev.local run-tests --module seal_hrms.tests.test_toil_authorise_first
+bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_approval
 ```
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -471,6 +499,11 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-09** — 1.16.0. **Timesheet approval**, per company: staff send, their approver (leave
+  approver or line manager) approves or returns; approving submits; staff no longer submit or
+  cancel their own. Stand-ins and Heads of Department approve in an approver's place. My Desk list,
+  emails, a Self Service count and three health checks. **Fixed:** staff opening New Timesheet met
+  a Permission Error. Needs `bench migrate` and a restart.
 - **2026-11-09** — 1.15.0. **Authorise first, then confirm the hours**, per company: staff ask
   before the extra work, the approver authorises, and afterwards the hours worked are confirmed
   and approved. **Emails** at each step (HR-editable templates, created once), a **My Desk** list

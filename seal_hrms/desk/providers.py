@@ -63,3 +63,17 @@ def time_rows(ctx):
 		meta = " · ".join(p for p in (w.subtitle, w.due or "") if p)
 		rows.append(ListRow(title=w.title, meta=meta, target=Target("URL", w.route, w.route, None, True)))
 	return rows
+
+
+def timesheet_rows(ctx):
+	"""Timesheets waiting on the person looking: to approve, or returned to them."""
+	from seal_desk.role_center.routes import Target
+	from seal_desk.role_center.schema import ListRow
+
+	from seal_hrms.seal_hrms.timesheets.work import work_for
+
+	rows = []
+	for w in work_for(ctx.user):
+		meta = " · ".join(p for p in (w.subtitle, w.due or "") if p)
+		rows.append(ListRow(title=w.title, meta=meta, target=Target("URL", w.route, w.route, None, True)))
+	return rows

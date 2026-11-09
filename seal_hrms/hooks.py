@@ -76,6 +76,7 @@ after_migrate = [
     "seal_hrms.seal_hrms.working_time.user_type.allow_claims_for_self_service",
     # Time off in lieu emails HR can reword: created once, never overwritten (§1.18).
     "seal_hrms.seal_hrms.toil.notifications.ensure_templates",
+    "seal_hrms.seal_hrms.timesheets.notifications.ensure_templates",
 ]
 
 # include js, css files in header of web template
@@ -101,6 +102,8 @@ doctype_js = {
     "Company": "public/js/company.js",
     "Employee": "public/js/employee.js",
     "Leave Application": "public/js/leave_application.js",
+    # Approval banner and buttons, where the company asks for timesheet approval.
+    "Timesheet": "public/js/timesheet.js",
     "ToDo": "public/js/todo.js",
 }
 
@@ -251,6 +254,15 @@ doc_events = {
     "Leave Allocation": {
         "validate": "seal_hrms.seal_hrms.toil.guards.allocation",
         "before_cancel": "seal_hrms.seal_hrms.toil.guards.allocation_cancel",
+    },
+    # Timesheet approval (timesheets/approval.py): stock wherever the company does not ask for it.
+    "Timesheet": {
+        "onload": "seal_hrms.seal_hrms.timesheets.approval.onload",
+        "validate": "seal_hrms.seal_hrms.timesheets.approval.validate",
+        "on_update": "seal_hrms.seal_hrms.timesheets.approval.on_update",
+        "before_submit": "seal_hrms.seal_hrms.timesheets.approval.before_submit",
+        "on_submit": "seal_hrms.seal_hrms.timesheets.approval.on_submit",
+        "before_cancel": "seal_hrms.seal_hrms.timesheets.approval.before_cancel",
     },
     "Leave Ledger Entry": {
         "validate": "seal_hrms.seal_hrms.toil.guards.ledger_row",
@@ -403,6 +415,9 @@ app_health_checks = [
     "seal_hrms.health.working_time.time_off_not_from_claims",
     "seal_hrms.health.working_time.time_off_has_next_leave_year",
     "seal_hrms.health.working_time.time_off_claims_waiting",
+    "seal_hrms.health.working_time.timesheets_have_approvers",
+    "seal_hrms.health.working_time.timesheets_waiting",
+    "seal_hrms.health.working_time.timesheet_cutoff_with_approval",
 ]
 
 # ---------------------------------------------------------------------------
@@ -437,6 +452,13 @@ seal_desk_cue_groups = [
         "provider": "seal_hrms.desk.providers.time_rows",
         "watch": ["Time Off in Lieu Claim"],
     },
+    {
+        "key": "seal_hrms.timesheet_work",
+        "label": "Timesheets waiting for you",
+        "renders_as": "list",
+        "provider": "seal_hrms.desk.providers.timesheet_rows",
+        "watch": ["Timesheet"],
+    },
 ]
 
 # seal_common draws it on the form (§3.16).
@@ -461,6 +483,11 @@ task_assignment_authorities = {
         "holds": "seal_hrms.seal_hrms.toil.access.holds_toil_approval",
         "pending": "seal_hrms.seal_hrms.toil.access.pending_toil_approvals",
     },
+    "timesheet_approval": {
+        "label": "Approving timesheets",
+        "holds": "seal_hrms.seal_hrms.timesheets.approval.holds_timesheet_approval",
+        "pending": "seal_hrms.seal_hrms.timesheets.approval.pending_timesheet_approvals",
+    },
     "expense_approval": {
         "label": "Approving expense claims",
         "role": "Expense Approver",
@@ -474,7 +501,7 @@ task_assignment_authorities = {
         "roles": ["Leave Approver", "Expense Approver"],
         "holds": "seal_hrms.seal_hrms.acting.holds_head_of_department",
         "pending": "seal_hrms.seal_hrms.acting.pending_head_of_department",
-        "covers": ["leave_approval", "expense_approval", "toil_approval"],
+        "covers": ["leave_approval", "expense_approval", "toil_approval", "timesheet_approval"],
     },
 }
 

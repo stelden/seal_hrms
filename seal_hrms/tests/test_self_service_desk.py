@@ -61,7 +61,7 @@ class TestSelfServiceFigures(IntegrationTestCase):
 
 	def test_a_doctype_the_person_cannot_read_is_left_out(self):
 		figures, _asked = self.counted(self.user, readable={"Timesheet"})
-		self.assertEqual([f.key for f in figures], ["timesheets_draft"])
+		self.assertEqual([f.key for f in figures], ["timesheets_draft", "timesheets_waiting"])
 
 	def test_each_figure_opens_a_list_with_exactly_its_conditions(self):
 		figures, _asked = self.counted(self.user)

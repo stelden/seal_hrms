@@ -182,7 +182,7 @@ def claim(employee: str, lines: list[tuple[str, float]], as_user: str | None = N
 # ---------------------------------------------------------------- browser walks
 
 
-def browser_set_up(password_otieno: str, password_achieng: str) -> dict:
+def browser_set_up(password_otieno: str, password_achieng: str, **rules) -> dict:
 	"""Seed a committed browser walk; returns what `browser_tear_down` needs to put things back."""
 	from frappe.utils.password import update_password
 
@@ -192,8 +192,13 @@ def browser_set_up(password_otieno: str, password_achieng: str) -> dict:
 	)
 	had_policy = frappe.db.exists("Working Time Policy", COMPANY)
 	ensure_leave_period()
+	started = str(frappe.utils.now_datetime())
 	set_up_otieno()
-	policy()
+	policy(**rules)
+	if rules.get("timesheet_approval") and not frappe.db.exists("Activity Type", "Community Outreach"):
+		activity = frappe.new_doc("Activity Type")
+		activity.activity_type = "Community Outreach"
+		activity.insert(ignore_permissions=True)
 	for key, password in (("otieno", password_otieno), ("achieng", password_achieng)):
 		user = frappe.get_doc("User", fx.email(key))
 		user.user_type = "System User"
@@ -206,6 +211,8 @@ def browser_set_up(password_otieno: str, password_achieng: str) -> dict:
 		"original": original,
 		"had_policy": bool(had_policy),
 		"rest_day": rest_day(),
+		"working_day": working_day(),
+		"started": started,
 	}
 
 
@@ -232,6 +239,13 @@ def browser_tear_down(seed: dict) -> None:
 		):
 			frappe.db.set_value("Holiday List Assignment", name, "docstatus", 2)
 			frappe.delete_doc("Holiday List Assignment", name, force=1, ignore_permissions=True)
+	for name in frappe.get_all(
+		"Timesheet",
+		filters=[["employee", "=", employee], ["creation", ">=", seed.get("started") or "2999-01-01"]],
+		pluck="name",
+	):
+		frappe.db.set_value("Timesheet", name, "docstatus", 2)
+		frappe.delete_doc("Timesheet", name, force=1, ignore_permissions=True)
 	if not seed.get("had_policy") and frappe.db.exists("Working Time Policy", COMPANY):
 		frappe.delete_doc("Working Time Policy", COMPANY, force=1, ignore_permissions=True)
 	original = seed["original"]
