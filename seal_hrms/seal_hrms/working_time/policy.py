@@ -16,19 +16,21 @@ DAY_APPROVED = "The day the claim is approved"
 CLAIM_AFTERWARDS = "Claim afterwards"
 AUTHORISE_FIRST = "Authorise first, then confirm the hours"
 
+#: What a new policy starts with (decisions D2 and D3, 2026-11-10). The doctype's field defaults
+#: carry the same numbers, so HR sees them on a new policy and can change any of them.
 DEFAULTS = {
 	"hours_per_day": 8.0,
 	"toil_enabled": 0,
 	"leave_type": None,
-	"after_hours_rate": 1.0,
-	"rest_day_rate": 1.0,
-	"public_holiday_rate": 1.0,
+	"after_hours_rate": 1.5,
+	"rest_day_rate": 2.0,
+	"public_holiday_rate": 2.0,
 	"minimum_hours": 1.0,
 	"daily_cap": 0.0,
 	"validity_days": 90,
 	"lapse_counted_from": LAST_DAY_WORKED,
 	"claim_within_days": 30,
-	"balance_cap": 0.0,
+	"balance_cap": 10.0,
 	"evidence_attendance": 1,
 	"evidence_timesheets": 1,
 	"prior_authorisation": CLAIM_AFTERWARDS,

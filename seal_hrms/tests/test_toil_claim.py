@@ -318,3 +318,35 @@ class TestHealthChecks(ToilTestCase):
 
 		for check in (wt.time_off_has_a_leave_type, wt.time_off_has_a_leave_period, wt.time_off_has_grades):
 			self.assertIn("Working Time Policy", check.health_forms)
+
+
+class TestPolicyStartsWithSensibleValues(ToilTestCase):
+	"""A company's new policy starts from these (D2, D3); HR changes them on the form."""
+
+	EXPECTED = {
+		"after_hours_rate": 1.5,
+		"rest_day_rate": 2.0,
+		"public_holiday_rate": 2.0,
+		"minimum_hours": 1.0,
+		"daily_cap": 0.0,
+		"validity_days": 90,
+		"lapse_counted_from": "The last day worked",
+		"claim_within_days": 30,
+		"balance_cap": 10.0,
+	}
+
+	def test_a_new_policy_form_starts_with_them(self):
+		doc = frappe.new_doc("Working Time Policy")
+		self.assertEqual({k: doc.get(k) for k in self.EXPECTED}, self.EXPECTED)
+
+	def test_the_code_reads_the_same_numbers(self):
+		from seal_hrms.seal_hrms.working_time.policy import DEFAULTS
+
+		self.assertEqual({k: DEFAULTS[k] for k in self.EXPECTED}, self.EXPECTED)
+
+	def test_hr_can_change_them(self):
+		tf.policy(after_hours_rate=1.0, balance_cap=5)
+		from seal_hrms.seal_hrms.working_time.policy import policy_for
+
+		policy = policy_for(tf.COMPANY)
+		self.assertEqual((policy.after_hours_rate, policy.balance_cap), (1.0, 5))

@@ -137,22 +137,24 @@
    "label": "How extra hours count"
   },
   {
-   "default": "1",
-   "description": "1 means an hour for an hour; 1.5 means an hour and a half.",
+   "default": "1.5",
+   "description": "Starts at 1.5, Kenya's rate for paid overtime on a working day, so time off is worth no less than pay would be. Change it to your own policy.",
    "fieldname": "after_hours_rate",
    "fieldtype": "Float",
    "label": "Each hour after a normal working day counts as",
    "non_negative": 1
   },
   {
-   "default": "1",
+   "default": "2",
+   "description": "Starts at 2, Kenya's rate for paid overtime on a rest day. Change it to your own policy.",
    "fieldname": "rest_day_rate",
    "fieldtype": "Float",
    "label": "Each hour on a rest day counts as",
    "non_negative": 1
   },
   {
-   "default": "1",
+   "default": "2",
+   "description": "Starts at 2, Kenya's rate for paid overtime on a public holiday. Change it to your own policy.",
    "fieldname": "public_holiday_rate",
    "fieldtype": "Float",
    "label": "Each hour on a public holiday counts as",
@@ -164,6 +166,7 @@
   },
   {
    "default": "1",
+   "description": "Shorter extra time on a day is not counted.",
    "fieldname": "minimum_hours",
    "fieldtype": "Float",
    "label": "Shortest extra time that counts on a day (hours)",
@@ -211,8 +214,8 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "0",
-   "description": "0 means no limit. A claim that goes over adds what fits, and shows the rest as not added.",
+   "default": "10",
+   "description": "Starts at 10 days, so time off is taken rather than saved up. 0 means no limit. A claim that goes over adds what fits and shows the rest as not added.",
    "fieldname": "balance_cap",
    "fieldtype": "Float",
    "label": "Most time off a person can hold (days)",
@@ -337,7 +340,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-10 01:30:00.000000",
+ "modified": "2026-11-10 03:30:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Working Time Policy",

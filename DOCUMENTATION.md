@@ -536,6 +536,11 @@ leaves a blank form and no server-side trace.
 
 ## 7. Changelog
 
+- **2026-11-10** — 1.19.1. A new Working Time Policy starts with sensible values (decisions D2,
+  D3): an extra hour counts 1.5 on a working day and 2 on a rest day or public holiday (Kenya's
+  paid-overtime rates, so time off is worth no less than pay), at least 1 hour a day, no daily cap,
+  usable for 90 days from the last day worked, claims sent within 30 days, at most 10 days held.
+  HR changes any of them on the policy form. Needs `bench migrate`.
 - **2026-11-10** — 1.19.0. **Claim time off from a timesheet**: an approved timesheet's extra
   hours become a new time off claim, a line per day linked to the timesheet. Completes the
   working-time programme (time off in lieu and timesheets, 1.12.0 to 1.19.0). Needs
