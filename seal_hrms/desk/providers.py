@@ -200,3 +200,17 @@ def headlines(ctx):
 		Headline(payload=h.text, emphasize=list(h.emphasize or []), route=Target("URL", h.route, h.route, None, True))
 		for h in figures.headlines(ctx.user, ctx.today)
 	]
+
+
+def team_away_rows(ctx):
+	"""Who's Away This Week: the viewer's team's leave this week, as far as they may read it."""
+	from seal_desk.role_center.routes import Target
+	from seal_desk.role_center.schema import ListRow
+
+	from seal_hrms.seal_hrms.line_manager import away_rows
+
+	out = []
+	for r in away_rows(ctx.user, ctx.today, ctx.company):  # seal_desk D143: the chosen company
+		target = Target("Form", f"{r.doctype}::{r.name}", ["Form", r.doctype, r.name], None, True) if r.name else None
+		out.append(ListRow(title=r.title, meta=r.meta, target=target))
+	return out

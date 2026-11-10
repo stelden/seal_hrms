@@ -1,0 +1,138 @@
+{
+ "actions": [
+  {
+   "area": "Menu",
+   "label": "My Team",
+   "name": "m01lmact001",
+   "route_type": "List",
+   "target": "Employee",
+   "menu_group": "Team",
+   "filters": "[[\"reports_to\", \"=\", \"@employee\"]]"
+  },
+  {
+   "area": "Menu",
+   "label": "Leave Applications",
+   "name": "m01lmact002",
+   "route_type": "List",
+   "target": "Leave Application",
+   "menu_group": "Team"
+  },
+  {
+   "area": "Menu",
+   "label": "Expense Claims",
+   "name": "m01lmact003",
+   "route_type": "List",
+   "target": "Expense Claim",
+   "menu_group": "Team"
+  },
+  {
+   "area": "Menu",
+   "label": "Timesheets",
+   "name": "m01lmact004",
+   "route_type": "List",
+   "target": "Timesheet",
+   "menu_group": "Team"
+  },
+  {
+   "area": "Menu",
+   "label": "Time Off in Lieu Claims",
+   "name": "m01lmact005",
+   "route_type": "List",
+   "target": "Time Off in Lieu Claim",
+   "menu_group": "Team"
+  },
+  {
+   "area": "Menu",
+   "label": "Leave Handovers",
+   "name": "m01lmact006",
+   "route_type": "List",
+   "target": "Task Assignment",
+   "menu_group": "Team"
+  },
+  {
+   "area": "Bar",
+   "label": "Leaves",
+   "name": "m01lmact007",
+   "route_type": "Workspace",
+   "target": "Leaves"
+  },
+  {
+   "area": "Bar",
+   "label": "Self Service",
+   "name": "m01lmact008",
+   "route_type": "Workspace",
+   "target": "Self Service"
+  }
+ ],
+ "banner_cta_route_type": "",
+ "banner_enabled": 0,
+ "checklist": [],
+ "creation": "2026-11-11 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Desk Page",
+ "icon": "users",
+ "idx": 0,
+ "include_app_headlines": 1,
+ "is_fallback": 0,
+ "is_standard": 1,
+ "items": [
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01lmitm001",
+   "widget": "seal-desk-approvals",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01lmitm002",
+   "widget": "seal-hrms-team-away",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01lmitm003",
+   "widget": "seal-hrms-cover",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01lmitm004",
+   "widget": "seal-hrms-timesheet-work",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01lmitm005",
+   "widget": "seal-hrms-time-off-work",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01lmitm006",
+   "widget": "seal-desk-my-tasks",
+   "widget_type": "Standard Group"
+  }
+ ],
+ "modified": "2026-11-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "line-manager",
+ "owner": "Administrator",
+ "page_key": "line-manager",
+ "personalization": "Full",
+ "priority": 40,
+ "published_by": null,
+ "published_json": null,
+ "published_on": null,
+ "published_version": 0,
+ "role_profiles": [],
+ "roles": [],
+ "status": "Draft",
+ "title": "Line Manager"
+}

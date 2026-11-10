@@ -305,6 +305,26 @@ stays the one adapter (SEAL_DEV_RULES §3.15).
   week's timesheet not sent (weekly timesheets with approval on).
 - **Employee Self-Service page** gains Balances, Cover, Time Off Work, Timesheet Work, the actions
   Time Off in Lieu Claim, Payout Change Request and My Details, and a three-step checklist.
+- **Line Manager page** (1.26.0, Keith 2026-11-11; HR_ON_MY_DESK §2.6): the standard page `line-manager`
+  (Approvals, Who's Away This Week, Cover, Timesheets Waiting, Time Off Waiting, My Tasks; menu "Team":
+  My Team (`reports_to = @employee`), leave applications, expense claims, timesheets, time off claims,
+  handovers; bar: Leaves, Self Service). New group `seal_hrms.team_away` (Desk Widget
+  `seal-hrms-team-away`): the team's leave this week (Monday to Sunday, Open or Approved) read with
+  `frappe.get_list` as the viewer, following the chosen company. Team = direct reports and their direct
+  reports (`line_manager.team`). Audience: the **Line Manager** role (no permissions, no desk access;
+  created once by patch `v1_26.create_line_manager_role`, and by `after_sync` on a new site, SEAL_DEV_RULES §1.23:
+  no existing role fits),
+  granted to enabled System Users whose Active Employee has Active direct reports and kept in step on
+  Employee `on_update`/`after_delete`, User `on_update` (a Role Profile rebuild drops it) and daily
+  (`line_manager.sync_all`, also after migrate). Removed only where this code granted it (a ledger of
+  `DefaultValue` rows under parent `seal_hrms:line_manager_role`), never when a Role Profile carries
+  it. The page is offered to the role once (`offer_page`: a `Desk Page Role` row, only if the page has
+  no audience and was never published); publishing stays the Desk Manager's. Explanation for Keith:
+  `dev_notes/seal_hrms/LINE_MANAGER_PAGE.md`.
+- **Phone app health** (1.26.0): App Health check "Phone app for staff" warns "Staff cannot get the
+  phone app: install My Desk" where seal_desk is not installed. A deployment rule, not a dependency
+  (Keith, 2026-11-11): seal_desk goes on every site where staff should have the app; seal_hrms never
+  requires or imports it.
 - **Notification Log beside every email** (`seal_hrms/notify.py`): handover, time off, timesheet and
   payout change emails add an Alert-type log (subject only) for the recipient, so the bell and the
   phone push carry it. Never raises.
@@ -603,13 +623,20 @@ Waiting for HR, Approved, Rejected, Withdrawn) move only through `send`, `approv
   (`seal_hrms/step_up.py`, guarded import); one waiting request per employee; a bank change needs bank,
   number, account name sharing at least two of the employee's name words, and evidence; a mobile
   number must be Kenyan. The current details are copied into Previous Details. The old number gets a
-  text (seal_common channels, else Frappe's SMS, after commit), the old address an email, HR Managers
-  an email and a bell line.
+  text (seal_common channels, else Frappe's SMS, after commit), the old address an email, and the HR
+  Managers of the employee's company an email and a bell line (1.26.0, Keith 2026-11-11): an HR Manager
+  with Company User Permissions only for the companies they hold; one with none (Frappe does not
+  restrict them) for every company (`payout_change._hr_managers`, P4-14).
 - **Approve** (HR Manager, not the employee nor whoever raised it; fresh check): Effective From today
   or later. Bank: a new Bank Account for the employee becomes the default and the salary account, the
   old one is kept with its default cleared; mobile: the employee's own Contact's primary mobile and
   `cell_number`. Saved through the ORM, so the Employee guards run. A later date is applied by the
   daily `apply_due`. **Reject** needs a reason; the employee is told either way.
+- **Governance** (1.26.0, P4-7, Keith 2026-11-11): HR's approval IS the governed change. Where
+  seal_governance is installed, `apply` writes the Bank Account, Contact and Employee under its
+  `mdc_bypass()` (SEAL_DEV_RULES §3.11b; imported inside the function, never at module level, so sites
+  without seal_governance run as before) and adds an Info comment on the Employee naming the request and
+  the approver. A direct edit of the same details still needs a governance request.
 - **Permissions**: staff create and read their own (`has_permission` + query conditions); HR User
   reads; HR Manager and System Manager read and write. App Health: requests waiting more than three
   working days; no fresh check available.
@@ -663,6 +690,8 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_toil_cl
 bench --site dev.local run-tests --module seal_hrms.tests.test_my_desk_approvals
 bench --site dev.local run-tests --module seal_hrms.tests.test_my_desk_figures
 bench --site dev.local run-tests --module seal_hrms.tests.test_payout_change_request
+bench --site dev.local run-tests --module seal_hrms.tests.test_line_manager
+bench --site dev.local run-tests --module seal_hrms.tests.test_phone_app_health
 bench --site dev.local run-tests --module seal_hrms.tests.test_notification_logs
 ```
 
@@ -683,6 +712,12 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-11** — 1.26.0. **Keith's answers to the phone app's open decisions**: approving a payout change is the
+  governed change under seal_governance (`mdc_bypass`, with a comment on the Employee); payout notices go to the HR
+  Managers of the employee's company; the Line Manager desk page, its role kept in step with who has direct reports,
+  and "Who's Away This Week"; App Health warns where staff cannot get the phone app (no My Desk). Needs migrate (the
+  role, the Desk Widget and page files) and a web restart.
 
 - **2026-11-11** — 1.25.0. **Push and drafts on the phone** (phase P6 of the My Desk phone app): the `hr` notification
   kind and its classifier, safe locked-screen text for pay and medical-leave notices, drafts of long forms kept on

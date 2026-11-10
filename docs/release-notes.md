@@ -11,6 +11,13 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.26.0 (2026-11-11)
+
+- **New:** a **Line Manager** page for My Desk: approvals, who in your team is away this week, cover, timesheets and time off waiting for you, and quick links to your team's records. It goes to everyone with people reporting to them; see [Line Manager page](self-service/line-manager.md).
+- **Changed:** a new payout change request is sent only to HR Managers who look after the employee's company.
+- **Changed:** where your site controls changes to staff records, an HR Manager's approval of a payout change is that control: the change is applied, and the employee record notes which request made it and who approved it.
+- **New:** App Health says when staff cannot get the My Desk phone app because My Desk is not installed.
+
 ## 1.25.0 (2026-11-11)
 
 - **New:** on the phone, a timesheet week, an expense claim and a leave application you started are kept on the phone until you send them; see [My HR on the phone](self-service/my-hr-on-the-phone.md).

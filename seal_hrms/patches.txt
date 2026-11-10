@@ -12,3 +12,4 @@ seal_hrms.patches.v1_8.backfill_employee_payout_details
 seal_hrms.patches.v1_9.rebuild_employee_payee_model
 seal_hrms.patches.v1_10.restore_todo_assigned_by_optional
 seal_hrms.patches.v1_11.return_stranded_task_assignments
+seal_hrms.patches.v1_26.create_line_manager_role

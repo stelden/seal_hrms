@@ -26,7 +26,7 @@ Rewording an email or changing who takes a step needs no change to the system. R
 | **Time Off in Lieu - ...** | Time off claims: asked to authorise, asked to approve, authorised, approved, returned, rejected. |
 | **Timesheet - ...** | Timesheets: asked to approve, approved, returned. |
 
-Each of these emails also puts its subject on the person's bell, so My Desk on the phone can tell them too. Payout change requests send their own fixed emails and bell lines: see [Payout Change Request](../self-service/payout-change-request.md).
+Each of these emails also puts its subject on the person's bell, so My Desk on the phone can tell them too. Payout change requests send their own fixed emails and bell lines, to the employee and to the HR Managers who look after the employee's company: see [Payout Change Request](../self-service/payout-change-request.md).
 
 The time off and timesheet templates are created once and then left alone, so your wording stays.
 

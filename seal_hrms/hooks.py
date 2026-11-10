@@ -101,10 +101,15 @@ _SITE_SETUP = [
     "seal_hrms.seal_hrms.timesheets.notifications.ensure_templates",
     # The Frappe Workflow that moves time off claims: created once, then the site's (toil/workflow.py).
     "seal_hrms.seal_hrms.toil.workflow.ensure_workflow",
+    # The Line Manager role kept on everyone with direct reports; the shipped Line Manager page
+    # offered to it once (line_manager.py, Keith 2026-11-11). The role itself comes from a patch
+    # (v1_26.create_line_manager_role) and, on a new site, from after_sync below (§1.23).
+    "seal_hrms.seal_hrms.line_manager.sync_all",
 ]
 
 after_install = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
-after_sync = list(_SITE_SETUP)
+# A new site marks every patch as run, so the Line Manager role is created here too, before its sync.
+after_sync = ["seal_hrms.seal_hrms.line_manager.ensure_role", *_SITE_SETUP]
 after_migrate = ["seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels", *_SITE_SETUP]
 
 # include js, css files in header of web template
@@ -239,14 +244,21 @@ doc_events = {
         # The Contact must belong to the employee's own User, and the Bank
         # Account to this employee — both guard against paying the wrong person.
         "validate": "seal_hrms.seal_hrms.overrides.employee.validate",
+        # The Line Manager role follows who has direct reports (line_manager.py).
+        "on_update": "seal_hrms.seal_hrms.line_manager.on_employee_update",
+        "after_delete": "seal_hrms.seal_hrms.line_manager.on_employee_delete",
     },
     "Leave Type": {
         # custom_min_leave_days must not exceed max_leaves_allowed.
         "validate": "seal_hrms.seal_hrms.overrides.leave_type.validate",
     },
-    # A role profile rebuilds a User's roles on save; keep what a handover granted.
+    # A role profile rebuilds a User's roles on save; keep what a handover granted, and the
+    # Line Manager role of someone with direct reports.
     "User": {
-        "on_update": "seal_hrms.seal_hrms.acting.keep_granted_roles",
+        "on_update": [
+            "seal_hrms.seal_hrms.acting.keep_granted_roles",
+            "seal_hrms.seal_hrms.line_manager.on_user_update",
+        ],
     },
     "Leave Application": {
         # Posting-date and minimum-notice rules; the handover policy at approval;
@@ -349,6 +361,8 @@ scheduler_events = {
 		"seal_hrms.seal_hrms.toil.lapse.daily",
 		# Approved payout changes whose Effective From has come (payout_change.py).
 		"seal_hrms.seal_hrms.payout_change.apply_due",
+		# The Line Manager role follows who has direct reports; the page is offered once (line_manager.py).
+		"seal_hrms.seal_hrms.line_manager.sync_all",
 	],
 	# What came to wait on someone on leave reaches whoever approves for them.
 	"hourly": [
@@ -463,6 +477,8 @@ app_health_checks = [
     # Payout change requests: shown on the request's form as well (health/my_desk.py).
     "seal_hrms.health.my_desk.payout_changes_waiting",
     "seal_hrms.health.my_desk.payout_change_without_fresh_check",
+    # Staff get the My Desk phone app only where seal_desk is installed (Keith, 2026-11-11).
+    "seal_hrms.health.my_desk.phone_app_needs_my_desk",
 ]
 
 # ---------------------------------------------------------------------------
@@ -519,6 +535,14 @@ seal_desk_cue_groups = [
         "renders_as": "list",
         "provider": "seal_hrms.desk.providers.cover_rows",
         "watch": ["Task Assignment"],
+    },
+    # A line manager's team on leave this week, as far as they may read it (§2.6, line_manager.py).
+    {
+        "key": "seal_hrms.team_away",
+        "label": "Who's away this week",
+        "renders_as": "list",
+        "provider": "seal_hrms.desk.providers.team_away_rows",
+        "watch": ["Leave Application", "Employee"],
     },
     # HR's own figures: payout changes to confirm (§2.7).
     {

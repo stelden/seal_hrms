@@ -28,6 +28,7 @@ Leave, expense claims, time off and timesheets are approved by a named person, n
 | **Cover** | Who is covering your work and until when, whose work you are covering, and whose approvals you give. |
 | **Time off in lieu waiting for you**, **Timesheets waiting for you** | Claims and timesheets to decide or put right. |
 | **HR work** | For HR Managers: payout changes to confirm. |
+| **Who's Away This Week** | For managers: their team's leave this week, as far as they may open it. |
 | Headlines | At most three, only when true: that you are approving for someone; time off in lieu lapsing within two weeks; last week's timesheet not sent, where your company keeps weekly timesheets with approval. |
 
 Approving from My Desk does exactly what the form does: the same people may decide, a refusal needs a reason, and nobody decides their own. Approving an expense claim from the phone asks you to confirm it is you first. Where your site runs its own workflow on leave or expense claims, that workflow's steps show instead.
@@ -38,4 +39,4 @@ The **Employee Self-Service** page shipped with SEAL HRMS now carries Balances, 
 
 ## Where you see it
 
-My Desk, on the desk and on the phone. An admin can place **Balances**, **Cover**, **Time off in lieu waiting for you**, **Timesheets waiting for you** and **HR work** on any desk page. See [Payout Change Request](payout-change-request.md). Your own HR on the phone is [My HR on the phone](my-hr-on-the-phone.md).
+My Desk, on the desk and on the phone. Managers get their own page: see [Line Manager page](line-manager.md). An admin can place **Balances**, **Cover**, **Time off in lieu waiting for you**, **Timesheets waiting for you** and **HR work** on any desk page. See [Payout Change Request](payout-change-request.md). Your own HR on the phone is [My HR on the phone](my-hr-on-the-phone.md).

@@ -19,8 +19,9 @@ checks its caller first (§2.15). Approval puts the details on the Employee thro
 the same rules as the Employee form: the Bank Account must be this employee's
 (`overrides.employee`), the Contact must be their own User's (`api`).
 
-Decisions taken without Keith are P4-3 to P4-7 and P4-10 in
-`dev_notes/seal_hrms/MY_DESK_P4_PLAN.md` §9.
+Decisions taken without Keith are P4-3 to P4-6 and P4-14 in `dev_notes/seal_hrms/DESIGN.md`;
+Keith decided P4-7 (approval is the governed change) and P4-10 (HR Managers of the
+employee's company are told) on 2026-11-11.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ from contextlib import contextmanager
 
 import frappe
 from frappe import _
-from frappe.utils import add_days, get_url_to_form, getdate, now_datetime, today
+from frappe.utils import add_days, get_link_to_form, get_url_to_form, getdate, now_datetime, today
 
 from seal_hrms.seal_hrms import notify, step_up
 from seal_hrms.seal_hrms.handover import user_for_employee
@@ -274,11 +275,23 @@ def _check_complete(doc) -> None:
 		frappe.throw(_("Choose what is changing: a bank account or a mobile money number."))
 
 
-def _hr_managers(exclude: set[str]) -> list[str]:
-	"""Everyone who can decide (P4-10): enabled desk users holding HR Manager."""
+def _hr_managers(company: str | None, exclude: set[str]) -> list[str]:
+	"""Who is told of a new request: enabled desk users holding HR Manager who may see the
+	employee's company (Keith, 2026-11-11, replacing P4-10's "every HR Manager on the site").
+
+	Company access is by User Permission alone (bench rule): an HR Manager with Company
+	User Permissions is told only about those companies. One with none is not restricted
+	by Frappe and can open every company's requests, so is told of all of them (P4-14).
+	"""
 	users = frappe.get_all("Has Role", filters={"role": DECIDER_ROLE, "parenttype": "User"}, pluck="parent")
 	enabled = frappe.get_all("User", filters={"name": ["in", users or [""]], "enabled": 1, "user_type": "System User"}, pluck="name")
-	return [u for u in enabled if u not in exclude and u != "Administrator"]
+	return [u for u in enabled if u not in exclude and u != "Administrator" and _sees_company(u, company)]
+
+
+def _sees_company(user: str, company: str | None) -> bool:
+	"""Whether `user` may see `company` by their Company User Permissions (none = every company)."""
+	allowed = {p.get("doc") for p in frappe.permissions.get_user_permissions(user).get("Company", [])}
+	return not allowed or not company or company in allowed
 
 
 def _old_addresses(employee: str) -> list[str]:
@@ -312,7 +325,8 @@ def _tell_on_send(doc) -> None:
 	_mail(_old_addresses(doc.employee), _("A change to where your pay goes was requested"), f"<p>{_(NOTICE)}</p>", doc)
 	link = get_url_to_form(DOCTYPE, doc.name)
 	subject = _("Payout change to confirm for {0}").format(doc.employee_name)
-	managers = _hr_managers({frappe.session.user, user_for_employee(doc.employee) or ""})
+	company = frappe.db.get_value("Employee", doc.employee, "company") or doc.get("company")
+	managers = _hr_managers(company, {frappe.session.user, user_for_employee(doc.employee) or ""})
 	_mail(
 		managers,
 		subject,
@@ -418,20 +432,56 @@ def apply(doc) -> None:
 	salary account; the old one is kept, only no longer the default. Mobile: the
 	employee's own Contact gets the number as its primary mobile, and `cell_number`
 	follows. The Employee is saved through the ORM, so its guards run.
+
+	HR's approval IS the governed change (P4-7, Keith 2026-11-11): where seal_governance
+	guards Employee, Bank Account or Contact, these writes run under its `mdc_bypass()`
+	(SEAL_DEV_RULES §3.11b), and a comment on the Employee names the request and who
+	approved it. A direct edit of the same details still needs a governance request.
 	"""
 	if doc.applied_on:
 		return
-	employee = frappe.get_doc("Employee", doc.employee)
-	if doc.change == BANK:
-		account = _new_bank_account(doc, employee)
-		employee.custom_salary_bank_account = account
-		employee.save(ignore_permissions=True)  # the caller checked: an HR Manager, not the requester
-		doc.new_bank_account = account
-	else:
-		_set_mobile(doc, employee)
+	with _governed_change():
+		employee = frappe.get_doc("Employee", doc.employee)
+		if doc.change == BANK:
+			account = _new_bank_account(doc, employee)
+			employee.custom_salary_bank_account = account
+			employee.save(ignore_permissions=True)  # the caller checked: an HR Manager, not the requester
+			doc.new_bank_account = account
+		else:
+			_set_mobile(doc, employee)
 	doc.applied_on = now_datetime()
 	doc.db_set({"applied_on": doc.applied_on, "new_bank_account": doc.new_bank_account}, update_modified=False)
 	doc.add_comment("Info", _("The new payout details are on {0}'s employee record.").format(doc.employee_name))
+	employee.add_comment("Info", _audit_note(doc))
+
+
+def _audit_note(doc) -> str:
+	"""What the Employee's timeline says: which request changed where pay goes, and who approved it."""
+	approver = frappe.utils.get_fullname(doc.decided_by) if doc.decided_by else _("an HR Manager")
+	what = _("bank account") if doc.change == BANK else _("mobile money number")
+	return _("Payout {0} changed by Payout Change Request {1}, approved by {2} ({3}).").format(
+		what, get_link_to_form(DOCTYPE, doc.name), frappe.utils.escape_html(approver), doc.decided_by or ""
+	)
+
+
+@contextmanager
+def _governed_change():
+	"""Run the apply under seal_governance's `mdc_bypass()` where that app is installed.
+
+	seal_governance is optional for seal_hrms: imported here, never at module level, and
+	a site without it (or an older one without the context manager) runs the block as is.
+	"""
+	bypass = None
+	if "seal_governance" in frappe.get_installed_apps():
+		try:
+			from seal_governance.data_governance.change_request_utils import mdc_bypass as bypass
+		except ImportError:
+			bypass = None
+	if bypass is None:
+		yield
+		return
+	with bypass():
+		yield
 
 
 def _new_bank_account(doc, employee) -> str:

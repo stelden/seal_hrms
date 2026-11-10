@@ -54,6 +54,12 @@ class PayoutChangeTestCase(ToilTestCase):
 			p = patch(target, side_effect=lambda *a, _r=record, **k: _r.append({**k, "args": a}))
 			p.start()
 			self.addCleanup(p.stop)
+		# The session counts as freshly checked, whichever seal_common is on the path (the site's has
+		# no step-up; a later worktree's does). Tests about the check patch `_recent` themselves.
+		verified = SimpleNamespace(is_recent=lambda minutes: True, VerificationNeeded=frappe.PermissionError)
+		p = patch("seal_hrms.seal_hrms.step_up._recent", return_value=verified)
+		p.start()
+		self.addCleanup(p.stop)
 		self.addCleanup(frappe.clear_cache, user=self.hr_user)
 		if not frappe.db.exists("Bank", BANK):
 			frappe.get_doc({"doctype": "Bank", "bank_name": BANK}).insert(ignore_permissions=True)
@@ -262,6 +268,113 @@ class TestDeciding(PayoutChangeTestCase):
 		figure = fx.as_user(self.hr_user, pc.waiting_figure, self.hr_user)
 		self.assertGreaterEqual(figure.value, 1)
 		self.assertIsNone(pc.waiting_figure(self.njeri_user))
+
+
+GOVERNANCE = "seal_governance.data_governance.change_request_utils"
+
+
+class TestGovernance(PayoutChangeTestCase):
+	"""P4-7 (Keith, 2026-11-11): HR's approval is the governed change.
+
+	seal_governance's guard stands down in tests (`in_test` is one of its bootstrap flags), so
+	these switch it on for Employee, Bank Account and Contact, whole record, nobody holding the
+	override role: what a site that governs its staff records sees.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		if "seal_governance" not in frappe.get_installed_apps():
+			self.skipTest("seal_governance is not installed on this site")
+		governed = frozenset({"Employee", "Bank Account", "Contact"})
+		for name, value in (
+			("_in_bootstrap_context", False),
+			("_governed_doctypes", governed),
+			("is_lockdown_enforced", True),
+			("get_lockdown_scope", "Whole document"),
+			("user_has_override_role", False),
+		):
+			p = patch(f"{GOVERNANCE}.{name}", return_value=value)
+			p.start()
+			self.addCleanup(p.stop)
+
+	def test_a_direct_edit_is_still_refused(self):
+		emp = frappe.get_doc("Employee", self.otieno)
+		emp.custom_salary_bank_account = None
+		with self.assertRaises(frappe.ValidationError) as caught:
+			emp.save(ignore_permissions=True)
+		self.assertIn("cannot be changed here", str(caught.exception))
+
+	def test_approval_applies_under_governance_and_leaves_a_trail(self):
+		doc = self._sent()
+		fx.as_user(self.hr_user, pc.approve, doc.name)
+		doc.reload()
+		self.assertTrue(doc.applied_on, "the approved change reached the employee record")
+		self.assertEqual(frappe.db.get_value("Employee", self.otieno, "custom_salary_bank_account"), doc.new_bank_account)
+		notes = frappe.get_all(
+			"Comment",
+			filters={"reference_doctype": "Employee", "reference_name": self.otieno, "comment_type": "Info"},
+			pluck="content",
+		)
+		trail = [n for n in notes if doc.name in n]
+		self.assertEqual(len(trail), 1, notes)
+		self.assertIn("Halima Abdi", trail[0])
+
+	def test_the_bypass_ends_with_the_approval(self):
+		doc = self._sent()
+		fx.as_user(self.hr_user, pc.approve, doc.name)
+		self.assertFalse(frappe.flags.get("mdc_bypass"))
+		emp = frappe.get_doc("Employee", self.otieno)
+		emp.custom_salary_bank_account = self.old_account
+		with self.assertRaises(frappe.ValidationError):
+			emp.save(ignore_permissions=True)
+
+
+class TestWhoIsTold(PayoutChangeTestCase):
+	"""P4-10 (Keith, 2026-11-11): HR Managers of the employee's company only (User Permission)."""
+
+	OTHER = "_Test Company 1"
+	PEOPLE = {
+		"wambui.kariuki@kilimani-office.co.ke": ("Wambui", "Kariuki"),  # Otieno's company
+		"baraka.mutua@kilimani-office.co.ke": ("Baraka", "Mutua"),  # the other company only
+	}
+
+	def setUp(self):
+		super().setUp()
+		if not frappe.db.exists("Company", self.OTHER):
+			self.skipTest(f"{self.OTHER} is not on this site")
+		self.home = frappe.db.get_value("Employee", self.otieno, "company")
+		for email, (first, last) in self.PEOPLE.items():
+			if not frappe.db.exists("User", email):
+				user = frappe.new_doc("User")
+				user.update({"email": email, "first_name": first, "last_name": last, "send_welcome_email": 0})
+				user.insert(ignore_permissions=True)
+			frappe.get_doc("User", email).add_roles("HR Manager")
+			self.addCleanup(frappe.clear_cache, user=email)
+		self.wambui, self.baraka = list(self.PEOPLE)
+		self._grant(self.wambui, self.home)
+		self._grant(self.baraka, self.OTHER)
+
+	def _grant(self, user, company):
+		perm = frappe.new_doc("User Permission")
+		perm.update({"user": user, "allow": "Company", "for_value": company, "apply_to_all_doctypes": 1})
+		perm.insert(ignore_permissions=True)
+		self.addCleanup(frappe.cache.hdel, "user_permissions", user)
+
+	def test_only_hr_managers_who_see_the_company_are_told(self):
+		doc = self._sent()
+		told = set(frappe.get_all("Notification Log", filters={"document_name": doc.name}, pluck="for_user"))
+		self.assertIn(self.wambui, told)
+		self.assertNotIn(self.baraka, told)
+		mailed = {r for m in self.sent_mail for r in (m.get("recipients") or [])}
+		self.assertIn(self.wambui, mailed)
+		self.assertNotIn(self.baraka, mailed)
+
+	def test_an_hr_manager_without_company_permissions_is_told(self):
+		# Halima has no Company User Permission: Frappe does not restrict her, so she is told (P4-14).
+		doc = self._sent()
+		self.assertTrue(frappe.db.exists("Notification Log", {"document_name": doc.name, "for_user": self.hr_user}))
+		self.assertEqual(pc._hr_managers(self.OTHER, set()).count(self.wambui), 0)
+		self.assertIn(self.baraka, pc._hr_managers(self.OTHER, set()))
 
 
 class TestHealth(PayoutChangeTestCase):
