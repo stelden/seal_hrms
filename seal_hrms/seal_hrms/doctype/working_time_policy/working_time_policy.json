@@ -4,6 +4,7 @@
  "creation": "2026-11-09 16:00:00.000000",
  "description": "Per company: the working day, and how extra hours are banked as time off.",
  "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/setup/working-time-policy",
  "engine": "InnoDB",
  "field_order": [
   "tb1",

@@ -4,6 +4,7 @@
  "creation": "2026-11-09 16:00:00.000000",
  "description": "Extra hours a member of staff worked, sent to their leave approver to be added to their time off.",
  "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/claim-time-off-in-lieu",
  "engine": "InnoDB",
  "field_order": [
   "tb1",

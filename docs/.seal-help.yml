@@ -1,0 +1,14 @@
+app: seal_hrms
+space_route: hrms
+base_url: https://docs.stelden.com
+portal_routes: null
+guide:
+  label: SEAL HRMS User Guide
+  page: index
+exclude:
+  doctypes:
+    SEAL HRMS Settings: >-
+      holds only the banner picture My HR used to show; My HR now greets each person instead,
+      so nothing on this form changes what anyone sees
+  reports: {}
+  portal: {}

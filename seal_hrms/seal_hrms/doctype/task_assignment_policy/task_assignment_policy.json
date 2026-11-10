@@ -3,6 +3,7 @@
  "autoname": "field:company",
  "creation": "2026-09-30 11:36:03.917640",
  "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/setup/handover-policy",
  "engine": "InnoDB",
  "field_order": [
   "sb1",

@@ -5,6 +5,7 @@
  "creation": "2023-08-21 23:34:56.560691",
  "default_view": "List",
  "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/employee-details",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

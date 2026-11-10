@@ -5,6 +5,7 @@
  "creation": "2025-05-25 13:43:17.604240",
  "description": "Employee Dependent and Beneficiary",
  "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/employee-details",
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
