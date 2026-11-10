@@ -81,6 +81,9 @@ def _send(recipient: str | None, template: str, doc) -> None:
 	subject, message = render(
 		template, context, frappe.render_template(subject, context), frappe.render_template(body, context)
 	)
+	from seal_hrms.seal_hrms import notify
+
+	notify.log(recipient, subject, doc.doctype, doc.name)
 	try:
 		frappe.sendmail(
 			recipients=[recipient],

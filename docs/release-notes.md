@@ -11,6 +11,14 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.23.0 (2026-11-10)
+
+- **New:** on My Desk, leave, expense claims, time off claims and timesheets waiting for you (or for someone you approve for) show under **Waiting for my approval** and can be approved there; see [SEAL HRMS on My Desk](self-service/my-desk.md).
+- **New:** **Balances**, **Cover** and **HR work** for desk pages, and up to three HR headlines.
+- **New:** [Payout Change Request](self-service/payout-change-request.md): staff ask to be paid into a new account or number; HR confirms it first, and the old number and address are told.
+- **Changed:** HR's emails also put a line on the person's bell.
+- **Changed:** the **Employee Self-Service** page adds Balances, Cover, Time off in lieu, Timesheets, new actions and three first steps.
+
 ## 1.22.0 (2026-11-10)
 
 - **New:** this user guide: **SEAL HRMS User Guide** in the desk's Help menu, and a link to the right page in the Help menu of each form and report SEAL HRMS adds or changes.

@@ -18,3 +18,4 @@ Staff open **My HR** on the Apps screen, which opens the **Self Service** page. 
 - [Set up SEAL HRMS](set-up.md)
 - [Roles and permissions](roles.md)
 - [Emails and the time off workflow](emails-and-workflow.md)
+- [SEAL HRMS on My Desk](../self-service/my-desk.md)

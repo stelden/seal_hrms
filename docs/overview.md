@@ -23,6 +23,8 @@ At Mwangaza Foods Ltd, Peter Otieno applies for two weeks' leave and hands his o
 - [Claim time off in lieu](self-service/time-off-in-lieu-claim.md) for extra hours.
 - Keep [timesheets](self-service/timesheets.md) by the week, with approval.
 - Record [employee details](self-service/employee-details.md): statutory numbers, payment details and [dependants](self-service/employee-dependent-and-beneficiary.md).
+- Ask to [change where your pay goes](self-service/payout-change-request.md); HR confirms it first.
+- Approve leave, claims and timesheets from [My Desk](self-service/my-desk.md), where your site has it.
 - Run the [payroll reports](payroll-reports/index.md) and statutory returns.
 
 ## Who uses it

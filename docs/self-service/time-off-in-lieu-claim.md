@@ -72,7 +72,7 @@ The approver is the person's leave approver (on their employee record, or their 
 2. Check each day. Under **Evidence**, each row shows the extra hours attendance, clock-ins and timesheets record, and the **Supporting Record**. **Approver only** means no record shows those hours and you are confirming them yourself.
 3. Click **Actions**, then **Approve**, **Authorise**, **Return** or **Reject**. **Return** and **Reject** ask for a reason first.
 
-Approvers do not change hours: return the claim and say what to change. The person is emailed after each decision.
+Approvers do not change hours: return the claim and say what to change. The person is emailed after each decision, and sees it on their bell. Where your site has My Desk, approvers can also decide from **Waiting for my approval**.
 
 ## After you submit
 

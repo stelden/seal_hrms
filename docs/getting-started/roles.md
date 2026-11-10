@@ -21,11 +21,13 @@ An approver who is not the person's leave approver cannot decide their claim, an
 
 | Role | What they can do |
 |:---|:---|
-| **Employee** or **Employee Self Service** | Prepare their own handover, claim time off in lieu, send their timesheets for approval. |
+| **Employee** or **Employee Self Service** | Prepare their own handover, claim time off in lieu, send their timesheets for approval, ask to change where their pay goes. |
 | Named stand-in | Read the handover that names them, accept or decline it, and leave notes while covering. |
 | **Leave Approver** | Decide time off claims and read the handovers for leave they approve; approve timesheets where the company says so. |
 | **HR User** | See and change every handover and claim; read the policies and the HR reports. |
-| **HR Manager** | As **HR User**, and create and change the Task Assignment Policy and the Working Time Policy. |
+| **HR Manager** | As **HR User**, and create and change the Task Assignment Policy and the Working Time Policy; approve or reject [payout change requests](../self-service/payout-change-request.md), except their own. |
+
+An HR officer who is also an employee is, by Frappe HR's default, limited to records linked to their own employee record: turn off **Create User Permission** on their employee record so they can decide other people's requests.
 
 Someone covering for an approver during their leave can decide in their place. See [Cover for a colleague](../self-service/cover-for-a-colleague.md).
 

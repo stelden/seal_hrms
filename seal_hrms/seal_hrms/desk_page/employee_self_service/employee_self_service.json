@@ -41,6 +41,14 @@
    "target": "Salary Slip"
   },
   {
+   "area": "Menu",
+   "label": "My Details",
+   "menu_group": "My records",
+   "name": "m01mydet001",
+   "route_type": "List",
+   "target": "Employee"
+  },
+  {
    "area": "Bar",
    "label": "Self Service",
    "name": "m00rkp969r",
@@ -81,11 +89,53 @@
    "name": "m00s9v7462",
    "route_type": "New Form",
    "target": "Timesheet"
+  },
+  {
+   "area": "New",
+   "label": "Time Off in Lieu Claim",
+   "name": "m01newtoil1",
+   "route_type": "New Form",
+   "target": "Time Off in Lieu Claim"
+  },
+  {
+   "area": "New",
+   "label": "Payout Change Request",
+   "name": "m01newpcr01",
+   "route_type": "New Form",
+   "target": "Payout Change Request"
   }
  ],
  "banner_cta_route_type": "",
  "banner_enabled": 0,
- "checklist": [],
+ "checklist": [
+  {
+   "kind": "URL",
+   "name": "m01chk00001",
+   "short_title": "Get the App",
+   "title": "Get My Desk on your phone",
+   "target": "/my-desk/get",
+   "estimated_minutes": 2,
+   "description": "Install My Desk on your phone to apply for leave, approve requests and see your pay wherever you are."
+  },
+  {
+   "kind": "URL",
+   "name": "m01chk00002",
+   "short_title": "Turn On Fingerprint Sign-in",
+   "title": "Sign in with your fingerprint or face",
+   "target": "/my-desk/settings",
+   "estimated_minutes": 1,
+   "description": "Sign in on your phone with a fingerprint or face instead of a code, and confirm approvals the same way."
+  },
+  {
+   "kind": "List",
+   "name": "m01chk00003",
+   "short_title": "Check Your Payout Details",
+   "title": "Check where your pay goes",
+   "target": "Employee",
+   "estimated_minutes": 2,
+   "description": "Make sure your bank account and mobile number are right. If they have changed, ask HR with a Payout Change Request."
+  }
+ ],
  "creation": "2026-10-02 04:28:44.810342",
  "docstatus": 0,
  "doctype": "Desk Page",
@@ -100,6 +150,13 @@
    "locked": 0,
    "name": "m00vl25gdg",
    "widget": "seal-hrms-self-service",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01balanc01",
+   "widget": "seal-hrms-balances",
    "widget_type": "Standard Group"
   },
   {
@@ -126,12 +183,33 @@
   {
    "full_width": 0,
    "locked": 0,
+   "name": "m01cover001",
+   "widget": "seal-hrms-cover",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01toilwk01",
+   "widget": "seal-hrms-time-off-work",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
+   "name": "m01tswork01",
+   "widget": "seal-hrms-timesheet-work",
+   "widget_type": "Standard Group"
+  },
+  {
+   "full_width": 0,
+   "locked": 0,
    "name": "m005g3a8f7",
    "widget": "seal-desk-report-inbox",
    "widget_type": "Standard Group"
   }
  ],
- "modified": "2026-10-02 04:28:44.810342",
+ "modified": "2026-11-10 12:00:10.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "employee-self-service",

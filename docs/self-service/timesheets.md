@@ -55,7 +55,7 @@ If it is returned, the **Return Reason** says what to change. Correct it and cli
 
 ### Approve or return a timesheet
 
-1. Open the timesheet from the email, or from **Timesheets waiting for you** on My Desk.
+1. Open the timesheet from the email or your bell, or from **Timesheets waiting for you** on My Desk. Where your site has My Desk, you can also approve or return it from **Waiting for my approval**.
 2. Click **Approve**, which submits it, or **Return** and enter the **Return Reason**.
 
 The person is emailed either way. Someone covering for the approver during their leave can decide in their place, and so can HR. Nobody approves their own timesheet. Once approved, staff cannot cancel their own timesheet; their approver or HR can.

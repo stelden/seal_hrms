@@ -280,6 +280,35 @@ from the browser. Staff may not filter Employee on `user_id` client-side, and
 the browser suite found every non-HR stand-in getting a permission error
 instead of an Accept button.
 
+### HR on My Desk: approvals, balances, cover, headlines (1.23.0)
+
+Design: `dev_notes/seal_desk/pwa/HR_ON_MY_DESK.md` §2 (phase P4); build plan and the choices
+made without Keith: `dev_notes/seal_hrms/MY_DESK_P4_PLAN.md`. Answers live in
+`seal_hrms/my_desk/` as plain records (no seal_desk import); `seal_hrms/desk/providers.py`
+stays the one adapter (SEAL_DEV_RULES §3.15).
+
+- **Approval sources** (`seal_desk_approval_sources`, seal_desk ≥ the P3 release): `seal_hrms.leave`
+  (Leave Application by leave approver), `seal_hrms.expense` (Expense Claim by expense approver;
+  Approve asks for a fresh check), `seal_hrms.toil` (Time Off in Lieu Claim, the workflow steps open to
+  the person), `seal_hrms.timesheets` (Timesheet approval where on). Each lists what waits for the
+  person and for anyone whose approvals they hold now (`acting.acting_for`, so a Head of Department
+  line counts), never their own; `on_behalf_of` names the absent approver. Each
+  `my_desk.approvals.act_on_*(name, action, reason)` is whitelisted (POST) and re-checks read
+  permission, still waiting, the decider, a reason for a refusal, and the fresh check, then takes the
+  form's own path (Frappe HR's status + submit; `toil.workflow.act`; `timesheets.approval`). Leave and
+  expense stand down where the site runs a Workflow on them.
+- **Groups**: `seal_hrms.balances` (cues: leave left per type, at most four, most used first; time off
+  in lieu left and lapsing within 30 days, banking grades only), `seal_hrms.cover` (list),
+  `seal_hrms.hr_work` (cues: payout changes to confirm, HR Managers). Desk Widget records
+  `seal-hrms-balances`, `-cover`, `-time-off-work`, `-timesheet-work`, `-hr-work`.
+- **Headlines** (`seal_desk_headlines`): approving for someone; time off lapsing within 14 days; last
+  week's timesheet not sent (weekly timesheets with approval on).
+- **Employee Self-Service page** gains Balances, Cover, Time Off Work, Timesheet Work, the actions
+  Time Off in Lieu Claim, Payout Change Request and My Details, and a three-step checklist.
+- **Notification Log beside every email** (`seal_hrms/notify.py`): handover, time off, timesheet and
+  payout change emails add an Alert-type log (subject only) for the recipient, so the bell and the
+  phone push carry it. Never raises.
+
 ### Records from before 1.3.0
 
 Before 1.3.0, a handover edited each ToDo to point at the stand-in and **never
@@ -507,6 +536,28 @@ The Self Service sidebar's **Compensatory Leave Request** link is replaced by
 **Time Off in Lieu** on every site (decided 2026-11-09). Compensatory Leave
 Request still works from its own list for other leave types.
 
+### Payout Change Request (1.23.0)
+
+Staff ask to be paid into a new bank account or mobile money number; an HR Manager confirms it before
+any payment uses it (`seal_hrms/payout_change.py`; My Desk PWA-9). Not submittable: statuses (Draft,
+Waiting for HR, Approved, Rejected, Withdrawn) move only through `send`, `approve`, `reject`,
+`withdraw` (whitelisted POST, under an in-process flag; a sent request cannot be edited).
+
+- **Send** (the employee, or HR for them): a fresh check where seal_common has step-up
+  (`seal_hrms/step_up.py`, guarded import); one waiting request per employee; a bank change needs bank,
+  number, account name sharing at least two of the employee's name words, and evidence; a mobile
+  number must be Kenyan. The current details are copied into Previous Details. The old number gets a
+  text (seal_common channels, else Frappe's SMS, after commit), the old address an email, HR Managers
+  an email and a bell line.
+- **Approve** (HR Manager, not the employee nor whoever raised it; fresh check): Effective From today
+  or later. Bank: a new Bank Account for the employee becomes the default and the salary account, the
+  old one is kept with its default cleared; mobile: the employee's own Contact's primary mobile and
+  `cell_number`. Saved through the ORM, so the Employee guards run. A later date is applied by the
+  daily `apply_due`. **Reject** needs a reason; the employee is told either way.
+- **Permissions**: staff create and read their own (`has_permission` + query conditions); HR User
+  reads; HR Manager and System Manager read and write. App Health: requests waiting more than three
+  working days; no fresh check available.
+
 ---
 
 ## 6. Testing
@@ -543,7 +594,15 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_approva
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_week
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_effort
 bench --site dev.local run-tests --module seal_hrms.tests.test_timesheet_toil_claim
+bench --site dev.local run-tests --module seal_hrms.tests.test_my_desk_approvals
+bench --site dev.local run-tests --module seal_hrms.tests.test_my_desk_figures
+bench --site dev.local run-tests --module seal_hrms.tests.test_payout_change_request
+bench --site dev.local run-tests --module seal_hrms.tests.test_notification_logs
 ```
+
+Before a site is migrated, `test_payout_change_request` borrows its DocType into a temporary table
+(`tests/_borrowed_doctype.py`); from a worktree, `.worktrees/p4-hr/run_wt_tests.py` runs modules
+against dev.local with the worktree's code (and seal_desk's P3 worktree) first on the path.
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
 submits one from the Leave Application, and the stand-in logs in and accepts.
@@ -558,6 +617,14 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-10** — 1.23.0. **HR on My Desk, desk side** (phase P4 of the My Desk phone app): four
+  approval sources (leave, expense claims, time off in lieu, timesheets) with whitelisted acts that
+  re-check everything; Balances, Cover and HR work groups and five Desk Widget records; three
+  headlines; the Employee Self-Service page's new parts, actions and checklist; a Notification Log
+  beside every HR email; the **Payout Change Request** DocType with its endpoints, desk buttons,
+  daily job and two App Health checks. Needs `bench migrate` (new DocType, Desk Widgets, page) and a
+  web server restart; the approval sources need seal_desk's P3 release.
 
 - **2026-11-10** — 1.22.0. **User guide** (`docs/`, help-docs programme): 18 pages written from the
   code, a Help-menu link on every form and report the app adds or changes (`public/js/help_links.js`,

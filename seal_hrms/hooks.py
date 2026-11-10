@@ -317,11 +317,14 @@ permission_query_conditions = {
     "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.query_conditions",
     # The member of staff, their approver and whoever approves in their place, and HR.
     "Time Off in Lieu Claim": "seal_hrms.seal_hrms.toil.access.query_conditions",
+    # The member of staff and HR.
+    "Payout Change Request": "seal_hrms.seal_hrms.payout_change.query_conditions",
 }
 
 has_permission = {
     "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.has_permission",
     "Time Off in Lieu Claim": "seal_hrms.seal_hrms.toil.access.has_permission",
+    "Payout Change Request": "seal_hrms.seal_hrms.payout_change.has_permission",
 }
 # Scheduled Tasks
 # ---------------
@@ -337,6 +340,8 @@ scheduler_events = {
 		"seal_hrms.seal_hrms.handover_jobs.daily",
 		# Time off in lieu that fell due lapses (toil/lapse.py).
 		"seal_hrms.seal_hrms.toil.lapse.daily",
+		# Approved payout changes whose Effective From has come (payout_change.py).
+		"seal_hrms.seal_hrms.payout_change.apply_due",
 	],
 	# What came to wait on someone on leave reaches whoever approves for them.
 	"hourly": [
@@ -448,6 +453,9 @@ app_health_checks = [
     "seal_hrms.health.working_time.timesheets_have_approvers",
     "seal_hrms.health.working_time.timesheets_waiting",
     "seal_hrms.health.working_time.timesheet_cutoff_with_approval",
+    # Payout change requests: shown on the request's form as well (health/my_desk.py).
+    "seal_hrms.health.my_desk.payout_changes_waiting",
+    "seal_hrms.health.my_desk.payout_change_without_fresh_check",
 ]
 
 # ---------------------------------------------------------------------------
@@ -489,6 +497,74 @@ seal_desk_cue_groups = [
         "provider": "seal_hrms.desk.providers.timesheet_rows",
         "watch": ["Timesheet"],
     },
+    # Leave left, time off in lieu left and lapsing (HR_ON_MY_DESK.md §2.3).
+    {
+        "key": "seal_hrms.balances",
+        "label": "Balances",
+        "renders_as": "cues",
+        "provider": "seal_hrms.desk.providers.balances",
+        "watch": ["Leave Application", "Leave Allocation", "Time Off in Lieu Claim"],
+    },
+    # Who covers me, whom I cover, whose approvals I give (§2.4).
+    {
+        "key": "seal_hrms.cover",
+        "label": "Cover",
+        "renders_as": "list",
+        "provider": "seal_hrms.desk.providers.cover_rows",
+        "watch": ["Task Assignment"],
+    },
+    # HR's own figures: payout changes to confirm (§2.7).
+    {
+        "key": "seal_hrms.hr_work",
+        "label": "HR work",
+        "renders_as": "cues",
+        "provider": "seal_hrms.desk.providers.hr_work",
+        "watch": ["Payout Change Request"],
+    },
+]
+
+# Approvals that are not plain Frappe Workflow steps, for My Desk's Approvals inbox
+# and its "Waiting for my approval" figure (seal_desk pwa/SECTIONS_CONTRACT.md §4).
+# Inert where seal_desk is not installed. Each `act` is whitelisted and checks
+# everything again as the person (seal_hrms/my_desk/approvals.py).
+seal_desk_approval_sources = [
+    {
+        "key": "seal_hrms.leave",
+        "label": "Leave",
+        "doctypes": ["Leave Application"],
+        "provider": "seal_hrms.desk.providers.leave_approvals",
+        "act": "seal_hrms.my_desk.approvals.act_on_leave",
+        "watch": ["Leave Application", "Task Assignment"],
+    },
+    {
+        "key": "seal_hrms.expense",
+        "label": "Expense claims",
+        "doctypes": ["Expense Claim"],
+        "provider": "seal_hrms.desk.providers.expense_approvals",
+        "act": "seal_hrms.my_desk.approvals.act_on_expense",
+        "watch": ["Expense Claim", "Task Assignment"],
+    },
+    {
+        "key": "seal_hrms.toil",
+        "label": "Time off in lieu",
+        "doctypes": ["Time Off in Lieu Claim"],
+        "provider": "seal_hrms.desk.providers.toil_approvals",
+        "act": "seal_hrms.my_desk.approvals.act_on_toil",
+        "watch": ["Time Off in Lieu Claim", "Task Assignment"],
+    },
+    {
+        "key": "seal_hrms.timesheets",
+        "label": "Timesheets",
+        "doctypes": ["Timesheet"],
+        "provider": "seal_hrms.desk.providers.timesheet_approvals",
+        "act": "seal_hrms.my_desk.approvals.act_on_timesheet",
+        "watch": ["Timesheet", "Task Assignment"],
+    },
+]
+
+# At most three lines on My Desk, each only when true (HR_ON_MY_DESK.md §2.5).
+seal_desk_headlines = [
+    "seal_hrms.desk.providers.headlines",
 ]
 
 # seal_common draws it on the form (§3.16).

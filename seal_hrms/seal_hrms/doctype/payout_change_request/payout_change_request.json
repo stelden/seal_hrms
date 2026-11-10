@@ -1,0 +1,362 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-11-10 12:00:00.000000",
+ "description": "A member of staff asks to be paid into a new bank account or mobile number; HR checks and confirms it before any payment uses it.",
+ "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/payout-change-request",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "employee",
+  "employee_name",
+  "company",
+  "cb1",
+  "status",
+  "change",
+  "sb1",
+  "bank",
+  "bank_account_no",
+  "branch_code",
+  "account_name",
+  "cb2",
+  "mobile_no",
+  "provider",
+  "sb2",
+  "evidence",
+  "cb3",
+  "reason",
+  "sb3",
+  "previous_bank",
+  "previous_bank_account_no",
+  "previous_account_name",
+  "previous_bank_account",
+  "cb4",
+  "previous_mobile_no",
+  "sb4",
+  "sent_on",
+  "effective_from",
+  "decision_note",
+  "cb5",
+  "decided_by",
+  "decided_on",
+  "applied_on",
+  "new_bank_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "PCR-.YYYY.-.#####",
+   "default": "PCR-.YYYY.-.#####",
+   "hidden": 1,
+   "reqd": 1,
+   "no_copy": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "Whose pay this is about. Staff can only ask for their own."
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "fetch_from": "employee.employee_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "fetch_from": "employee.company",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Draft\nWaiting for HR\nApproved\nRejected\nWithdrawn",
+   "default": "Draft",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "no_copy": 1,
+   "description": "Where the request has got to. It moves with the buttons on the form, never by hand."
+  },
+  {
+   "fieldname": "change",
+   "fieldtype": "Select",
+   "label": "Change",
+   "options": "\nBank Account\nMobile Money",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Pay into a new bank account, or to a new mobile money number."
+  },
+  {
+   "fieldname": "sb1",
+   "fieldtype": "Section Break",
+   "label": "New Details"
+  },
+  {
+   "fieldname": "bank",
+   "fieldtype": "Link",
+   "label": "Bank",
+   "options": "Bank",
+   "depends_on": "eval:doc.change==\"Bank Account\"",
+   "mandatory_depends_on": "eval:doc.change==\"Bank Account\""
+  },
+  {
+   "fieldname": "bank_account_no",
+   "fieldtype": "Data",
+   "label": "Account No.",
+   "depends_on": "eval:doc.change==\"Bank Account\"",
+   "mandatory_depends_on": "eval:doc.change==\"Bank Account\""
+  },
+  {
+   "fieldname": "branch_code",
+   "fieldtype": "Data",
+   "label": "Branch",
+   "depends_on": "eval:doc.change==\"Bank Account\"",
+   "description": "The branch code the bank gives, if it asks for one."
+  },
+  {
+   "fieldname": "account_name",
+   "fieldtype": "Data",
+   "label": "Account Name",
+   "depends_on": "eval:doc.change==\"Bank Account\"",
+   "mandatory_depends_on": "eval:doc.change==\"Bank Account\"",
+   "description": "The name on the account. It must match the employee's name: pay goes to the account holder."
+  },
+  {
+   "fieldname": "cb2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "mobile_no",
+   "fieldtype": "Data",
+   "label": "Mobile No.",
+   "options": "Phone",
+   "depends_on": "eval:doc.change==\"Mobile Money\"",
+   "mandatory_depends_on": "eval:doc.change==\"Mobile Money\"",
+   "description": "A Kenyan mobile number registered in the employee's name, such as 0722 418 305."
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Data",
+   "label": "Provider",
+   "depends_on": "eval:doc.change==\"Mobile Money\"",
+   "read_only": 1,
+   "description": "Found from the number."
+  },
+  {
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Evidence"
+  },
+  {
+   "fieldname": "evidence",
+   "fieldtype": "Attach",
+   "label": "Evidence",
+   "description": "A bank letter or the top of a statement showing the account name and number. Needed for a bank account."
+  },
+  {
+   "fieldname": "cb3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason",
+   "description": "Why the details are changing, for HR."
+  },
+  {
+   "fieldname": "sb3",
+   "fieldtype": "Section Break",
+   "label": "Previous Details",
+   "collapsible": 1,
+   "description": "What the employee record said when the request was sent, so HR can compare."
+  },
+  {
+   "fieldname": "previous_bank",
+   "fieldtype": "Link",
+   "label": "Previous Bank",
+   "options": "Bank",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "previous_bank_account_no",
+   "fieldtype": "Data",
+   "label": "Previous Account No.",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "previous_account_name",
+   "fieldtype": "Data",
+   "label": "Previous Account Name",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "previous_bank_account",
+   "fieldtype": "Link",
+   "label": "Previous Bank Account",
+   "options": "Bank Account",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "cb4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "previous_mobile_no",
+   "fieldtype": "Data",
+   "label": "Previous Mobile No.",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "sb4",
+   "fieldtype": "Section Break",
+   "label": "Decision"
+  },
+  {
+   "fieldname": "sent_on",
+   "fieldtype": "Datetime",
+   "label": "Sent On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "effective_from",
+   "fieldtype": "Date",
+   "label": "Effective From",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "The day payments start using the new details. HR sets it when approving; anything paid before then uses the old ones."
+  },
+  {
+   "fieldname": "decision_note",
+   "fieldtype": "Small Text",
+   "label": "Decision Note",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Why HR rejected the request, for the employee."
+  },
+  {
+   "fieldname": "cb5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "decided_by",
+   "fieldtype": "Link",
+   "label": "Decided By",
+   "options": "User",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "decided_on",
+   "fieldtype": "Datetime",
+   "label": "Decided On",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "applied_on",
+   "fieldtype": "Datetime",
+   "label": "Applied On",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "When the new details were put on the employee record."
+  },
+  {
+   "fieldname": "new_bank_account",
+   "fieldtype": "Link",
+   "label": "New Bank Account",
+   "options": "Bank Account",
+   "read_only": 1,
+   "no_copy": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-11-10 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "SEAL HRMS",
+ "name": "Payout Change Request",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "role": "Employee",
+   "read": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "Employee Self Service",
+   "read": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1,
+   "delete": 1
+  },
+  {
+   "role": "HR User",
+   "read": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1,
+   "export": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "print": 1,
+   "email": 1,
+   "report": 1,
+   "create": 1,
+   "write": 1,
+   "export": 1
+  }
+ ],
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}

@@ -20,7 +20,7 @@ sources:
 1. Give each member of staff a **Leave Approver** on their employee record, or on their department. Handovers, time off claims and timesheets go to that person.
 2. Decide whether leave needs a stand-in before it goes ahead, and create a [Task Assignment Policy](../self-service/setup/task-assignment-policy.md) for each company.
 3. If staff bank extra hours as time off, or timesheets need approval or are kept by the week, create a [Working Time Policy](../self-service/setup/working-time-policy.md) for each company.
-4. Open **App Health** for SEAL HRMS and fix anything it reports. The same warnings show as a banner on the **Working Time Policy** form.
+4. Open **App Health** for SEAL HRMS and fix anything it reports. The same warnings show as a banner on the **Working Time Policy** and **Payout Change Request** forms, including payout changes waiting more than three working days.
 
 ## What happens next
 
