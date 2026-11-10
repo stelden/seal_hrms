@@ -1,20 +1,47 @@
 ---
 title: SEAL HRMS
+type: index
 audience:
 - buyer
 - admin
+sources:
+- seal_hrms/hooks.py
+- seal_hrms/seal_hrms/sidebar/self_service/**
 ---
 
-SEAL HRMS adds to Frappe HR what a Kenyan employer and its staff need day to day: the **My HR** page, cover while someone is on leave, time off in lieu for extra hours, weekly timesheets with approval, and the statutory payroll returns.
+**SEAL HRMS adds to Frappe HR what a Kenyan employer and its staff need day to day: My HR, cover while someone is on leave, time off in lieu, weekly timesheets with approval, and the statutory payroll returns.**
 
-Leave, attendance, expense claims, payroll and the employee record stay Frappe HR's. This guide describes only what SEAL HRMS adds or changes. For everything else, see the [Frappe HR documentation](https://docs.frappe.io/hr).
+Leave, attendance, expense claims, payroll and the employee record stay Frappe HR's; this guide describes only what SEAL HRMS adds or changes. For the rest, see the [Frappe HR documentation](https://docs.frappe.io/hr).
 
-## Where to start
+At Mwangaza Foods Ltd, Peter Otieno applies for two weeks' leave and hands his open work to Amina Hassan, who agrees to cover. His leave approver, Grace Wanjiru, approves the leave; on his first day away the work moves to Amina's list, and on his return whatever is still open comes back to him.
 
-| You are | Start with |
-| :--- | :--- |
-| A member of staff | [My HR and Self Service](self-service/index.md), then [Apply for leave](self-service/apply-for-leave.md) and [Hand over your work before leave](self-service/hand-over-your-work.md) |
-| Asked to cover for a colleague | [Cover for a colleague](self-service/cover-for-a-colleague.md) |
-| A leave approver or line manager | [Claim time off in lieu](self-service/claim-time-off-in-lieu.md#approve-return-or-reject-a-claim) and [Timesheets](self-service/timesheets.md#approve-or-return-a-timesheet) |
-| An HR officer setting things up | [Getting started](getting-started/index.md) |
-| Running payroll | [Payroll reports](payroll-reports/index.md) |
+## What you can do
+
+- [Apply for leave](self-service/apply-for-leave.md) with a handover.
+- [Hand over your work](self-service/task-assignment.md) before leave, and [cover for a colleague](self-service/cover-for-a-colleague.md).
+- [Claim time off in lieu](self-service/time-off-in-lieu-claim.md) for extra hours.
+- Keep [timesheets](self-service/timesheets.md) by the week, with approval.
+- Record [employee details](self-service/employee-details.md): statutory numbers, payment details and [dependants](self-service/employee-dependent-and-beneficiary.md).
+- Run the [payroll reports](payroll-reports/index.md) and statutory returns.
+
+## Who uses it
+
+| Role | Does |
+|:---|:---|
+| **Employee**, **Employee Self Service** | Applies for leave, hands over work, claims time off, keeps timesheets. |
+| **Leave Approver** | Decides leave, time off claims and (where set) timesheets. |
+| **HR User** | Sees and changes every handover and claim; runs the HR reports. |
+| **HR Manager** | As HR User, and sets the company policies. |
+
+## How it fits together
+
+1. HR sets up each company's [Working Time Policy](self-service/setup/working-time-policy.md) and [Task Assignment Policy](self-service/setup/task-assignment-policy.md).
+2. Staff [apply for leave](self-service/apply-for-leave.md) and [hand over their work](self-service/task-assignment.md).
+3. Colleagues [cover for them](self-service/cover-for-a-colleague.md), approving in their place where asked.
+4. Staff record [timesheets](self-service/timesheets.md) and [claim extra hours](self-service/time-off-in-lieu-claim.md) as time off.
+5. HR runs the [payroll reports](payroll-reports/index.md) each month.
+
+## Start here
+
+1. [Set up](getting-started/set-up.md)
+2. [Roles and permissions](getting-started/roles.md)

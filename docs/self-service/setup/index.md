@@ -1,15 +1,23 @@
 ---
 title: Setup
-order: 70
+type: index
+order: 80
 audience:
 - admin
+sources:
+- seal_hrms/seal_hrms/sidebar/self_service/**
 ---
 
-The **Setup** section at the bottom of the Self Service sidebar is for HR officers. It holds two policies, set once per company, and four reports.
+**The Setup section of the Self Service sidebar is where HR sets each company's policies and reads the cover and time reports.**
 
-| Entry | See |
-| :--- | :--- |
-| **Working Time Policy** | [Working Time Policy](working-time-policy.md): the working day, time off in lieu, timesheets |
-| **Task Assignment Policy** | [Handover policy](handover-policy.md): whether leave needs a stand-in |
-| **Who Is Covering Whom**, **Stand-in Load** | [Cover reports](cover-reports.md) |
-| **TOIL Balances**, **Timesheet Cross-Check** | [Time off and timesheet reports](time-reports.md) |
+The two policies are set once per company. **TOIL Balances** and **Timesheet Cross-Check** in the sidebar open the **Time Off in Lieu** and **Timesheets Against Attendance and Leave** reports.
+
+## Pages
+
+- [Working Time Policy](working-time-policy.md)
+- [Task Assignment Policy](task-assignment-policy.md)
+- [Keep the lists your forms offer](lists.md)
+- [Who Is Covering Whom](who-is-covering-whom.md)
+- [Stand-in Load](stand-in-load.md)
+- [Time Off in Lieu (TOIL Balances)](time-off-in-lieu.md)
+- [Timesheets Against Attendance and Leave](timesheets-against-attendance-and-leave.md)

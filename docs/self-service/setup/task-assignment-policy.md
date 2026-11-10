@@ -1,5 +1,6 @@
 ---
-title: Handover policy
+title: Task Assignment Policy
+type: doctype
 order: 20
 audience:
 - admin
@@ -14,13 +15,24 @@ sources:
 - seal_hrms/seal_hrms/handover_jobs.py
 ---
 
-A **Task Assignment Policy** decides, for one company, whether leave needs a stand-in who has agreed to cover before it goes ahead, and whether staff are reminded to prepare a handover. **HR Manager** creates and changes it.
+**A task assignment policy is a master that decides, for one company, whether leave needs a stand-in who has agreed to cover before it goes ahead, and whether staff are reminded to prepare a handover.**
 
-## Set the policy
+Mwangaza Foods Ltd requires acceptance before approval for leave of three days or more, except sick leave.
 
-1. In the Self Service sidebar, under **Setup**, click **Task Assignment Policy**, then **+ Add Task Assignment Policy**.
-2. Choose the **Company** and the **Handover Requirement**.
-3. Set the fields under **Leave and Reminders** and save.
+**Where:** My HR → Self Service → Setup → Task Assignment Policy
+
+## Before you start
+
+**HR Manager** creates and changes it; **HR User** can read it.
+
+## Create a task assignment policy
+
+1. Open the **Task Assignment Policy** list and click **+ Add Task Assignment Policy**.
+2. Choose the **Company**.
+3. Choose the **Handover Requirement** (starts at **Off**).
+4. Set the fields under **Leave and Reminders**, and click **Save**.
+
+## Handover Requirement
 
 | Handover Requirement | What it does |
 | :--- | :--- |
@@ -29,6 +41,8 @@ A **Task Assignment Policy** decides, for one company, whether leave needs a sta
 | **Require on Approval** | The leave cannot be approved until a stand-in has accepted the handover. |
 | **Require on Submission** | The application cannot move on from draft until a handover naming a stand-in exists, and cannot be approved until the stand-in has accepted. |
 | **Require Acceptance before Submission** | The application cannot move on from draft until the stand-in has accepted. |
+
+## Fields worth knowing
 
 | Field | What it does |
 | :--- | :--- |

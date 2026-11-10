@@ -1,5 +1,6 @@
 ---
 title: Cover for a colleague
+type: howto
 order: 30
 audience:
 - buyer
@@ -15,9 +16,11 @@ sources:
 - seal_hrms/seal_hrms/overrides/leave_application.py
 ---
 
-When a colleague names you as their stand-in, you are emailed and asked to agree. This page covers answering, covering their work while they are away, and approving in their place.
+**You will have agreed to cover a colleague's work, covered it while they were away, and approved in their place where asked.**
 
-## Answer a request to cover
+**Who:** the named stand-in or acting approver · **Before you start:** a colleague has named you on a [Task Assignment](task-assignment.md) and you have been emailed.
+
+## Steps
 
 1. Open the handover from the email, or from **Handovers waiting for you** on My Desk.
 2. Read the **Handover Notes** and the **Work** tab.
@@ -27,7 +30,9 @@ Your colleague reads your reason to decide who to ask instead. If you are asked 
 
 Once everyone has answered, your colleague is emailed. Until the leave starts you can still click **Decline** if you can no longer cover it.
 
-## While you are covering
+## What happens next
+
+### While you are covering
 
 When the leave is approved and has started, the work moves to your to-do list and you are emailed. The handover's status is **Active**.
 
@@ -36,7 +41,7 @@ When the leave is approved and has started, the work moves to your to-do list an
 
 On their return date, anything still open goes back to them. What you finished stays finished. A task you already had before the handover stays with you.
 
-## Approve in someone's place
+### Approve in someone's place
 
 If you accepted an approval on a handover, then while the handover is **Active**:
 
@@ -53,3 +58,11 @@ The approvals a handover can pass on include leave, expense claims, time off in 
 :::note
 If you go on leave yourself while covering, the approvals do not pass on to your own stand-in.
 :::
+
+## If something goes wrong
+
+| You see | Do this |
+|:---|:---|
+| "Only the person named to approve this can answer for it." | Answer only the approvals that name you. |
+| "Only whoever covers this task can leave notes on it." | Leave notes only on tasks you cover. |
+| "This is your own timesheet. Someone else must approve it." / "This is your own claim. Someone else must decide it." | Ask another approver or HR. |

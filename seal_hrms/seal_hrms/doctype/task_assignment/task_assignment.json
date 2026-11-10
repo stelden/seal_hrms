@@ -4,7 +4,7 @@
  "creation": "2024-06-17 14:31:31.373589",
  "description": "Task Assignment",
  "doctype": "DocType",
- "documentation": "https://docs.stelden.com/hrms/self-service/hand-over-your-work",
+ "documentation": "https://docs.stelden.com/hrms/self-service/task-assignment",
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [

@@ -1,13 +1,23 @@
 ---
 title: Payroll reports
+type: index
 order: 30
 audience:
 - admin
+sources:
+- seal_hrms/seal_hrms/report/**
 ---
 
-SEAL HRMS adds seven payroll reports built from your salary slips: the Kenyan statutory registers, the bank advice, and two month-on-month comparisons. No sidebar lists them; find each by typing its name in the search bar. **HR User** and **HR Manager** can run them.
+**Seven payroll reports built from your salary slips: the Kenyan statutory registers, the bank advice, and two month-on-month comparisons.**
 
-- [Statutory returns and bank advice](statutory-returns.md): **Kenya NSSF Register**, **Kenya SHIF Register**, **Kenya HELB Register**, **Kenya Salary Register**, **Payroll Bank Advice**.
-- [Month-on-month comparisons](monthly-comparisons.md): **Salary Register Summary With Monthly Comparison**, **Employee Salary Register With Monthly Comparison**.
+No sidebar lists them; type each one's name in the search bar. **HR User** and **HR Manager** can run them. The registers read each employee's **National ID**, **KRA PIN**, **SHA No.** and **NSSF No.**: see [Employee details](../self-service/employee-details.md).
 
-The registers read each employee's **National ID**, **KRA PIN**, **SHA No.** and **NSSF No.** from the employee record. See [Employee details](../self-service/employee-details.md).
+## Pages
+
+- [Kenya NSSF Register](kenya-nssf-register.md)
+- [Kenya SHIF Register](kenya-shif-register.md)
+- [Kenya HELB Register](kenya-helb-register.md)
+- [Kenya Salary Register](kenya-salary-register.md)
+- [Payroll Bank Advice](payroll-bank-advice.md)
+- [Salary Register Summary With Monthly Comparison](salary-register-summary-with-monthly-comparison.md)
+- [Employee Salary Register With Monthly Comparison](employee-salary-register-with-monthly-comparison.md)

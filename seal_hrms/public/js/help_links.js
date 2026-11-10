@@ -79,68 +79,68 @@ frappe.provide("frappe.help.help_links");
 	],
 	"query-report/Employee Salary Register With Monthly Comparison": [
 		{
-			"label": "Month-on-month comparisons",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/monthly-comparisons"
+			"label": "Employee Salary Register With Monthly Comparison",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/employee-salary-register-with-monthly-comparison"
 		}
 	],
 	"query-report/Kenya HELB Register": [
 		{
-			"label": "Statutory returns and bank advice",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/statutory-returns"
+			"label": "Kenya HELB Register",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/kenya-helb-register"
 		}
 	],
 	"query-report/Kenya NSSF Register": [
 		{
-			"label": "Statutory returns and bank advice",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/statutory-returns"
+			"label": "Kenya NSSF Register",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/kenya-nssf-register"
 		}
 	],
 	"query-report/Kenya SHIF Register": [
 		{
-			"label": "Statutory returns and bank advice",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/statutory-returns"
+			"label": "Kenya SHIF Register",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/kenya-shif-register"
 		}
 	],
 	"query-report/Kenya Salary Register": [
 		{
-			"label": "Statutory returns and bank advice",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/statutory-returns"
+			"label": "Kenya Salary Register",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/kenya-salary-register"
 		}
 	],
 	"query-report/Payroll Bank Advice": [
 		{
-			"label": "Statutory returns and bank advice",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/statutory-returns"
+			"label": "Payroll Bank Advice",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/payroll-bank-advice"
 		}
 	],
 	"query-report/Salary Register Summary With Monthly Comparison": [
 		{
-			"label": "Month-on-month comparisons",
-			"url": "https://docs.stelden.com/hrms/payroll-reports/monthly-comparisons"
+			"label": "Salary Register Summary With Monthly Comparison",
+			"url": "https://docs.stelden.com/hrms/payroll-reports/salary-register-summary-with-monthly-comparison"
 		}
 	],
 	"query-report/Stand-in Load": [
 		{
-			"label": "Cover reports",
-			"url": "https://docs.stelden.com/hrms/self-service/setup/cover-reports"
+			"label": "Stand-in Load",
+			"url": "https://docs.stelden.com/hrms/self-service/setup/stand-in-load"
 		}
 	],
 	"query-report/Time Off in Lieu": [
 		{
-			"label": "Time off and timesheet reports",
-			"url": "https://docs.stelden.com/hrms/self-service/setup/time-reports"
+			"label": "Time Off in Lieu (TOIL Balances)",
+			"url": "https://docs.stelden.com/hrms/self-service/setup/time-off-in-lieu"
 		}
 	],
 	"query-report/Timesheets Against Attendance and Leave": [
 		{
-			"label": "Time off and timesheet reports",
-			"url": "https://docs.stelden.com/hrms/self-service/setup/time-reports"
+			"label": "Timesheets Against Attendance and Leave",
+			"url": "https://docs.stelden.com/hrms/self-service/setup/timesheets-against-attendance-and-leave"
 		}
 	],
 	"query-report/Who Is Covering Whom": [
 		{
-			"label": "Cover reports",
-			"url": "https://docs.stelden.com/hrms/self-service/setup/cover-reports"
+			"label": "Who Is Covering Whom",
+			"url": "https://docs.stelden.com/hrms/self-service/setup/who-is-covering-whom"
 		}
 	]
 });

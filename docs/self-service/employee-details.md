@@ -1,12 +1,10 @@
 ---
 title: Employee details
+type: howto
 order: 60
 audience:
 - admin
 covers:
-  doctypes:
-  - Employee Dependent and Beneficiary
-  - Employee Separation Type
   forms:
   - Employee
   - Employee Separation
@@ -16,52 +14,33 @@ sources:
 - seal_hrms/seal_hrms/api.py
 - seal_hrms/seal_hrms/custom/employee.json
 - seal_hrms/seal_hrms/custom/employee_separation.json
-- seal_hrms/seal_hrms/doctype/employee_dependent_and_beneficiary/**
-- seal_hrms/seal_hrms/doctype/employee_separation_type/**
 ---
 
-SEAL HRMS adds statutory numbers, payment details, dependants and beneficiaries, and separation types to Frappe HR's employee records. This page is for HR officers. For the rest of the employee record, see the [Frappe HR documentation](https://docs.frappe.io/hr).
+**You will have an employee record with the statutory numbers payroll needs and the details to pay them by bank or mobile money.**
 
-## Statutory numbers
+**Who:** HR User, HR Manager · **Before you start:** the employee exists in Frappe HR. For the rest of the record, see the [Frappe HR documentation](https://docs.frappe.io/hr).
 
-The **Statutory** section of the **Employee** form holds the **National ID**, **KRA PIN**, **SHA No.** and **NSSF No.**. The payroll registers read them. See [Statutory returns and bank advice](../payroll-reports/statutory-returns.md).
+## Steps
 
-**Reports to Designation** and **Reports to Department** are filled in from the person chosen in **Reports To**.
+1. Open the employee. In the **Statutory** section, enter the **National ID**, **KRA PIN**, **SHA No.** and **NSSF No.**. The payroll registers read them. See [Payroll reports](../payroll-reports/index.md).
+2. Choose **Reports To**. **Reports to Designation** and **Reports to Department** fill in from that person.
+3. Save the employee.
+4. To pay by bank: click **Create Bank Account** (shown until a **Bank Account** is set) and fill in the account. Only this employee's own bank accounts can be chosen. **Bank Account Name**, **Bank Account No.** and **Bank** fill in from it; payroll uses it when **Salary Mode** is Bank.
+5. To pay by mobile money: make sure the employee has a login (**Create User**, if not), then choose the contact belonging to that login in **Contact**. To change the name or mobile number on it, click **Update Contact**, edit **Primary Mobile Number** or the name, and click **Update**.
 
-## Payment details
+## What happens next
 
-An employee can be paid by bank transfer, by mobile money, or both; which is used is chosen when a payment is made. Until both are set, an orange notice at the top of the form says what is still missing.
+An employee can be paid by bank transfer, mobile money or both; which is used is chosen when a payment is made. Until both are set, an orange notice at the top of the form says what is still missing. Mobile money goes to the contact's main mobile number, in the contact's name.
 
-**Set up the bank account**
+When someone leaves, the **Employee Separation** must name a **Separation Type**. Keep that list as described in [Keep the lists your forms offer](setup/lists.md). Dependants and beneficiaries have their own records: see [Employee Dependent and Beneficiary](employee-dependent-and-beneficiary.md).
 
-1. Save the employee.
-2. Click **Create Bank Account** (shown until a **Bank Account** is set) and fill in the account.
+## If something goes wrong
 
-Only this employee's own bank accounts can be chosen, and saving refuses an account belonging to anyone else. **Bank Account Name**, **Bank Account No.** and **Bank** fill in from it. Payroll uses the same account when **Salary Mode** is Bank.
-
-**Set up mobile money**
-
-1. Make sure the employee has a login (**Create User**, if not).
-2. In **Contact**, choose the contact belonging to their login.
-3. To change the name or mobile number on it, click **Update Contact**, edit **Primary Mobile Number** or the name, and click **Update**.
-
-Mobile money goes to the contact's main mobile number, in the contact's name. Saving refuses a contact that belongs to someone else's login, or a contact on an employee with no login.
-
-## Dependants and beneficiaries
-
-An **Employee Dependent and Beneficiary** record holds one person connected to a member of staff:
-
-| Field | What it does |
-| :--- | :--- |
-| **Employee** | The member of staff |
-| **First Name**, **Middle Name**, **Last Name** | As on their ID |
-| **Gender**, **Date of Birth** | For benefit schemes that need them |
-| **Type** | **Dependent**, **Beneficiary**, or **Dependent and Beneficiary** |
-| **Relationship** | How they are related to the member of staff |
-| **Contact Details** | How to reach them if the member of staff cannot be reached |
-
-Find the list by searching for **Employee Dependent and Beneficiary** in the search bar. Only a **System Manager** can open it unless your site gives other roles access.
-
-## Separation types
-
-An **Employee Separation** (Frappe HR's record of someone leaving) must name a **Separation Type**: resignation, retirement, end of contract and so on. Keep the list of types under **Employee Separation Type**; each has just a name.
+| You see | Do this |
+|:---|:---|
+| "Bank Account … belongs to …, not to this employee." | Choose an account belonging to this employee. |
+| "Contact … belongs to …, not to this employee's User (…). …" | Choose the contact for this employee's own login. |
+| "… has a Contact but no User. …" | Create the employee's login first, or clear **Contact**. |
+| "Invalid Kenyan mobile number." | Enter the number as a Kenyan mobile number. |
+| "A contact with this phone number already exists." | Use that contact, or another number. |
+| "A contact needs a first name." | Enter the first name. |
