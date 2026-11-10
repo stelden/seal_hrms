@@ -536,6 +536,34 @@ The Self Service sidebar's **Compensatory Leave Request** link is replaced by
 **Time Off in Lieu** on every site (decided 2026-11-09). Compensatory Leave
 Request still works from its own list for other leave types.
 
+### My HR on the phone (1.24.0)
+
+The **My HR** section of the My Desk phone app (`frontend-my-desk/`, built into `seal_hrms/public/my-desk/` and
+committed; HR_ON_MY_DESK §3). seal_desk's shell loads it at run time where seal_desk is installed
+(`hooks.seal_desk_app_sections`, `seal_hrms.my_hr`, shown to anyone whose login is linked to an active Employee:
+`my_desk/section.visible`). It claims Leave Application, Leave Allocation, Task Assignment, Time Off in Lieu Claim,
+Timesheet, Expense Claim, Employee Advance, Salary Slip, Employee, Employee Checkin, Attendance Request, Shift
+Request, Employee Dependent and Beneficiary and Payout Change Request: those records open in its screens anywhere
+in the app (`/my-desk/r/<DocType>/<name>`).
+
+- **Screens**: home (balances, in progress, quick actions); leave (apply, with the handover in the same step when
+  the company's handover rule covers the leave: stand-in, work and approvals to hand over, sent to the stand-in at
+  once); cover (answer handovers per line, notes, note for return, I'm Back); time off in lieu (claim by day, Fill
+  from Records, send, Apply for Leave from an approved claim); the timesheet week, a day at a time (Copy Last Week,
+  the weekly check, Send for Approval, Claim as Time Off in Lieu; weekly-timesheet companies only); expense claims
+  with receipts; advances; payslips with the PDF in the site's default Salary Slip print format, else Standard;
+  check-in (where HR Settings allow mobile check-in; location only where HR asks); attendance and shift requests;
+  my details (contact, dependants, payout details masked to the last four, Request a Change with a fresh check).
+- **Endpoints**: `seal_hrms.my_desk.api.*`, all for the session user; creates take the employee's own company and
+  approvers, never an `employee` argument; lists ask only for fields the person may read; record reads check read
+  permission and blank fields the site hides. Add-only once released.
+- **Employee Self Service user type**: after migrate the type also lists Payout Change Request, Task Assignment,
+  Employee Checkin (with create), Leave Allocation, Employee Dependent and Beneficiary and Activity Type
+  (`working_time/user_type.py`).
+- **`/hrms`** (Frappe HR's own phone app and its notification links): `website_redirects` (302) to `/my-hr-go`,
+  which opens the same thing in My Desk where seal_desk is installed, else the desk form or Self Service
+  (`my_desk/links.py`). hrms is not changed.
+
 ### Payout Change Request (1.23.0)
 
 Staff ask to be paid into a new bank account or mobile money number; an HR Manager confirms it before
@@ -571,6 +599,10 @@ cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright 
 # 04-timesheet-approval.spec.ts does the same for a timesheet (Otieno sends, Achieng approves);
 # 05-week-grid.spec.ts fills a week in the grid and checks the time lines it writes;
 # 04 also claims a timesheet's extra hours as time off.
+
+# The My HR phone section (frontend-my-desk/): unit tests, lint and the portal check, the build, and the
+# section in a browser at 390×844 in a small stand-in host (no seal_desk shell needed)
+cd apps/seal_hrms/frontend-my-desk && npm test && npx seal-portal-check && npm run build && npm run e2e
 
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
@@ -617,6 +649,11 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-10** — 1.24.0. **My HR on the phone** (phase P5 of the My Desk phone app): the `seal_hrms.my_hr`
+  section (every self-service screen) built with seal_frontend 1.3.0 and committed in `public/my-desk/`; its
+  endpoints `seal_hrms.my_desk.api`; the claimed DocTypes on the Employee Self Service user type; `/hrms` sends
+  people to My Desk (`/my-hr-go`). Needs migrate (user type) and a web server restart.
 
 - **2026-11-10** — 1.23.0. **HR on My Desk, desk side** (phase P4 of the My Desk phone app): four
   approval sources (leave, expense claims, time off in lieu, timesheets) with whitelisted acts that

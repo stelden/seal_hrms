@@ -1,0 +1,9 @@
+{
+	"kind": "section",
+	"library": "1.3.0",
+	"react": "19.2.0",
+	"reactRouter": "7.9.4",
+	"sectionApi": "1",
+	"bundle": "../seal_hrms/public/my-desk",
+	"version": "9ec49c22e2d429b0"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "seal-hrms-my-hr",
+  "private": true,
+  "version": "1.24.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "seal-portal-check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "vite build --config e2e/host.config.ts && node e2e/phone.mjs"
+  },
+  "dependencies": {
+    "@stelden/seal-frontend": "github:stelden/seal_frontend#v1.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "frappe-react-sdk": "1.17.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-router": "7.9.4",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "4.7.0",
+    "eslint": "^9.39.5",
+    "jsdom": "25.0.1",
+    "typescript": "5.6.3",
+    "typescript-eslint": "^8.72.0",
+    "vite": "6.3.5",
+    "vitest": "^3.2.4"
+  },
+  "seal": {
+    "kind": "section",
+    "bundle": "../seal_hrms/public/my-desk",
+    "branch": "version-16",
+    "commitBundle": true
+  }
+}

@@ -1,0 +1,4 @@
+node_modules/
+e2e/.host/
+e2e/.shots/
+e2e/host/.seal-bundle.json

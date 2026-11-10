@@ -11,6 +11,12 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.24.0 (2026-11-10)
+
+- **New:** [My HR on the phone](self-service/my-hr-on-the-phone.md): where your site has My Desk, apply for leave (with the handover), answer handovers, claim time off, fill your week's timesheet, claim expenses with receipt photos, ask for an advance, read payslips, check in, send attendance and shift requests, and see your details on your phone.
+- **Changed:** links to Frappe HR's own phone app (`/hrms`) open the same thing in My Desk, or on the desk where there is no My Desk.
+- **Changed:** staff on the Employee Self Service user type can open everything My HR shows, once the site is updated.
+
 ## 1.23.0 (2026-11-10)
 
 - **New:** on My Desk, leave, expense claims, time off claims and timesheets waiting for you (or for someone you approve for) show under **Waiting for my approval** and can be approved there; see [SEAL HRMS on My Desk](self-service/my-desk.md).

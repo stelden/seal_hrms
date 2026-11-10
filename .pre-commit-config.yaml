@@ -70,6 +70,20 @@ repos:
 
   - repo: local
     hooks:
+      # The My HR phone section (SEAL_DEV_RULES §1.16, §1.17): the portal check (lint included) and the
+      # unit tests, whenever its frontend changes.
+      - id: seal-portal-check
+        name: My HR section follows the library's rules (seal-portal-check)
+        entry: bash -c 'cd frontend-my-desk && export PATH="$HOME/.nvm/versions/node/v24.13.0/bin:$PATH" && npx seal-portal-check'
+        language: system
+        pass_filenames: false
+        files: ^frontend-my-desk/
+      - id: my-hr-section-tests
+        name: My HR section unit tests
+        entry: bash -c 'cd frontend-my-desk && export PATH="$HOME/.nvm/versions/node/v24.13.0/bin:$PATH" && npx vitest run'
+        language: system
+        pass_filenames: false
+        files: ^frontend-my-desk/
       - id: seal-docs-check
         name: user docs cover the app (SEAL_DEV_RULES §1.19)
         entry: bash -c 'd=$PWD; while [ "$d" != / ] && [ ! -x "$d/env/bin/python" ]; do d=$(dirname "$d"); done; exec "$d/env/bin/python" -m seal_common.help_docs check --strict --repo .'

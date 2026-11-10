@@ -24,7 +24,7 @@ sources:
 
 ## What happens next
 
-Staff see **My HR** on the Apps screen. A company with no Working Time Policy has time off in lieu switched off, and its timesheets work as Frappe HR ships them. A company with no Task Assignment Policy follows **HR Settings** for handovers.
+Staff see **My HR** on the Apps screen, and, where the site has My Desk, under Apps in the My Desk phone app ([My HR on the phone](../self-service/my-hr-on-the-phone.md)). For staff to check in from the phone, turn on **Allow Employee Checkin from Mobile App** in **HR Settings**. A company with no Working Time Policy has time off in lieu switched off, and its timesheets work as Frappe HR ships them. A company with no Task Assignment Policy follows **HR Settings** for handovers.
 
 ## If something goes wrong
 

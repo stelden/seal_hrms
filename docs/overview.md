@@ -24,7 +24,7 @@ At Mwangaza Foods Ltd, Peter Otieno applies for two weeks' leave and hands his o
 - Keep [timesheets](self-service/timesheets.md) by the week, with approval.
 - Record [employee details](self-service/employee-details.md): statutory numbers, payment details and [dependants](self-service/employee-dependent-and-beneficiary.md).
 - Ask to [change where your pay goes](self-service/payout-change-request.md); HR confirms it first.
-- Approve leave, claims and timesheets from [My Desk](self-service/my-desk.md), where your site has it.
+- Approve leave, claims and timesheets from [My Desk](self-service/my-desk.md), where your site has it, and do your own HR on the phone with [My HR](self-service/my-hr-on-the-phone.md).
 - Run the [payroll reports](payroll-reports/index.md) and statutory returns.
 
 ## Who uses it

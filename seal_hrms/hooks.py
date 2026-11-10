@@ -55,6 +55,13 @@ add_to_apps_screen = [
 	}
 ]
 
+# Frappe HR's own phone app (/hrms) and the links its notifications carry open My Desk
+# instead, where seal_desk is installed, else the desk (PWA-4; my_desk/links.py). 302, not
+# 301: the answer changes when My Desk is installed, so browsers must not keep it.
+website_redirects = [
+    {"source": r"/hrms(/.*)?", "target": r"/my-hr-go?to=\1", "redirect_http_status": 302},
+]
+
 # Includes in <head>
 # ------------------
 
@@ -559,6 +566,38 @@ seal_desk_approval_sources = [
         "provider": "seal_hrms.desk.providers.timesheet_approvals",
         "act": "seal_hrms.my_desk.approvals.act_on_timesheet",
         "watch": ["Timesheet", "Task Assignment"],
+    },
+]
+
+# The My HR section of the My Desk phone app (HR_ON_MY_DESK.md §3, SECTIONS_CONTRACT.md §1):
+# every self-service screen, built from frontend-my-desk/ into public/my-desk/ (committed).
+# seal_desk loads it at run time where it is installed; anywhere else this is inert. The
+# DocTypes it claims open in its screens from anywhere in the app (/my-desk/r/<DocType>/<name>).
+seal_desk_app_sections = [
+    {
+        "key": "seal_hrms.my_hr",
+        "label": "My HR",
+        "icon": "id-card",
+        "module": "/assets/seal_hrms/my-desk/section.js",
+        "css": "/assets/seal_hrms/my-desk/section.css",
+        "claims": [
+            "Leave Application",
+            "Leave Allocation",
+            "Task Assignment",
+            "Time Off in Lieu Claim",
+            "Timesheet",
+            "Expense Claim",
+            "Employee Advance",
+            "Salary Slip",
+            "Employee",
+            "Employee Checkin",
+            "Attendance Request",
+            "Shift Request",
+            "Employee Dependent and Beneficiary",
+            "Payout Change Request",
+        ],
+        "visible": "seal_hrms.my_desk.section.visible",
+        "order": 10,
     },
 ]
 

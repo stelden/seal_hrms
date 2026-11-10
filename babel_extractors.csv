@@ -1,0 +1,7 @@
+frontend-my-desk/node_modules/**,ignore
+frontend-my-desk/e2e/**,ignore
+seal_hrms/public/my-desk/**,ignore
+**/*.test.ts,ignore
+**/*.test.tsx,ignore
+frontend-my-desk/**.tsx,frappe.gettext.extractors.javascript.extract
+frontend-my-desk/**.ts,frappe.gettext.extractors.javascript.extract
