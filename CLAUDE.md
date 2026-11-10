@@ -68,4 +68,4 @@ commit gate on top of this rule.
 
 ### Labels in this app
 
-Existing labels were brought into line with the policy in November 2026. Keep them there: new and edited fields follow the policy. Programme record: `dev_notes/label_policy/README.md` in the bench.
+Existing labels were brought into line with the policy in November 2026. Keep them there: new and edited fields follow the policy. Programme record: `dev_notes/SEAL_DEV_RULES.md` §1.21 in the bench.
