@@ -24,6 +24,14 @@ modify hrms or erpnext.** Everything here compensates from our own app through
 hooks, custom fields and overrides. A change upstream must be absorbed here, not
 pushed there.
 
+### User guide
+
+The user guide lives in `docs/` and is published at https://docs.stelden.com/hrms. It describes what
+users see (My HR, handovers, time off in lieu, timesheets, employee details, the policies and reports);
+each covered form and report links to its page from the Help menu, and "SEAL HRMS User Guide" sits in
+the desk's Help menu. `bench seal-docs check seal_hrms --strict` runs in the pre-commit hook, and a
+commit touching code a page describes must touch the page too (or say why in its message).
+
 ### Dependencies
 
 `frappe/erpnext`, `frappe/hrms`.
@@ -550,6 +558,12 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-10** — 1.22.0. **User guide** (`docs/`, help-docs programme): 18 pages written from the
+  code, a Help-menu link on every form and report the app adds or changes (`public/js/help_links.js`,
+  generated) and "SEAL HRMS User Guide" in the desk's Help menu (`standard_help_items`). Pre-commit now
+  runs the docs gates; the template's ruff, prettier and eslint hooks are at `stages: [manual]`
+  (§1.17). Needs `bench migrate` and a web server restart.
 
 - **2026-11-10** — 1.21.0. **Field labels follow the labelling policy**: short Title Case names, with the
   explanation moved into each field's description. Time off claims and their lines ("Hours Worked",
