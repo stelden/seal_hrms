@@ -189,7 +189,8 @@ test("Achieng approves his leave and expense claim from the Approvals tab", asyn
 	await expect(card(/Leave for Otieno Ochieng/)).toBeVisible();
 	await expect(card(/Expense claim from Otieno Ochieng/)).toBeVisible();
 	await expect(card(/Time off claim from Otieno Ochieng/)).toBeVisible();
-	await expect(approvalsTab(page)).toContainText("3"); // the timesheet is missing: see the next test
+	await expect(card(/Timesheet from Otieno Ochieng/)).toBeVisible(); // read by a share (seal_desk 1.22.1, D191)
+	await expect(approvalsTab(page)).toContainText("4");
 	await expectNoSidewaysScroll(page);
 	await shot(page, "11-approvals");
 
@@ -209,26 +210,22 @@ test("Achieng approves his leave and expense claim from the Approvals tab", asyn
 		await expect(card(/Expense claim from Otieno Ochieng/)).toHaveCount(0);
 		await expect.poll(async () => (await state(page.request)).expenses[0]?.approval_status).toBe("Approved");
 	});
-	await expect(approvalsTab(page)).toContainText("1"); // the time off claim is still hers to decide
+	await expect(approvalsTab(page)).toContainText("2"); // the time off claim and the timesheet are still hers to decide
 	await shot(page, "12-approved");
 	expect(errors).toEqual([]);
 });
 
 /**
- * KNOWN FAILURE, marked so (2026-11-11): the timesheet never reaches Achieng's Approvals tab.
- * seal_hrms lists it (`seal_hrms.timesheets` source: custom_approver is Achieng, Waiting for
- * Approval), but seal_desk's inbox keeps a declared source's item only when the person's ROLES
- * read its DocType (`role_center/inbox.py` declared_items, `ctx.readable`). Timesheet approvers
- * read the timesheet through a share, by design (`timesheets/approval.py`), and hold no role on
- * Timesheet, so every timesheet approver's phone drops it. Fix belongs to seal_desk. When it is
- * fixed this test passes, Playwright reports it as an unexpected pass, and `test.fail` comes off.
+ * The timesheet reaches Achieng's Approvals tab although she reads it only through a share, by
+ * design (`timesheets/approval.py`): seal_desk 1.22.1 checks read per document, not by role (D191).
+ * Marked as a known failure until then.
  */
 test("Achieng approves his timesheet from the Approvals tab", async ({ page }) => {
-	test.fail(true, "seal_desk drops declared approval items whose DocType the approver reads only by share");
 	who ??= await seeded(page.request);
 	await signIn(page, who.achieng_user, who.password);
 	const raw = (await (await page.request.get("/api/method/seal_desk.api.phone.approvals")).json()).message;
-	expect(raw.failed).toEqual([]); // the source did not fail: its item was filtered out
+	expect(raw.failed).toEqual([]);
+	expect(raw.items.map((i: { doctype: string }) => i.doctype)).toContain("Timesheet");
 	await page.goto("/my-desk/approvals");
 	const card = page.locator("[data-slot=card]").filter({ hasText: /Timesheet from Otieno Ochieng/ });
 	await expect(card).toBeVisible({ timeout: 10_000 });
@@ -244,7 +241,9 @@ test("the HR notices of the week: their kind on the phone, and nothing about pay
 	expect(about(who.njeri_user, "Task Assignment").map((a) => a.kind)).toEqual(["hr"]);
 	// Achieng is asked to decide: approvals (seal_desk's kind), never "hr".
 	expect(about(who.achieng_user, "Time Off in Lieu Claim").map((a) => a.kind)).toEqual([null]);
-	expect(about(who.achieng_user, "Timesheet").map((a) => a.kind)).toEqual([null]);
+	// Kinds are worked out now, at the end of the week: she approved the timesheet above, so it no
+	// longer waits on her and reads as an HR notice (null while it waited, as the time off claim still does).
+	expect(about(who.achieng_user, "Timesheet").map((a) => a.kind)).toEqual(["hr"]);
 	// HR is asked to confirm the payout change: theirs to decide, and only the subject would show.
 	const payout = answers.filter((a) => a.doctype === "Payout Change Request");
 	expect(payout.length).toBeGreaterThan(0);
