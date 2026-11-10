@@ -601,6 +601,16 @@ seal_desk_app_sections = [
     },
 ]
 
+# HR notices on the phone (My Desk phase P6, PUSH.md §1, §4). Plain data and dotted paths that
+# seal_desk and seal_common read where they are installed; inert anywhere else. seal_hrms imports
+# neither. "hr" is a kind a person can turn off in Settings -> Notifications; a notice waiting for
+# their decision is seal_desk's "approvals" kind, so kind_of answers None for it.
+push_kind_labels = [{"key": "hr", "label": "HR"}]
+push_kind_providers = ["seal_hrms.my_desk.push.kind_of"]
+# What of an HR notice may show on a locked phone: pay and payout notices subject only, medical
+# leave without its type (seal_common messaging/push.py message_for_log, PWA-22).
+push_message_providers = ["seal_hrms.my_desk.push.message_for"]
+
 # At most three lines on My Desk, each only when true (HR_ON_MY_DESK.md §2.5).
 seal_desk_headlines = [
     "seal_hrms.desk.providers.headlines",

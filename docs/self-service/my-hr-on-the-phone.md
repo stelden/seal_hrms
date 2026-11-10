@@ -11,6 +11,7 @@ sources:
 - seal_hrms/my_desk/section.py
 - seal_hrms/my_desk/links.py
 - seal_hrms/www/my-hr-go.py
+- seal_hrms/my_desk/push.py
 - seal_hrms/seal_hrms/working_time/user_type.py
 ---
 
@@ -25,7 +26,7 @@ Leave, time off, timesheets, claims and payslips are things people deal with awa
 | Screen | What you do there |
 |:---|:---|
 | **My HR** | See leave and time off left, what is waiting for a decision, and the quick actions: Apply for Leave, Claim Time Off, This Week's Timesheet, New Expense Claim, Check In. |
-| **Leave** | Apply, and see each application. When your company asks for cover on leave like this, the same step asks who covers you, which work and which approvals to hand over, and sends the handover to them. |
+| **Leave** | Apply, and see each application. When your company asks for cover on leave like this, a **Handover** part shows beneath the leave once you have chosen the dates: who covers you, which work and which approvals to hand over. Applying sends the handover to them. |
 | **Cover** | Agree or decline a handover (say why when you decline), leave notes on work you cover, leave a note for their return, and say I'm Back when you return early. |
 | **Time Off in Lieu** | Claim extra hours a day at a time, or use **Fill from Records** to bring in the days attendance or timesheets show; send it for approval or authorisation; apply for leave from what an approved claim gave you. |
 | **Timesheets** | Fill your week one day at a time, copy last week's lines, read the weekly check, and send it for approval. Once approved, claim its extra hours as time off. Only where your company keeps weekly timesheets; otherwise timesheets show read only. |
@@ -34,6 +35,10 @@ Leave, time off, timesheets, claims and payslips are things people deal with awa
 | **Check-in** | Check in and out, where HR allows it. Where HR asks, where you are is recorded with it. |
 | **Attendance Requests**, **Shift Requests** | Ask for days worked away to count, or for another shift. |
 | **My Details** | Your details, your mobile number, your dependants and beneficiaries, and where you are paid (only the last four digits). **Request a Change** asks HR to pay you somewhere else: you confirm it is you first, and HR confirms it before any pay goes there. See [Payout Change Request](payout-change-request.md). |
+
+**Long forms are kept on your phone until you send them.** A timesheet week, an expense claim and a leave application you have started come back as you left them if the app closes, with **Restored From This Phone** at the top; **Discard** or **Start Again** throws the kept copy away. Receipt photos are not kept: add them again. Nothing is kept once you send, and signing out of My Desk removes everything kept on that phone.
+
+**Notifications.** HR's notices about your own leave, claims, timesheets and pay, and handovers asked of you, come to your phone as the **HR** kind: turn them off under Me → Settings → Notifications if you do not want them on this phone. Anything waiting for your decision comes as **Approvals**, so silencing HR never hides work you must approve. On a locked phone, notices about pay, payout details and advances show only their subject, a payslip notice never shows an amount, and a notice about sick, medical, maternity or paternity leave does not name the leave.
 
 Everything you create is yours, in your own company, sent to your own approvers. Approvers open your records from their Approvals and see them read only.
 

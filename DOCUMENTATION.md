@@ -564,6 +564,34 @@ in the app (`/my-desk/r/<DocType>/<name>`).
   which opens the same thing in My Desk where seal_desk is installed, else the desk form or Self Service
   (`my_desk/links.py`). hrms is not changed.
 
+### Push and drafts on the phone (1.25.0)
+
+Phase P6 of the My Desk phone app (seal_hrms' part). Plain hooks that seal_common and seal_desk read where they are
+installed; `seal_hrms/my_desk/push.py` imports neither.
+
+- **`push_kind_labels = [{"key": "hr", "label": "HR"}]`, `push_kind_providers = ["seal_hrms.my_desk.push.kind_of"]`**:
+  `kind_of(notification_log)` answers `"hr"` for a Notification Log about Leave Application, Expense Claim, Time Off in
+  Lieu Claim, Timesheet, Employee Advance, Salary Slip, Payout Change Request, Task Assignment, Shift Request or
+  Attendance Request, unless the record is waiting for the recipient's decision (`waiting_for`, the Approvals inbox's
+  rules: named approver or the one holding their approvals, never their own; a site Workflow on leave or expense
+  claims counts any draft not their own; a payout change waiting for an HR Manager who may decide; a draft shift
+  request to its approver): then `None`, so seal_desk's "approvals" kind carries it. Never raises.
+- **`push_message_providers = ["seal_hrms.my_desk.push.message_for"]`** (seal_common PWA-22): Salary Slip, Payout
+  Change Request and Employee Advance notices are `private` (subject only); a payslip's subject is rewritten to its
+  period ("Your payslip for …"); leave whose type's name says sick, medical, hospital, illness, health, maternity,
+  paternity or convalescence gets "An update on your leave application" / "Leave application from <name>" and no
+  summary. Anything else: `None` (seal_common's own rule).
+- **Drafts** (`frontend-my-desk/src/lib/drafts.ts`): the timesheet week, the expense claim (not its receipts) and the
+  leave application are kept in `localStorage` under `seal-draft:<user>:<form>:<id>` as typed (400 ms after the last
+  change), restored when the screen opens (dropped after 30 days, or when the server no longer lets the week be
+  changed), and removed once sent. The shell removes every `seal-draft:` key on sign-out (seal_desk's part).
+- Fixes found by the walk in the real shell: Apply for Leave is one page (the library Wizard's Continue submitted the
+  leave without its handover); its leave types are read once, apart from the per-date details (the type cleared
+  itself); `payout_options` reads bank names with `get_all` (staff cannot read Bank); `claim_expenses` fills each
+  row's account and cost centre as Frappe HR's form does.
+- **Browser walk** in seal_desk's real shell: `e2e/playwright.phone.config.ts`, `e2e/phone/` (harness copied from
+  seal_desk P3; serves dev.local in one rolled-back transaction).
+
 ### Payout Change Request (1.23.0)
 
 Staff ask to be paid into a new bank account or mobile money number; an HR Manager confirms it before
@@ -604,6 +632,11 @@ cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright 
 # section in a browser at 390×844 in a small stand-in host (no seal_desk shell needed)
 cd apps/seal_hrms/frontend-my-desk && npm test && npx seal-portal-check && npm run build && npm run e2e
 
+# Otieno's week of self service and Achieng's approvals in seal_desk's REAL shell at 390x844 (the P5/P6
+# done-when). phone/harness.py serves dev.local in one transaction, rolled back when Playwright stops it,
+# with the phone app's worktrees first on the path; nothing is committed and no SMS or email leaves.
+cd apps/seal_hrms/e2e && npx playwright test -c playwright.phone.config.ts
+
 # Python
 bench --site dev.local run-tests --module seal_hrms.<module>
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment
@@ -611,6 +644,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_l
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_lifecycle
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_acting
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_surfaces
+bench --site dev.local run-tests --module seal_hrms.tests.test_my_desk_push
 bench --site dev.local run-tests --module seal_hrms.tests.test_task_assignment_emails
 bench --site dev.local run-tests --module seal_hrms.tests.test_hrms_time_behaviour
 bench --site dev.local run-tests --module seal_hrms.tests.test_seal_hrms_settings
@@ -649,6 +683,10 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-11** — 1.25.0. **Push and drafts on the phone** (phase P6 of the My Desk phone app): the `hr` notification
+  kind and its classifier, safe locked-screen text for pay and medical-leave notices, drafts of long forms kept on
+  the phone; fixes to Apply for Leave, Request a Change and phone expense claims; the browser walk in the real shell.
 
 - **2026-11-10** — 1.24.0. **My HR on the phone** (phase P5 of the My Desk phone app): the `seal_hrms.my_hr`
   section (every self-service screen) built with seal_frontend 1.3.0 and committed in `public/my-desk/`; its

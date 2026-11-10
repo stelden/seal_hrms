@@ -32,7 +32,7 @@ Leave, expense claims, time off and timesheets are approved by a named person, n
 
 Approving from My Desk does exactly what the form does: the same people may decide, a refusal needs a reason, and nobody decides their own. Approving an expense claim from the phone asks you to confirm it is you first. Where your site runs its own workflow on leave or expense claims, that workflow's steps show instead.
 
-Every email SEAL HRMS sends about a handover, a time off claim, a timesheet or a payout change also puts a line on the person's bell (the subject only), so the phone can tell them too.
+Every email SEAL HRMS sends about a handover, a time off claim, a timesheet or a payout change also puts a line on the person's bell (the subject only), so the phone can tell them too. On the phone those lines arrive as **HR** notifications, which each person can turn off, except anything waiting for their decision, which arrives as **Approvals**; see [My HR on the phone](my-hr-on-the-phone.md).
 
 The **Employee Self-Service** page shipped with SEAL HRMS now carries Balances, Cover, Time off in lieu and Timesheets, the actions **Time Off in Lieu Claim**, **Payout Change Request** and **My Details**, and three first steps: get the app, turn on fingerprint sign-in, check your payout details. A site that already published the page sees these in its draft and publishes again.
 

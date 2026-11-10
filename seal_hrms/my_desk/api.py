@@ -705,7 +705,7 @@ def expense_options() -> dict:
 @frappe.whitelist(methods=["POST"])
 def claim_expenses(lines, remark: str | None = None) -> str:
 	"""A new expense claim for the person, waiting for their expense approver. Receipts are attached after."""
-	from hrms.hr.doctype.expense_claim.expense_claim import get_default_payable_account
+	from hrms.hr.doctype.expense_claim.expense_claim import get_default_payable_account, get_expense_claim_account_and_cost_center
 
 	lines = _payload(lines) or []
 	if not lines:
@@ -725,12 +725,18 @@ def claim_expenses(lines, remark: str | None = None) -> str:
 	})
 	for line in lines:
 		amount = flt(line.get("amount"))
+		# What the desk form fills on each row (Frappe HR's expense_claim.js: the type's account and the
+		# company's cost centre): without them the approver's approval is refused ("Cost Center is
+		# required"), found by the P6 walk in the real shell.
+		booking = get_expense_claim_account_and_cost_center(line.get("expense_type"), person.company) if line.get("expense_type") else {}
 		doc.append("expenses", {
 			"expense_date": line.get("expense_date") or today(),
 			"expense_type": line.get("expense_type"),
 			"description": line.get("description"),
 			"amount": amount,
 			"sanctioned_amount": amount,
+			"default_account": booking.get("account"),
+			"cost_center": doc.cost_center or booking.get("cost_center"),
 		})
 	doc.insert()
 	return doc.name
@@ -1072,7 +1078,10 @@ def update_my_contact(mobile_no: str) -> dict:
 @frappe.whitelist(methods=["GET"])
 def payout_options() -> dict:
 	"""Banks to choose from, and the request's two kinds."""
-	return {"banks": frappe.get_list("Bank", pluck="name", order_by="name asc", limit_page_length=500), "changes": ["Bank Account", "Mobile Money"]}
+	# get_all, not get_list (SEAL_DEV_RULES §2.8, inverted on purpose): staff cannot read Bank, and a
+	# refusal here broke the whole Request a Change screen, Mobile Money included (P6 walk, P6-7).
+	# Only the banks' names leave, which are public; nothing else of the record.
+	return {"banks": frappe.get_all("Bank", pluck="name", order_by="name asc", limit_page_length=500), "changes": ["Bank Account", "Mobile Money"]}
 
 
 @frappe.whitelist(methods=["POST"])

@@ -10,3 +10,5 @@ cypress/screenshots
 
 # Throwaway scratch modules (SEAL_DEV_RULES §2.1)
 scratch/
+e2e/artifacts/phone-*
+e2e/artifacts/otieno-week/

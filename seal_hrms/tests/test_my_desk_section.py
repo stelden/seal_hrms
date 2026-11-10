@@ -107,6 +107,13 @@ class TestOwnRecordsOnly(SectionTestCase):
 			self.as_njeri(api.expense_record, claim)
 		self.assertEqual(self.as_otieno(api.expense_record, claim)["total_claimed_amount"], 640)
 
+	def test_each_expense_is_booked_as_the_desk_books_it(self):
+		"""Account and cost centre on every row, as Frappe HR's form fills them: else approval is refused (P6 walk)."""
+		claim = self.as_otieno(api.claim_expenses, [{"expense_type": self._expense_type(), "amount": 2300, "description": "Boda boda to the Korogocho site"}])
+		row = frappe.get_doc("Expense Claim", claim).expenses[0]
+		self.assertEqual(row.default_account, frappe.db.get_value("Expense Claim Account", {"parent": self._expense_type(), "company": self.company}, "default_account"))
+		self.assertTrue(row.cost_center)
+
 	def test_someone_with_no_staff_record_is_told_so(self):
 		with self.assertRaises(frappe.PermissionError):
 			fx.as_user("Administrator", api.home)
@@ -228,6 +235,17 @@ class TestPayoutDetailsAreMasked(SectionTestCase):
 		self.assertEqual(api.mask("0712 345 678"), "•••• 5678")
 		self.assertEqual(api.mask("123"), "•••")
 		self.assertIsNone(api.mask(None))
+
+
+class TestPayoutOptionsForStaff(SectionTestCase):
+	def test_staff_who_cannot_read_banks_still_get_their_names(self):
+		"""A refusal here broke the Request a Change screen, Mobile Money included (P6 walk)."""
+		if not frappe.db.exists("Bank", "Kilimani Cooperative Bank"):
+			frappe.new_doc("Bank").update({"bank_name": "Kilimani Cooperative Bank"}).insert(ignore_permissions=True)
+		self.assertFalse(frappe.has_permission("Bank", "read", user=self.otieno_user))
+		answer = self.as_otieno(api.payout_options)
+		self.assertIn("Kilimani Cooperative Bank", answer["banks"])
+		self.assertEqual(answer["changes"], ["Bank Account", "Mobile Money"])
 
 
 class TestCheckIn(SectionTestCase):

@@ -11,6 +11,13 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.25.0 (2026-11-11)
+
+- **New:** on the phone, a timesheet week, an expense claim and a leave application you started are kept on the phone until you send them; see [My HR on the phone](self-service/my-hr-on-the-phone.md).
+- **New:** HR notices reach your phone as their own kind, **HR**, which you can turn off; a notice about pay or about medical leave shows only a safe subject on a locked phone.
+- **Changed:** Apply for Leave on the phone is one page: the handover shows beneath the leave instead of as a second step.
+- **Fixed:** on the phone, the leave type no longer clears itself once both dates are chosen; Request a Change opens for staff who cannot see the list of banks; expense claims made on the phone can be approved (each expense now carries its account and cost centre, as on the desk).
+
 ## 1.24.0 (2026-11-10)
 
 - **New:** [My HR on the phone](self-service/my-hr-on-the-phone.md): where your site has My Desk, apply for leave (with the handover), answer handovers, claim time off, fill your week's timesheet, claim expenses with receipt photos, ask for an advance, read payslips, check in, send attendance and shift requests, and see your details on your phone.

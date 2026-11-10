@@ -9,9 +9,10 @@
  * that keep weekly timesheets edit here (P5-10); other timesheets open read only.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { formatDate, useGet, usePost } from "@stelden/seal-frontend";
+import { useShell } from "@stelden/seal-frontend/section";
 import {
 	Alert,
 	Badge,
@@ -38,6 +39,7 @@ import { ChevronLeft, ChevronRight, Clock, Copy, Plus, Trash2 } from "@stelden/s
 
 import { M } from "../lib/api";
 import { nameFrom, P } from "../lib/paths";
+import { clearDraft, readDraft, savedDay, useDraft } from "../lib/drafts";
 import { useGo } from "../lib/shell";
 import { Status } from "../lib/Status";
 import { addDays, copyLastWeek, dayTotal, forSaving, localToday, mondayOf, newEntry, setHours, weekDays, weekTotal, type WeekEntry } from "../lib/week";
@@ -134,13 +136,39 @@ export function TimesheetWeek() {
 		const today = localToday();
 		return today >= monday && today <= addDays(monday, 6) ? weekDays(monday).indexOf(today) : 0;
 	});
-	const [dirty, setDirty] = useState(false);
+	const [dirty, setDirtyState] = useState(false);
+	// Read inside the effect below: a refetch while the person is typing must not wipe what they typed.
+	const dirtyRef = useRef(false);
+	const setDirty = (value: boolean) => {
+		dirtyRef.current = value;
+		setDirtyState(value);
+	};
+	// The week as typed is kept on the phone until the server has it (P6 drafts, DESIGN §6.9).
+	const draft = useDraft<WeekEntry[]>(useShell().user, "timesheet-week", monday);
+	const [restoredAt, setRestoredAt] = useState<number | null>(null);
+	const serverEntries = (answer: WeekAnswer) => (answer.timesheet?.entries.length ? answer.timesheet.entries : [newEntry([], answer.default_activity_type)]);
+	const shownWeek = useRef<string | null>(null);
 
 	useEffect(() => {
-		if (!data) return;
-		setEntries(data.timesheet?.entries.length ? data.timesheet.entries : [newEntry([], data.default_activity_type)]);
+		if (!data || data.week_start !== monday) return;
+		const sameWeek = shownWeek.current === monday;
+		shownWeek.current = monday;
+		if (sameWeek && dirtyRef.current) return; // a refetch: keep what is being typed
+		const canEdit = data.weekly && (!data.timesheet || data.timesheet.can_edit);
+		const kept = draft.key ? readDraft<WeekEntry[]>(draft.key) : null;
+		if (kept && canEdit && Array.isArray(kept.value) && kept.value.length) {
+			setEntries(kept.value);
+			setDirty(true);
+			setRestoredAt(kept.saved);
+			return;
+		}
+		// Sent or decided since the draft was kept (perhaps on a computer): the server's week wins.
+		if (kept && draft.key) clearDraft(draft.key);
+		setEntries(serverEntries(data));
 		setDirty(false);
-	}, [data]);
+		setRestoredAt(null);
+		// Deliberately not every dependency: runs when the server's week arrives, not on each keystroke
+	}, [data, monday]);
 
 	const days = weekDays(monday);
 	const day = data?.days[dayIndex];
@@ -149,12 +177,21 @@ export function TimesheetWeek() {
 	const change = (next: WeekEntry[]) => {
 		setEntries(next);
 		setDirty(true);
+		draft.keep(next);
+	};
+	const discard = () => {
+		draft.clear();
+		setRestoredAt(null);
+		if (data) setEntries(serverEntries(data));
+		setDirty(false);
 	};
 
 	const store = async (send: boolean) => {
 		try {
 			const answer = await save.run({ week_start: monday, entries: JSON.stringify(forSaving(entries)), send: send ? 1 : 0 });
 			notify.success(send ? __("Week sent for approval.") : __("Week saved."));
+			draft.clear(); // the server has it now
+			setRestoredAt(null);
 			setDirty(false);
 			await mutate();
 			return answer;
@@ -203,6 +240,17 @@ export function TimesheetWeek() {
 			{data && (
 				<div className="flex flex-col gap-4">
 					{(save.errorMessage || claim.errorMessage) && <Alert tone="error">{save.errorMessage || claim.errorMessage}</Alert>}
+					{restoredAt !== null && (
+						<Alert
+							tone="info"
+							title={__("Restored From This Phone")}
+							action={
+								<Button onClick={discard}>{__("Discard")}</Button>
+							}
+						>
+							{__("What you entered on {0} was not saved yet. Save or send it when you are ready.", [formatDate(savedDay(restoredAt))])}
+						</Alert>
+					)}
 					{!data.weekly && <Alert tone="info">{__("Your company does not keep weekly timesheets. Fill timesheets in on a computer.")}</Alert>}
 					{data.timesheet?.state === "Returned" && data.timesheet.return_reason && (
 						<Alert tone="warning" title={__("Returned to You")}>

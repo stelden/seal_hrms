@@ -7,14 +7,16 @@
  * server). Each new record is the person's own, in their company, to their approver (P5-2).
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { formatCurrency, formatDate, uploadFile, useGet, usePost } from "@stelden/seal-frontend";
+import { useShell } from "@stelden/seal-frontend/section";
 import { DateInput, FileInput, FormActions, NumberInput, RowsInput, SealForm, SelectInput, TextInput, amount, required, useSealForm, z } from "@stelden/seal-frontend/forms";
 import { Alert, Button, DescriptionList, DetailPage, EmptyState, FormPage, List, ListItem, ListPage, Section, __, useNotify } from "@stelden/seal-frontend/ui";
 import { Download, HandCoins, Plus, Receipt, Wallet } from "@stelden/seal-frontend/icons";
 
 import { M, payslipPdfUrl } from "../lib/api";
+import { savedDay, useDraft } from "../lib/drafts";
 import { nameFrom, P } from "../lib/paths";
 import { useGo } from "../lib/shell";
 import { Status } from "../lib/Status";
@@ -93,10 +95,30 @@ export function ExpenseForm() {
 			}).loose(),
 		[],
 	);
-	const form = useSealForm<ExpenseValues>({ schema, defaultValues: { lines: [{ expense_date: localToday(), expense_type: "", amount: null, description: "" }], remark: "", receipts: [] } });
+	const blank = (): ExpenseValues => ({ lines: [{ expense_date: localToday(), expense_type: "", amount: null, description: "" }], remark: "", receipts: [] });
+	const form = useSealForm<ExpenseValues>({ schema, defaultValues: blank() });
+	// The claim as typed stays on the phone until it is sent; receipts are files and are not kept (P6 drafts).
+	const draft = useDraft<Pick<ExpenseValues, "lines" | "remark">>(useShell().user, "expense-claim", "new");
+	const [restoredAt, setRestoredAt] = useState<number | null>(null);
+	useEffect(() => {
+		if (draft.restored && Array.isArray(draft.restored.value?.lines) && draft.restored.value.lines.length) {
+			form.reset({ ...blank(), ...draft.restored.value, receipts: [] });
+			setRestoredAt(draft.restored.saved);
+			draft.dismiss();
+		}
+		const watching = form.watch((values) => draft.keep({ lines: (values.lines ?? []) as ExpenseValues["lines"], remark: values.remark ?? "" }));
+		return () => watching.unsubscribe();
+		// Deliberately not every dependency: once, when the screen opens
+	}, []);
+	const startAgain = () => {
+		draft.clear();
+		setRestoredAt(null);
+		form.reset(blank());
+	};
 
 	const submit = async (values: ExpenseValues) => {
 		const name = await create.run({ lines: JSON.stringify(values.lines), remark: values.remark });
+		draft.clear(); // the server has the claim; receipts follow
 		const failed: string[] = [];
 		for (const file of values.receipts ?? []) {
 			try {
@@ -112,6 +134,11 @@ export function ExpenseForm() {
 
 	return (
 		<FormPage title={__("New Expense Claim")} onBack={() => go(P.expenses)} loading={options.isLoading} error={options.error} onRetry={options.mutate}>
+			{restoredAt !== null && (
+				<Alert tone="info" title={__("Restored From This Phone")} action={<Button onClick={startAgain}>{__("Start Again")}</Button>}>
+					{__("You started this claim on {0}. Add the receipts again before you send it.", [formatDate(savedDay(restoredAt))])}
+				</Alert>
+			)}
 			{options.data && !options.data.approver_name && <Alert tone="warning">{__("Nobody approves your expense claims yet. Ask HR to set an expense approver.")}</Alert>}
 			<SealForm form={form} onSubmit={submit}>
 				<RowsInput

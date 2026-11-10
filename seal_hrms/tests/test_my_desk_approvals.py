@@ -199,7 +199,9 @@ class TestExpenseClaims(ApprovalsTestCase):
 
 		ec = self._claim()
 		seen = []
-		with patch.object(ExpenseClaim, "submit", lambda self: seen.append(self.approval_status)):
+		# The fresh check is the test above's; here she has just confirmed it is her. Without this the
+		# test passed only where seal_common had no step-up (before 1.35.0), and failed beside it.
+		with patch.object(ExpenseClaim, "submit", lambda self: seen.append(self.approval_status)), patch("seal_hrms.seal_hrms.step_up.require_fresh_check", return_value=True):
 			fx.as_user(self.achieng_user, approvals.act_on_expense, ec.name, "Approve")
 		self.assertEqual(seen, ["Approved"])  # the accounts this test site lacks are Frappe HR's to check
 

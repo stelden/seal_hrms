@@ -7,17 +7,19 @@
  * posting-date and lapsed-time rules are the server's: their messages show as they come.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { formatDate, useGet, usePost } from "@stelden/seal-frontend";
+import { useShell } from "@stelden/seal-frontend/section";
 import {
 	AutocompleteInput,
 	CheckboxInput,
 	DateInput,
 	SealForm,
 	SelectInput,
+	FormActions,
+	FormSection,
 	TextInput,
-	Wizard,
 	frappeDate,
 	required,
 	useSealForm,
@@ -41,6 +43,7 @@ import {
 import { CalendarDays, Plus } from "@stelden/seal-frontend/icons";
 
 import { M } from "../lib/api";
+import { savedDay, useDraft } from "../lib/drafts";
 import { handoverStep } from "../lib/forms";
 import { nameFrom, P } from "../lib/paths";
 import { useGo } from "../lib/shell";
@@ -149,17 +152,39 @@ export function LeaveForm() {
 			}),
 		[],
 	);
-	const form = useSealForm<LeaveValues>({
-		schema: schema.passthrough(),
-		defaultValues: { leave_type: params.get("type") ?? "", from_date: "", to_date: "", half_day: false, description: "", stand_in: "", handover_notes: "", todos: [], approvals: [] },
-	});
+	const blank = (): LeaveValues => ({ leave_type: params.get("type") ?? "", from_date: "", to_date: "", half_day: false, description: "", stand_in: "", handover_notes: "", todos: [], approvals: [] });
+	const form = useSealForm<LeaveValues>({ schema: schema.passthrough(), defaultValues: blank() });
+	// The application and its handover stay on the phone until applied for (P6 drafts). A leave type asked for
+	// in the link ("Apply for Leave" from an approved time off claim) starts afresh rather than restoring.
+	const draft = useDraft<LeaveValues>(useShell().user, "leave-application", "new");
+	const [restoredAt, setRestoredAt] = useState<number | null>(null);
+	useEffect(() => {
+		if (draft.restored?.value && !params.get("type")) {
+			form.reset({ ...blank(), ...draft.restored.value });
+			setRestoredAt(draft.restored.saved);
+		}
+		draft.dismiss();
+		const watching = form.watch((values) => draft.keep({ ...blank(), ...(values as Partial<LeaveValues>) }));
+		return () => watching.unsubscribe();
+		// Deliberately not every dependency: once, when the screen opens
+	}, []);
+	const startAgain = () => {
+		draft.clear();
+		setRestoredAt(null);
+		form.reset(blank());
+	};
 	const [leaveType, fromDate, toDate, halfDay] = form.watch(["leave_type", "from_date", "to_date", "half_day"]);
 	const ready = !!(leaveType && fromDate && toDate);
-	const options = useGet<LeaveOptions>(M.leaveOptions, ready ? { leave_type: leaveType, from_date: fromDate, to_date: toDate, half_day: halfDay ? 1 : 0 } : {});
+	// Two reads of the same endpoint: the leave types once, and what the chosen dates mean (days, approver,
+	// handover) as they change. One read keyed on the dates emptied the type list while it reloaded, and
+	// the select dropped the chosen type with it (found by the P6 walk in the real shell).
+	const types = useGet<LeaveOptions>(M.leaveOptions);
+	const detail = useGet<LeaveOptions>(M.leaveOptions, { leave_type: leaveType, from_date: fromDate, to_date: toDate, half_day: halfDay ? 1 : 0 }, { enabled: ready });
+	const options = { ...detail, data: ready ? detail.data : undefined };
 	const colleagues = useGet<Array<{ name: string; employee_name: string }>>(M.colleagues, {}, { enabled: !!options.data?.handover.needed });
 	const apply = usePost<{ name: string; handover: string | null }>(M.applyForLeave);
 	const step = handoverStep(ready ? options.data?.handover : undefined);
-	const chosen = options.data?.leave_types.find((t) => t.name === leaveType);
+	const chosen = (options.data ?? types.data)?.leave_types.find((t) => t.name === leaveType);
 
 	const submit = async (values: LeaveValues) => {
 		if (step.standInRequired && !values.stand_in) return { errors: { stand_in: __("Your company asks for cover on this leave. Choose who will cover your work.") } };
@@ -174,27 +199,29 @@ export function LeaveForm() {
 			todos: JSON.stringify(values.todos),
 			approvals: JSON.stringify(values.approvals),
 		});
+		draft.clear(); // applied for: nothing left to keep
 		notify.success(answer.handover ? __("Leave applied for, and the handover sent to your stand-in.") : __("Leave applied for."));
 		go(P.leaveRecord(answer.name));
 	};
 
 	return (
-		<FormPage title={__("Apply for Leave")} onBack={() => go(P.leave)} loading={options.isLoading && !options.data && !ready} error={options.hasLoaded && !ready ? options.error : undefined}>
+		<FormPage title={__("Apply for Leave")} onBack={() => go(P.leave)} loading={types.isLoading && !types.data} error={types.error} onRetry={types.mutate}>
+			{restoredAt !== null && (
+				<Alert tone="info" title={__("Restored From This Phone")} action={<Button onClick={startAgain}>{__("Start Again")}</Button>}>
+					{__("You started this application on {0} and had not sent it.", [formatDate(savedDay(restoredAt))])}
+				</Alert>
+			)}
 			<SealForm form={form} onSubmit={submit}>
-				<Wizard
-					submitLabel={__("Apply")}
-					steps={[
-						{
-							id: "leave",
-							title: __("Leave"),
-							fields: ["leave_type", "from_date", "to_date"],
-							content: (
-								<div className="flex flex-col gap-4">
+				{/* One page, the handover as a section beneath the leave, rather than the library's Wizard: its
+				    Continue button becomes Apply in the same click and sent the leave without its handover
+				    (found by the P6 walk in the real shell; P6-6). */}
+				<FormSection title={__("Leave")}>
+					<div className="flex flex-col gap-4">
 									<SelectInput
 										name="leave_type"
 										label={__("Leave Type")}
 										required
-										options={(options.data?.leave_types ?? []).map((t) => ({
+										options={(types.data?.leave_types ?? []).map((t) => ({
 											value: t.name,
 											label: t.name,
 											description: t.left === null ? __("Unpaid") : __("{0} days left", [String(t.left)]),
@@ -213,18 +240,17 @@ export function LeaveForm() {
 										</Alert>
 									)}
 								</div>
-							),
-						},
-						{
-							id: "handover",
-							title: __("Handover"),
-							visible: step.show,
-							fields: ["stand_in"],
-							description: step.standInRequired
+				</FormSection>
+				{step.show && (
+					<FormSection
+						title={__("Handover")}
+						description={
+							step.standInRequired
 								? __("Your company asks for cover on leave like this. Your stand-in is asked to agree before the leave is approved.")
-								: __("Your company suggests arranging cover. You can leave this out."),
-							content: (
-								<div className="flex flex-col gap-4">
+								: __("Your company suggests arranging cover. You can leave this out.")
+						}
+					>
+						<div className="flex flex-col gap-4">
 									<AutocompleteInput
 										name="stand_in"
 										label={__("Stand-in")}
@@ -252,10 +278,9 @@ export function LeaveForm() {
 										/>
 									)}
 								</div>
-							),
-						},
-					]}
-				/>
+					</FormSection>
+				)}
+				<FormActions submitLabel={__("Apply")} onCancel={() => go(P.leave)} />
 			</SealForm>
 		</FormPage>
 	);

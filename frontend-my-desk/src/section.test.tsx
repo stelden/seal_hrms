@@ -57,7 +57,12 @@ beforeEach(() => {
 	for (const key of Object.keys(answers)) delete answers[key];
 	for (const key of Object.keys(posts)) delete posts[key];
 });
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	window.localStorage.clear();
+});
+
+const OTIENO = "otieno.ochieng@kilimani-office.co.ke";
 
 describe("the section", () => {
 	it("is a checked definition the shell accepts", () => {
@@ -152,5 +157,74 @@ describe("the timesheet week", () => {
 		const sent = posts[M.saveTimesheetWeek].mock.calls[0][0];
 		expect(sent.send).toBe(1);
 		expect(JSON.parse(sent.entries)).toEqual([{ row: 1, activity_type: "Training", project: null, task: null, description: "First aid course", is_billable: 0, hours: [7.5, 0, 0, 0, 0, 0, 0] }]);
+	});
+
+	it("keeps the week on the phone as it is typed, restores it, and forgets it once sent", async () => {
+		const key = `seal-draft:${OTIENO}:timesheet-week:2026-11-02`;
+		const first = draw("timesheet/week/2026-11-02", shell());
+		fireEvent.click(screen.getByText("Copy Last Week"));
+		fireEvent.change(screen.getByLabelText("Hours on Monday"), { target: { value: "6" } });
+		await waitFor(() => expect(window.localStorage.getItem(key)).toContain('"hours":[6,0,0,0,0,0,0]'));
+		first.unmount();
+
+		// The app was closed before saving; opening the week again brings the hours back.
+		posts[M.saveTimesheetWeek] = vi.fn().mockResolvedValue({ name: "TS-2026-00012", state: "Waiting for Approval" });
+		draw("timesheet/week/2026-11-02", shell());
+		expect(screen.getByText("Restored From This Phone")).toBeTruthy();
+		expect((screen.getByLabelText("Hours on Monday") as HTMLInputElement).value).toBe("6");
+		fireEvent.click(screen.getByText("Send for Approval"));
+		await waitFor(() => expect(posts[M.saveTimesheetWeek]).toHaveBeenCalled());
+		expect(JSON.parse(posts[M.saveTimesheetWeek].mock.calls[0][0].entries)[0].hours).toEqual([6, 0, 0, 0, 0, 0, 0]);
+		await waitFor(() => expect(window.localStorage.getItem(key)).toBeNull());
+	});
+
+	it("drops a kept week the server no longer lets the person change", () => {
+		const key = `seal-draft:${OTIENO}:timesheet-week:2026-11-02`;
+		window.localStorage.setItem(key, JSON.stringify({ saved: Date.now(), value: [{ row: 1, activity_type: "Training", description: "", hours: [3, 0, 0, 0, 0, 0, 0] }] }));
+		answers[M.timesheetWeek] = {
+			...(answers[M.timesheetWeek] as object),
+			timesheet: { name: "TS-2026-00012", docstatus: 0, state: "Waiting for Approval", return_reason: null, approver_name: "Achieng Wanjiru", entries: [{ row: 1, activity_type: "Training", description: "", hours: [8, 0, 0, 0, 0, 0, 0] }], total_hours: 8, can_edit: false, can_send: false, can_claim: false },
+		};
+		draw("timesheet/week/2026-11-02", shell());
+		expect(screen.queryByText("Restored From This Phone")).toBeNull();
+		expect((screen.getByLabelText("Hours on Monday") as HTMLInputElement).value).toBe("8");
+		expect(window.localStorage.getItem(key)).toBeNull();
+	});
+});
+
+describe("drafts of the other long forms", () => {
+	beforeEach(() => {
+		answers[M.expenseOptions] = { types: [{ name: "Travel", description: null }], currency: "KES", approver_name: "Achieng Wanjiru" };
+		answers[M.leaveOptions] = { leave_types: [{ name: "Annual Leave", left: 14, allocated: 21 }], approver_name: "Achieng Wanjiru", days: null, handover: { needed: false, required: false, rule: null }, work: [], approvals: [] };
+	});
+
+	it("an expense claim comes back as typed, and is forgotten once sent", async () => {
+		const key = `seal-draft:${OTIENO}:expense-claim:new`;
+		window.localStorage.setItem(
+			key,
+			JSON.stringify({ saved: Date.now(), value: { lines: [{ expense_date: "2026-11-09", expense_type: "Travel", amount: 1450, description: "Matatu to Kibera outreach" }], remark: "Field visit" } }),
+		);
+		posts[M.claimExpenses] = vi.fn().mockResolvedValue("HR-EXP-2026-00044");
+		const api = shell();
+		draw("expenses/new", api);
+		expect(screen.getByText("Restored From This Phone")).toBeTruthy();
+		expect(screen.getByDisplayValue("Matatu to Kibera outreach")).toBeTruthy();
+		fireEvent.click(screen.getByText("Send Claim"));
+		await waitFor(() => expect(posts[M.claimExpenses]).toHaveBeenCalled());
+		expect(JSON.parse(posts[M.claimExpenses].mock.calls[0][0].lines)[0].amount).toBe(1450);
+		await waitFor(() => expect(window.localStorage.getItem(key)).toBeNull());
+	});
+
+	it("a leave application is kept as it is typed and Start Again forgets it", async () => {
+		const key = `seal-draft:${OTIENO}:leave-application:new`;
+		const first = draw("leave/new", shell());
+		fireEvent.change(screen.getByLabelText("Reason"), { target: { value: "Daughter's graduation in Kisumu" } });
+		await waitFor(() => expect(window.localStorage.getItem(key)).toContain("graduation in Kisumu"));
+		first.unmount();
+		draw("leave/new", shell());
+		expect(screen.getByDisplayValue("Daughter's graduation in Kisumu")).toBeTruthy();
+		fireEvent.click(screen.getByText("Start Again"));
+		expect(window.localStorage.getItem(key)).toBeNull();
+		await waitFor(() => expect(screen.queryByDisplayValue("Daughter's graduation in Kisumu")).toBeNull());
 	});
 });
