@@ -33,6 +33,8 @@ from hrms.hr.doctype.leave_application.leave_application import get_leave_balanc
 from hrms.hr.doctype.leave_ledger_entry import leave_ledger_entry
 from hrms.hr.utils import create_additional_leave_ledger_entry
 
+from seal_hrms.seal_hrms.toil import guards as toil_guards
+from seal_hrms.seal_hrms.toil import lapse as toil_lapse
 from seal_hrms.tests import _handover_fixtures as fx
 
 COMPANY = fx.COMPANY
@@ -116,6 +118,13 @@ class HrmsTimeTestCase(IntegrationTestCase):
 
 	def setUp(self):
 		frappe.set_user("Administrator")
+		# These tests pin Frappe HR alone, so this app's time off guards stand aside even when
+		# the site has a company banking time off into this leave type (another test's or a
+		# browser walk's Working Time Policy for the same company).
+		for module in (toil_guards, toil_lapse):
+			stand_aside = patch.object(module, "toil_leave_types", return_value=set())
+			stand_aside.start()
+			self.addCleanup(stand_aside.stop)
 		frappe.db.savepoint(SAVEPOINT)
 		frappe.db.before_commit.add(_refuse_commit)
 
