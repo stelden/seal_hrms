@@ -1,15 +1,15 @@
-var Gt = Object.defineProperty;
-var Kt = (a, i, n) => i in a ? Gt(a, i, { enumerable: !0, configurable: !0, writable: !0, value: n }) : a[i] = n;
-var Xe = (a, i, n) => Kt(a, typeof i != "symbol" ? i + "" : i, n);
-import { jsx as t, jsxs as m, Fragment as fe } from "react/jsx-runtime";
-import { useShell as ve, defineSection as Xt } from "@stelden/seal-frontend/section";
-import { useContext as Zt, createContext as Qt, forwardRef as it, createElement as $e, useCallback as be, useState as E, useMemo as ce, useRef as Re, useEffect as ye } from "react";
-import { useParams as Z, useSearchParams as rt } from "react-router";
-import { useGet as N, usePost as q, formatDateTime as xe, formatDate as g, uploadFile as st, formatCurrency as B, useFrappeCall as en } from "@stelden/seal-frontend";
-import { z as le, required as we, frappeDate as _e, useSealForm as de, SealForm as ue, RadioInput as lt, DateInput as re, CheckboxInput as ct, TextInput as U, FormActions as he, SelectInput as Ae, FormSection as Ze, AutocompleteInput as De, FileInput as dt, MobileInputKE as tn, amount as ut, RowsInput as ht, NumberInput as je } from "@stelden/seal-frontend/forms";
-import { toneMap as nn, StatusChip as an, __ as e, useNotify as V, FormPage as te, Alert as $, Button as w, Text as ee, Section as F, List as L, ListItem as M, ListPage as ne, EmptyState as ae, DetailPage as Q, DescriptionList as J, TabsNav as on, TabPanel as Se, SealDialog as mt, Textarea as rn, ConfirmDialog as pt, DashboardPage as sn, StatGrid as yt, StatCard as Ee, Badge as ge, FilterChips as ln, Label as Ce, Input as qe, IconButton as Le, Card as cn, CardContent as dn, Select as un } from "@stelden/seal-frontend/ui";
+var rn = Object.defineProperty;
+var sn = (a, r, n) => r in a ? rn(a, r, { enumerable: !0, configurable: !0, writable: !0, value: n }) : a[r] = n;
+var it = (a, r, n) => sn(a, typeof r != "symbol" ? r + "" : r, n);
+import { jsx as t, jsxs as m, Fragment as de } from "react/jsx-runtime";
+import { useShell as ne, defineSection as ln } from "@stelden/seal-frontend/section";
+import { useContext as cn, createContext as dn, forwardRef as yt, createElement as Ie, useCallback as Ae, useState as q, useMemo as me, useRef as be, useEffect as ue } from "react";
+import { useParams as Z, useSearchParams as ft } from "react-router";
+import { useGet as A, usePost as W, formatDateTime as Ce, formatDate as _, uploadFile as vt, formatCurrency as F, useFrappeCall as un } from "@stelden/seal-frontend";
+import { z as ee, required as le, frappeDate as Re, useSealForm as pe, SealForm as ye, RadioInput as gt, DateInput as he, CheckboxInput as Ze, TextInput as H, FormActions as fe, SelectInput as se, FormSection as st, AutocompleteInput as Ee, FileInput as _t, MobileInputKE as hn, amount as kt, RowsInput as De, NumberInput as Te, DateTimeInput as lt } from "@stelden/seal-frontend/forms";
+import { __ as e, toneMap as mn, StatusChip as pn, useNotify as O, FormPage as ae, Alert as S, Button as w, Text as te, Section as B, List as T, ListItem as M, ListPage as oe, EmptyState as re, DetailPage as Q, DescriptionList as U, TabsNav as yn, TabPanel as Pe, SealDialog as wt, Textarea as fn, ConfirmDialog as bt, DashboardPage as vn, StatGrid as Ct, StatCard as ze, Badge as we, FilterChips as gn, Label as Ne, Input as je, IconButton as Fe, Card as _n, CardContent as kn, Select as wn } from "@stelden/seal-frontend/ui";
 const X = (a) => encodeURIComponent(a);
-function oe(a) {
+function ie(a) {
   if (!a) return "";
   try {
     return decodeURIComponent(a);
@@ -46,8 +46,11 @@ const l = {
   shiftRecord: (a) => `shifts/${X(a)}`,
   me: "me",
   payoutNew: "me/payout/new",
-  payoutRecord: (a) => `me/payout/${X(a)}`
-}, ft = {
+  payoutRecord: (a) => `me/payout/${X(a)}`,
+  travel: "travel",
+  travelNew: "travel/new",
+  travelRecord: (a) => `travel/${X(a)}`
+}, Rt = {
   "Leave Application": { list: l.leave, record: l.leaveRecord, create: l.leaveNew },
   "Leave Allocation": { list: l.leave },
   "Task Assignment": { list: l.cover, record: l.handover },
@@ -61,10 +64,11 @@ const l = {
   "Attendance Request": { list: l.attendance, record: l.attendanceRecord, create: l.attendanceNew },
   "Shift Request": { list: l.shifts, record: l.shiftRecord, create: l.shiftNew },
   "Employee Dependent and Beneficiary": { list: l.me, record: () => l.me },
-  "Payout Change Request": { list: l.me, record: l.payoutRecord, create: l.payoutNew }
+  "Payout Change Request": { list: l.me, record: l.payoutRecord, create: l.payoutNew },
+  "Travel Request": { list: l.travel, record: l.travelRecord, create: l.travelNew }
 };
-function hn(a) {
-  return ft[a]?.list;
+function bn(a) {
+  return Rt[a]?.list;
 }
 /**
  * @license lucide-react v1.71.0 - ISC
@@ -72,20 +76,20 @@ function hn(a) {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const mn = (a) => a?.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const Cn = (a) => a?.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-function pn(a, i, n = []) {
-  if (i == null)
+function Rn(a, r, n = []) {
+  if (r == null)
     throw new Error("[lucide]: iconNode is required when icon name is used");
   return {
-    name: mn(a),
+    name: Cn(a),
     size: 24,
-    node: i,
+    node: r,
     ...n.length > 0 ? { aliases: n } : {}
   };
 }
@@ -95,16 +99,16 @@ function pn(a, i, n = []) {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const yn = (a) => {
-  let i = "", n = !1;
+const xn = (a) => {
+  let r = "", n = !1;
   for (const o of a) {
     if (o === "-" || o === "_" || o <= " ") {
-      n = i.length > 0;
+      n = r.length > 0;
       continue;
     }
-    i.length === 0 ? i += o.toLowerCase() : i += n ? o.toUpperCase() : o, n = !1;
+    r.length === 0 ? r += o.toLowerCase() : r += n ? o.toUpperCase() : o, n = !1;
   }
-  return i;
+  return r;
 };
 /**
  * @license lucide-react v1.71.0 - ISC
@@ -112,9 +116,9 @@ const yn = (a) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const fn = (a) => {
-  const i = yn(a);
-  return i.charAt(0).toUpperCase() + i.slice(1);
+const An = (a) => {
+  const r = xn(a);
+  return r.charAt(0).toUpperCase() + r.slice(1);
 };
 /**
  * @license lucide-react v1.71.0 - ISC
@@ -122,14 +126,14 @@ const fn = (a) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Te = (...a) => a.filter((i, n, o) => !!i && i.trim() !== "" && o.indexOf(i) === n).join(" ").trim();
+const Ye = (...a) => a.filter((r, n, o) => !!r && r.trim() !== "" && o.indexOf(r) === n).join(" ").trim();
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const se = {
+const ge = {
   xmlns: "http://www.w3.org/2000/svg",
   width: 24,
   height: 24,
@@ -146,41 +150,41 @@ const se = {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-function Me(a) {
+function Be(a) {
   return a != null;
 }
-function vn(a, i = {}) {
-  const n = i.attributeNames ?? {}, o = (h) => n[h] ?? h, s = a.size ?? a.width ?? se.width, c = a.size ?? a.height ?? se.height, r = a.aliases?.filter((h) => typeof h == "string" && h.trim() !== "").map((h) => `lucide-${h}`) ?? [], u = [...a.name ? [`lucide-${a.name}`] : [], ...r], p = i.className?.split(" ").filter(Boolean) ?? [], v = i.includeDefaultClasses === !1 ? Te(...p) : Te("lucide", ...u, ...p), y = i.absoluteStrokeWidth ? Number(i.strokeWidth ?? se["stroke-width"]) * Number(a.size ?? a.width ?? se.width) / Number(i.size ?? i.width ?? se.width) : i.strokeWidth ?? se["stroke-width"];
+function Nn(a, r = {}) {
+  const n = r.attributeNames ?? {}, o = (h) => n[h] ?? h, s = a.size ?? a.width ?? ge.width, c = a.size ?? a.height ?? ge.height, i = a.aliases?.filter((h) => typeof h == "string" && h.trim() !== "").map((h) => `lucide-${h}`) ?? [], d = [...a.name ? [`lucide-${a.name}`] : [], ...i], y = r.className?.split(" ").filter(Boolean) ?? [], p = r.includeDefaultClasses === !1 ? Ye(...y) : Ye("lucide", ...d, ...y), f = r.absoluteStrokeWidth ? Number(r.strokeWidth ?? ge["stroke-width"]) * Number(a.size ?? a.width ?? ge.width) / Number(r.size ?? r.width ?? ge.width) : r.strokeWidth ?? ge["stroke-width"];
   return [
     "svg",
     {
-      ...Object.entries(se).reduce((h, [R, x]) => (h[o(R)] = x, h), {}),
-      ..."color" in i && i.color && {
-        [o("stroke")]: i.color
+      ...Object.entries(ge).reduce((h, [g, x]) => (h[o(g)] = x, h), {}),
+      ..."color" in r && r.color && {
+        [o("stroke")]: r.color
       },
-      ..."size" in i && Me(i.size) && {
-        [o("width")]: i.size,
-        [o("height")]: i.size
+      ..."size" in r && Be(r.size) && {
+        [o("width")]: r.size,
+        [o("height")]: r.size
       },
-      ..."width" in i && Me(i.width) && {
-        [o("width")]: i.width
+      ..."width" in r && Be(r.width) && {
+        [o("width")]: r.width
       },
-      ..."height" in i && Me(i.height) && {
-        [o("height")]: i.height
+      ..."height" in r && Be(r.height) && {
+        [o("height")]: r.height
       },
-      [o("stroke-width")]: y,
-      ...v && {
-        [o("class")]: v
+      [o("stroke-width")]: f,
+      ...p && {
+        [o("class")]: p
       },
       [o("viewBox")]: `0 0 ${s} ${c}`,
-      ...i.hasA11yProp === !1 ? {
+      ...r.hasA11yProp === !1 ? {
         [o("aria-hidden")]: "true"
       } : {},
-      ..."attributes" in i && i.attributes
+      ..."attributes" in r && r.attributes
     },
     a.node.map((h) => {
-      const [R, x, W] = h, S = i.nonScalingStroke ? { [o("vector-effect")]: "non-scaling-stroke", ...x } : x;
-      return W ? [R, S, W] : [R, S];
+      const [g, x, E] = h, D = r.nonScalingStroke ? { [o("vector-effect")]: "non-scaling-stroke", ...x } : x;
+      return E ? [g, D, E] : [g, D];
     })
   ];
 }
@@ -190,11 +194,11 @@ function vn(a, i = {}) {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-function gn(a, i = {}) {
-  return vn(a, {
-    ...i,
+function Sn(a, r = {}) {
+  return Nn(a, {
+    ...r,
     attributeNames: {
-      ...i.attributeNames,
+      ...r.attributeNames,
       class: "className",
       "stroke-width": "strokeWidth",
       "stroke-linecap": "strokeLinecap",
@@ -209,57 +213,57 @@ function gn(a, i = {}) {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const _n = (a) => {
-  for (const i in a)
-    if (i.startsWith("aria-") || i === "role" || i === "title")
+const Dn = (a) => {
+  for (const r in a)
+    if (r.startsWith("aria-") || r === "role" || r === "title")
       return !0;
   return !1;
-}, kn = Qt({}), wn = () => Zt(kn), bn = it(
+}, Ln = dn({}), Tn = () => cn(Ln), Mn = yt(
   ({
     color: a,
-    size: i,
+    size: r,
     width: n,
     height: o,
     strokeWidth: s,
     absoluteStrokeWidth: c,
-    nonScalingStroke: r,
-    className: u = "",
-    children: p,
-    iconNode: v = [],
-    icon: y = {
-      node: v,
+    nonScalingStroke: i,
+    className: d = "",
+    children: y,
+    iconNode: p = [],
+    icon: f = {
+      node: p,
       aliases: [],
       size: 24
     },
-    ...d
+    ...u
   }, h) => {
     const {
-      size: R = 24,
+      size: g = 24,
       strokeWidth: x = 2,
-      absoluteStrokeWidth: W = !1,
-      nonScalingStroke: S = !1,
-      color: A = "currentColor",
-      className: P = ""
-    } = wn() ?? {}, j = !!p || _n(d), [I, G, O = []] = gn(y, {
-      color: a ?? A,
-      width: n ?? i ?? R,
-      height: o ?? i ?? R,
+      absoluteStrokeWidth: E = !1,
+      nonScalingStroke: D = !1,
+      color: L = "currentColor",
+      className: I = ""
+    } = Tn() ?? {}, V = !!y || Dn(u), [z, G, j = []] = Sn(f, {
+      color: a ?? L,
+      width: n ?? r ?? g,
+      height: o ?? r ?? g,
       strokeWidth: s ?? x,
-      absoluteStrokeWidth: c ?? W,
-      nonScalingStroke: r ?? S,
-      className: Te(P, u),
-      hasA11yProp: j,
-      attributes: d
+      absoluteStrokeWidth: c ?? E,
+      nonScalingStroke: i ?? D,
+      className: Ye(I, d),
+      hasA11yProp: V,
+      attributes: u
     });
-    return $e(
-      I,
+    return Ie(
+      z,
       {
         ref: h,
         ...G
       },
       [
-        ...O.map(([_, k]) => $e(_, k)),
-        ...Array.isArray(p) ? p : [p]
+        ...j.map(([b, C]) => Ie(b, C)),
+        ...Array.isArray(y) ? y : [y]
       ]
     );
   }
@@ -270,16 +274,16 @@ const _n = (a) => {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-function H(a, i = [], n = []) {
-  const o = typeof a == "string" ? pn(a, i, n) : a, s = it(
-    ({ className: c, ...r }, u) => $e(bn, {
-      ref: u,
+function P(a, r = [], n = []) {
+  const o = typeof a == "string" ? Rn(a, r, n) : a, s = yt(
+    ({ className: c, ...i }, d) => Ie(Mn, {
+      ref: d,
       icon: o,
       className: c,
-      ...r
+      ...i
     })
   );
-  return o.name && (s.displayName = fn(o.name)), s;
+  return o.name && (s.displayName = An(o.name)), s;
 }
 /**
  * @license lucide-react v1.71.0 - ISC
@@ -287,7 +291,7 @@ function H(a, i = [], n = []) {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const vt = {
+const xt = {
   name: "calendar-days",
   size: 24,
   node: [
@@ -303,41 +307,41 @@ const vt = {
     ["path", { d: "M16 17h.01", key: "ql8jdd" }]
   ]
 };
-vt.node;
-const He = H(vt);
+xt.node;
+const Ve = P(xt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const gt = {
+const At = {
   name: "chevron-left",
   size: 24,
   node: [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]]
 };
-gt.node;
-const Cn = H(gt);
+At.node;
+const qn = P(At);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const _t = {
+const Nt = {
   name: "chevron-right",
   size: 24,
   node: [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]]
 };
-_t.node;
-const kt = H(_t);
+Nt.node;
+const St = P(Nt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const wt = {
+const Dt = {
   name: "clock",
   size: 24,
   node: [
@@ -345,15 +349,15 @@ const wt = {
     ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }]
   ]
 };
-wt.node;
-const Be = H(wt);
+Dt.node;
+const Ue = P(Dt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const bt = {
+const Lt = {
   name: "copy",
   size: 24,
   node: [
@@ -361,15 +365,15 @@ const bt = {
     ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
   ]
 };
-bt.node;
-const Rn = H(bt);
+Lt.node;
+const Wn = P(Lt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Ct = {
+const Tt = {
   name: "download",
   size: 24,
   node: [
@@ -378,15 +382,15 @@ const Ct = {
     ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
   ]
 };
-Ct.node;
-const xn = H(Ct);
+Tt.node;
+const $n = P(Tt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Rt = {
+const Mt = {
   name: "file-clock",
   size: 24,
   node: [
@@ -402,15 +406,15 @@ const Rt = {
     ["circle", { cx: "8", cy: "16", r: "6", key: "10v15b" }]
   ]
 };
-Rt.node;
-const An = H(Rt);
+Mt.node;
+const En = P(Mt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const xt = {
+const qt = {
   name: "fingerprint-pattern",
   size: 24,
   node: [
@@ -426,15 +430,15 @@ const xt = {
   ],
   aliases: ["fingerprint"]
 };
-xt.node;
-const Qe = H(xt);
+qt.node;
+const ct = P(qt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const At = {
+const Wt = {
   name: "hand-coins",
   size: 24,
   node: [
@@ -451,15 +455,15 @@ const At = {
     ["circle", { cx: "6", cy: "5", r: "3", key: "151irh" }]
   ]
 };
-At.node;
-const Nt = H(At);
+Wt.node;
+const $t = P(Wt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Dt = {
+const Et = {
   name: "hourglass",
   size: 24,
   node: [
@@ -481,15 +485,15 @@ const Dt = {
     ]
   ]
 };
-Dt.node;
-const Pe = H(Dt);
+Et.node;
+const Je = P(Et);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const St = {
+const Pt = {
   name: "id-card",
   size: 24,
   node: [
@@ -500,15 +504,15 @@ const St = {
     ["rect", { x: "2", y: "5", width: "20", height: "14", rx: "2", key: "qneu4z" }]
   ]
 };
-St.node;
-const Nn = H(St);
+Pt.node;
+const Pn = P(Pt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Lt = {
+const Ft = {
   name: "log-in",
   size: 24,
   node: [
@@ -517,15 +521,15 @@ const Lt = {
     ["path", { d: "M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4", key: "u53s6r" }]
   ]
 };
-Lt.node;
-const Dn = H(Lt);
+Ft.node;
+const Fn = P(Ft);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Mt = {
+const Bt = {
   name: "log-out",
   size: 24,
   node: [
@@ -534,15 +538,15 @@ const Mt = {
     ["path", { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4", key: "1uf3rs" }]
   ]
 };
-Mt.node;
-const Sn = H(Mt);
+Bt.node;
+const Bn = P(Bt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Wt = {
+const Ht = {
   name: "map-pin",
   size: 24,
   node: [
@@ -556,15 +560,36 @@ const Wt = {
     ["circle", { cx: "12", cy: "10", r: "3", key: "ilqhr7" }]
   ]
 };
-Wt.node;
-const Ye = H(Wt);
+Ht.node;
+const Qe = P(Ht);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const $t = {
+const Ot = {
+  name: "plane",
+  size: 24,
+  node: [
+    [
+      "path",
+      {
+        d: "M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z",
+        key: "1v9wt8"
+      }
+    ]
+  ]
+};
+Ot.node;
+const It = P(Ot);
+/**
+ * @license lucide-react v1.71.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const zt = {
   name: "plus",
   size: 24,
   node: [
@@ -572,15 +597,15 @@ const $t = {
     ["path", { d: "M12 5v14", key: "s699le" }]
   ]
 };
-$t.node;
-const me = H($t);
+zt.node;
+const ve = P(zt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Et = {
+const jt = {
   name: "receipt",
   size: 24,
   node: [
@@ -595,15 +620,15 @@ const Et = {
     ]
   ]
 };
-Et.node;
-const Fe = H(Et);
+jt.node;
+const Ge = P(jt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const qt = {
+const Yt = {
   name: "repeat",
   size: 24,
   node: [
@@ -613,15 +638,15 @@ const qt = {
     ["path", { d: "M21 13v1a4 4 0 0 1-4 4H3", key: "1rx37r" }]
   ]
 };
-qt.node;
-const Tt = H(qt);
+Yt.node;
+const Vt = P(Yt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Ht = {
+const Ut = {
   name: "trash",
   size: 24,
   node: [
@@ -633,15 +658,15 @@ const Ht = {
   ],
   aliases: ["trash-2"]
 };
-Ht.node;
-const Ln = H(Ht);
+Ut.node;
+const Hn = P(Ut);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Bt = {
+const Jt = {
   name: "users",
   size: 24,
   node: [
@@ -651,15 +676,15 @@ const Bt = {
     ["circle", { cx: "9", cy: "7", r: "4", key: "nufk8" }]
   ]
 };
-Bt.node;
-const Pt = H(Bt);
+Jt.node;
+const Gt = P(Jt);
 /**
  * @license lucide-react v1.71.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const Ft = {
+const Kt = {
   name: "wallet",
   size: 24,
   node: [
@@ -673,48 +698,54 @@ const Ft = {
     ["path", { d: "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4", key: "xoc0q4" }]
   ]
 };
-Ft.node;
-const It = H(Ft), C = "seal_hrms.my_desk.api.", f = {
-  home: `${C}home`,
-  leaveList: `${C}leave_list`,
-  leaveOptions: `${C}leave_options`,
-  leaveRecord: `${C}leave_record`,
-  applyForLeave: `${C}apply_for_leave`,
-  colleagues: `${C}colleagues`,
-  cover: `${C}cover`,
-  handoverRecord: `${C}handover_record`,
-  toilList: `${C}toil_list`,
-  toilRecord: `${C}toil_record`,
-  saveToilClaim: `${C}save_toil_claim`,
-  toilAction: `${C}toil_action`,
-  timesheets: `${C}timesheets`,
-  timesheetWeek: `${C}timesheet_week`,
-  timesheetRecord: `${C}timesheet_record`,
-  saveTimesheetWeek: `${C}save_timesheet_week`,
-  timesheetClaim: `${C}timesheet_claim`,
-  expenseList: `${C}expense_list`,
-  expenseOptions: `${C}expense_options`,
-  expenseRecord: `${C}expense_record`,
-  claimExpenses: `${C}claim_expenses`,
-  advanceList: `${C}advance_list`,
-  advanceRecord: `${C}advance_record`,
-  requestAdvance: `${C}request_advance`,
-  payslips: `${C}payslips`,
-  payslipRecord: `${C}payslip_record`,
-  payslipPdf: `${C}payslip_pdf`,
-  checkinStatus: `${C}checkin_status`,
-  checkIn: `${C}check_in`,
-  attendanceRequests: `${C}attendance_requests`,
-  attendanceOptions: `${C}attendance_options`,
-  attendanceRecord: `${C}attendance_record`,
-  requestAttendance: `${C}request_attendance`,
-  requestShift: `${C}request_shift`,
-  myDetails: `${C}my_details`,
-  updateMyContact: `${C}update_my_contact`,
-  payoutOptions: `${C}payout_options`,
-  requestPayoutChange: `${C}request_payout_change`,
-  setPayoutEvidence: `${C}set_payout_evidence`,
-  payoutRequestRecord: `${C}payout_request_record`,
+Kt.node;
+const Xt = P(Kt), k = "seal_hrms.my_desk.api.", v = {
+  home: `${k}home`,
+  leaveList: `${k}leave_list`,
+  leaveOptions: `${k}leave_options`,
+  leaveRecord: `${k}leave_record`,
+  applyForLeave: `${k}apply_for_leave`,
+  colleagues: `${k}colleagues`,
+  cover: `${k}cover`,
+  handoverRecord: `${k}handover_record`,
+  toilList: `${k}toil_list`,
+  toilRecord: `${k}toil_record`,
+  saveToilClaim: `${k}save_toil_claim`,
+  toilAction: `${k}toil_action`,
+  timesheets: `${k}timesheets`,
+  timesheetWeek: `${k}timesheet_week`,
+  timesheetRecord: `${k}timesheet_record`,
+  saveTimesheetWeek: `${k}save_timesheet_week`,
+  timesheetClaim: `${k}timesheet_claim`,
+  expenseList: `${k}expense_list`,
+  expenseOptions: `${k}expense_options`,
+  expenseRecord: `${k}expense_record`,
+  claimExpenses: `${k}claim_expenses`,
+  advanceList: `${k}advance_list`,
+  advanceRecord: `${k}advance_record`,
+  requestAdvance: `${k}request_advance`,
+  payslips: `${k}payslips`,
+  payslipRecord: `${k}payslip_record`,
+  payslipPdf: `${k}payslip_pdf`,
+  checkinStatus: `${k}checkin_status`,
+  checkIn: `${k}check_in`,
+  attendanceRequests: `${k}attendance_requests`,
+  attendanceOptions: `${k}attendance_options`,
+  attendanceRecord: `${k}attendance_record`,
+  requestAttendance: `${k}request_attendance`,
+  requestShift: `${k}request_shift`,
+  myDetails: `${k}my_details`,
+  updateMyContact: `${k}update_my_contact`,
+  payoutOptions: `${k}payout_options`,
+  requestPayoutChange: `${k}request_payout_change`,
+  setPayoutEvidence: `${k}set_payout_evidence`,
+  payoutRequestRecord: `${k}payout_request_record`,
+  confirmScreen: `${k}confirm_screen`,
+  travelList: `${k}travel_list`,
+  travelOptions: `${k}travel_options`,
+  travelRecord: `${k}travel_record`,
+  requestTravel: `${k}request_travel`,
+  travelAction: `${k}travel_action`,
   // seal_hrms' own endpoints, the same the desk calls.
   respond: "seal_hrms.seal_hrms.task_assignment_actions.respond",
   respondAuthority: "seal_hrms.seal_hrms.task_assignment_actions.respond_authority",
@@ -725,14 +756,20 @@ const It = H(Ft), C = "seal_hrms.my_desk.api.", f = {
   sendPayoutChange: "seal_hrms.seal_hrms.payout_change.send",
   withdrawPayoutChange: "seal_hrms.seal_hrms.payout_change.withdraw"
 };
-function Mn(a) {
-  return `/api/method/${f.payslipPdf}?name=${encodeURIComponent(a)}`;
+function On(a) {
+  return `/api/method/${v.payslipPdf}?name=${encodeURIComponent(a)}`;
 }
-function D() {
-  const a = ve();
-  return be((i) => a.navigate(i), [a]);
+function _e(a) {
+  return a ? e("{0} will approve it.", [a]) : e("Nobody approves this yet. Ask HR to set your approver.");
 }
-const Wn = nn(
+function In(a, r) {
+  return a === null ? _e(r) : r ? e("{0} days. {1} will approve it.", [String(a), r]) : e("{0} days. Nobody approves this yet. Ask HR to set your approver.", [String(a)]);
+}
+function N() {
+  const a = ne();
+  return Ae((r) => a.navigate(r), [a]);
+}
+const zn = mn(
   {
     Open: "info",
     Draft: "default",
@@ -741,6 +778,7 @@ const Wn = nn(
     "Waiting for Authorisation": "warning",
     "Waiting for Approval": "warning",
     "Waiting for HR": "warning",
+    "Pending Approval": "warning",
     Pending: "warning",
     Authorised: "info",
     Accepted: "success",
@@ -760,7 +798,7 @@ const Wn = nn(
   },
   "default"
 );
-function $n(a) {
+function jn(a) {
   switch (a) {
     case "Open":
       return e("Open");
@@ -776,6 +814,8 @@ function $n(a) {
       return e("Waiting for Approval");
     case "Waiting for HR":
       return e("Waiting for HR");
+    case "Pending Approval":
+      return e("Pending Approval");
     case "Pending":
       return e("Answer Needed");
     case "Authorised":
@@ -816,108 +856,108 @@ function $n(a) {
       return a ?? "";
   }
 }
-function T({ value: a }) {
-  return a ? /* @__PURE__ */ t(an, { status: a, label: $n(a), toneOf: Wn }) : null;
+function $({ value: a }) {
+  return a ? /* @__PURE__ */ t(pn, { status: a, label: jn(a), toneOf: zn }) : null;
 }
-const En = 864e5;
-function Ot(a) {
-  const [i, n, o] = a.split("-").map(Number);
-  return Date.UTC(i, n - 1, o);
+const Yn = 864e5;
+function Zt(a) {
+  const [r, n, o] = a.split("-").map(Number);
+  return Date.UTC(r, n - 1, o);
 }
-function qn(a) {
+function Vn(a) {
   return new Date(a).toISOString().slice(0, 10);
 }
-function pe(a, i) {
-  return qn(Ot(a) + i * En);
+function ke(a, r) {
+  return Vn(Zt(a) + r * Yn);
 }
-function Ve(a) {
-  const i = (new Date(Ot(a)).getUTCDay() + 6) % 7;
-  return pe(a, -i);
+function et(a) {
+  const r = (new Date(Zt(a)).getUTCDay() + 6) % 7;
+  return ke(a, -r);
 }
-function Y(a = /* @__PURE__ */ new Date()) {
-  const i = (n) => String(n).padStart(2, "0");
-  return `${a.getFullYear()}-${i(a.getMonth() + 1)}-${i(a.getDate())}`;
+function J(a = /* @__PURE__ */ new Date()) {
+  const r = (n) => String(n).padStart(2, "0");
+  return `${a.getFullYear()}-${r(a.getMonth() + 1)}-${r(a.getDate())}`;
 }
-function Ie(a) {
-  return Array.from({ length: 7 }, (i, n) => pe(a, n));
+function Ke(a) {
+  return Array.from({ length: 7 }, (r, n) => ke(a, n));
 }
-function ke(a) {
-  const i = typeof a == "number" ? a : Number.parseFloat(String(a ?? ""));
-  return Number.isFinite(i) && i > 0 ? Math.round(i * 100) / 100 : 0;
+function xe(a) {
+  const r = typeof a == "number" ? a : Number.parseFloat(String(a ?? ""));
+  return Number.isFinite(r) && r > 0 ? Math.round(r * 100) / 100 : 0;
 }
-function zt(a, i) {
-  return Math.round(a.reduce((n, o) => n + ke(o.hours[i]), 0) * 100) / 100;
+function Qt(a, r) {
+  return Math.round(a.reduce((n, o) => n + xe(o.hours[r]), 0) * 100) / 100;
 }
-function Tn(a) {
-  return Math.round(Ie("2000-01-03").reduce((i, n, o) => i + zt(a, o), 0) * 100) / 100;
+function Un(a) {
+  return Math.round(Ke("2000-01-03").reduce((r, n, o) => r + Qt(a, o), 0) * 100) / 100;
 }
-function et(a, i) {
-  return { row: a.reduce((o, s) => Math.max(o, s.row), 0) + 1, activity_type: i, description: "", is_billable: 0, hours: [0, 0, 0, 0, 0, 0, 0] };
+function dt(a, r) {
+  return { row: a.reduce((o, s) => Math.max(o, s.row), 0) + 1, activity_type: r, description: "", is_billable: 0, hours: [0, 0, 0, 0, 0, 0, 0] };
 }
-function Hn(a) {
-  return a.map((i, n) => ({
+function Jn(a) {
+  return a.map((r, n) => ({
     row: n + 1,
-    activity_type: i.activity_type,
-    project: i.project ?? null,
-    task: i.task ?? null,
-    description: i.description ?? "",
-    is_billable: i.is_billable ? 1 : 0,
+    activity_type: r.activity_type,
+    project: r.project ?? null,
+    task: r.task ?? null,
+    description: r.description ?? "",
+    is_billable: r.is_billable ? 1 : 0,
     hours: [0, 0, 0, 0, 0, 0, 0]
   }));
 }
-function Bn(a, i, n, o) {
-  return a.map((s) => s.row === i ? { ...s, hours: s.hours.map((c, r) => ke(r === n ? o : c)) } : s);
+function Gn(a, r, n, o) {
+  return a.map((s) => s.row === r ? { ...s, hours: s.hours.map((c, i) => xe(i === n ? o : c)) } : s);
 }
-function Pn(a) {
-  return a.filter((i) => i.hours.some((n) => ke(n) > 0) || (i.description ?? "").trim()).map((i, n) => ({ ...i, row: n + 1, hours: Array.from({ length: 7 }, (o, s) => ke(i.hours[s])) }));
+function Kn(a) {
+  return a.filter((r) => r.hours.some((n) => xe(n) > 0) || (r.description ?? "").trim()).map((r, n) => ({ ...r, row: n + 1, hours: Array.from({ length: 7 }, (o, s) => xe(r.hours[s])) }));
 }
-function Fn() {
+function Xn() {
   return "geolocation" in navigator ? new Promise(
     (a) => navigator.geolocation.getCurrentPosition(
-      (i) => a({ latitude: i.coords.latitude, longitude: i.coords.longitude }),
+      (r) => a({ latitude: r.coords.latitude, longitude: r.coords.longitude }),
       () => a(null),
       { enableHighAccuracy: !0, timeout: 1e4, maximumAge: 6e4 }
     )
   ) : Promise.resolve(null);
 }
-function In() {
-  const a = D(), i = V(), { data: n, isLoading: o, error: s, mutate: c } = N(f.checkinStatus), r = q(f.checkIn), [u, p] = E(!1), [v, y] = E(!1), d = async () => {
+function Zn() {
+  const a = N(), r = O(), { data: n, isLoading: o, error: s, mutate: c } = A(v.checkinStatus), i = W(v.checkIn), [d, y] = q(!1), [p, f] = q(!1), u = async () => {
     if (!n) return;
-    y(!1);
+    f(!1);
     let h = null;
-    n.location && (p(!0), h = await Fn(), p(!1), y(!h));
+    n.location && (y(!0), h = await Xn(), y(!1), f(!h));
     try {
-      await r.run({ log_type: n.next, ...h ?? {} }), i.success(n.next === "IN" ? e("Checked in.") : e("Checked out.")), await c();
+      await i.run({ log_type: n.next, ...h ?? {} }), r.success(n.next === "IN" ? e("Checked in.") : e("Checked out.")), await c();
     } catch {
     }
   };
-  return /* @__PURE__ */ t(te, { title: e("Check-in"), onBack: () => a(""), loading: o, error: s, onRetry: c, children: n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
-    n.offered ? /* @__PURE__ */ m(fe, { children: [
-      r.errorMessage && /* @__PURE__ */ t($, { tone: "error", children: r.errorMessage }),
-      v && /* @__PURE__ */ t($, { tone: "warning", children: e("Your phone did not share where you are. Allow location for this site if HR needs it.") }),
-      /* @__PURE__ */ m(w, { size: "lg", loading: u || r.loading, onClick: d, children: [
-        n.next === "IN" ? /* @__PURE__ */ t(Dn, {}) : /* @__PURE__ */ t(Sn, {}),
+  return /* @__PURE__ */ t(ae, { title: e("Check-in"), onBack: () => a(""), loading: o, error: s, onRetry: c, children: n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
+    n.offered ? /* @__PURE__ */ m(de, { children: [
+      i.errorMessage && /* @__PURE__ */ t(S, { tone: "error", children: i.errorMessage }),
+      p && /* @__PURE__ */ t(S, { tone: "warning", children: e("Your phone did not share where you are. Allow location for this site if HR needs it.") }),
+      /* @__PURE__ */ m(w, { size: "lg", loading: d || i.loading, onClick: u, children: [
+        n.next === "IN" ? /* @__PURE__ */ t(Fn, {}) : /* @__PURE__ */ t(Bn, {}),
         n.next === "IN" ? e("Check In") : e("Check Out")
       ] }),
-      n.location && /* @__PURE__ */ m(ee, { size: "sm", muted: !0, children: [
-        /* @__PURE__ */ t(Ye, { "aria-hidden": !0, className: "mr-1 inline size-4" }),
+      n.location && /* @__PURE__ */ m(te, { size: "sm", muted: !0, children: [
+        /* @__PURE__ */ t(Qe, { "aria-hidden": !0, className: "mr-1 inline size-4" }),
         e("Where you are is recorded with each check-in, as HR asks.")
       ] })
-    ] }) : /* @__PURE__ */ t($, { tone: "info", children: e("HR has not turned on checking in from the phone.") }),
-    /* @__PURE__ */ t(F, { title: e("Today"), children: n.today.length === 0 ? /* @__PURE__ */ t(ee, { muted: !0, children: e("No check-ins today yet. Clock-ins on the office device show here too.") }) : /* @__PURE__ */ t(L, { divided: !0, children: n.today.map((h) => /* @__PURE__ */ t(
+    ] }) : /* @__PURE__ */ t(S, { tone: "info", children: e("HR has not turned on checking in from the phone.") }),
+    /* @__PURE__ */ t(B, { title: e("Today"), children: n.today.length === 0 ? /* @__PURE__ */ t(te, { muted: !0, children: e("No check-ins today yet. Clock-ins on the office device show here too.") }) : /* @__PURE__ */ t(T, { divided: !0, children: n.today.map((h) => /* @__PURE__ */ t(
       M,
       {
         primary: h.log_type === "IN" ? e("In") : e("Out"),
-        secondary: h.device_id ? e("{0} · {1}", [xe(h.time), h.device_id]) : xe(h.time)
+        secondary: h.device_id ? e("{0} · {1}", [Ce(h.time), h.device_id]) : Ce(h.time)
       },
       h.name
     )) }) })
   ] }) });
 }
-function On() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.attendanceRequests);
+function Qn() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.attendanceRequests);
   return /* @__PURE__ */ t(
-    ne,
+    oe,
     {
       title: e("Attendance Requests"),
       onBack: () => a(""),
@@ -925,38 +965,38 @@ function On() {
       error: o,
       onRetry: s,
       actions: /* @__PURE__ */ m(w, { onClick: () => a(l.attendanceNew), children: [
-        /* @__PURE__ */ t(me, {}),
+        /* @__PURE__ */ t(ve, {}),
         e("New Request")
       ] }),
-      children: c && !i?.attendance.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Ye, {}), title: e("No attendance requests"), description: e("Ask for days you worked from home or on duty elsewhere to count as attended.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i?.attendance ?? []).map((r) => /* @__PURE__ */ t(
+      children: c && !r?.attendance.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Qe, {}), title: e("No attendance requests"), description: e("Ask for days you worked from home or on duty elsewhere to count as attended.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r?.attendance ?? []).map((i) => /* @__PURE__ */ t(
         M,
         {
-          primary: r.reason === "Work From Home" ? e("Work From Home") : e("On Duty"),
-          secondary: e("{0} to {1}", [g(r.from_date), g(r.to_date)]),
-          action: /* @__PURE__ */ t(T, { value: r.docstatus === 1 ? "Approved" : r.docstatus === 2 ? "Cancelled" : "Open" }),
-          onClick: () => a(l.attendanceRecord(r.name))
+          primary: i.reason === "Work From Home" ? e("Work From Home") : e("On Duty"),
+          secondary: e("{0} to {1}", [_(i.from_date), _(i.to_date)]),
+          action: /* @__PURE__ */ t($, { value: i.docstatus === 1 ? "Approved" : i.docstatus === 2 ? "Cancelled" : "Open" }),
+          onClick: () => a(l.attendanceRecord(i.name))
         },
-        r.name
+        i.name
       )) })
     }
   );
 }
-function zn() {
-  const a = D(), i = V(), n = q(f.requestAttendance), o = ce(() => le.object({ from_date: _e(() => e("From Date")), to_date: _e(() => e("To Date")), reason: we(() => e("Reason")) }).loose(), []), s = de({
+function ea() {
+  const a = N(), r = O(), n = W(v.requestAttendance), o = me(() => ee.object({ from_date: Re(() => e("From Date")), to_date: Re(() => e("To Date")), reason: le(() => e("Reason")) }).loose(), []), s = pe({
     schema: o,
-    defaultValues: { from_date: Y(), to_date: Y(), reason: "Work From Home", explanation: "", half_day: !1 }
+    defaultValues: { from_date: J(), to_date: J(), reason: "Work From Home", explanation: "", half_day: !1 }
   }), c = s.watch("from_date");
-  return /* @__PURE__ */ t(te, { title: e("New Attendance Request"), onBack: () => a(l.attendance), children: /* @__PURE__ */ m(
-    ue,
+  return /* @__PURE__ */ t(ae, { title: e("New Attendance Request"), onBack: () => a(l.attendance), children: /* @__PURE__ */ m(
+    ye,
     {
       form: s,
-      onSubmit: async (r) => {
-        const u = await n.run({ ...r, half_day: r.half_day ? 1 : 0 });
-        i.success(e("Request sent to HR.")), a(l.attendanceRecord(u));
+      onSubmit: async (i) => {
+        const d = await n.run({ ...i, half_day: i.half_day ? 1 : 0 });
+        r.success(e("Request sent to HR.")), a(l.attendanceRecord(d));
       },
       children: [
         /* @__PURE__ */ t(
-          lt,
+          gt,
           {
             name: "reason",
             label: e("Reason"),
@@ -967,35 +1007,35 @@ function zn() {
             ]
           }
         ),
-        /* @__PURE__ */ t(re, { name: "from_date", label: e("From Date"), required: !0 }),
-        /* @__PURE__ */ t(re, { name: "to_date", label: e("To Date"), required: !0, minDate: c || void 0 }),
-        /* @__PURE__ */ t(ct, { name: "half_day", label: e("Half Day") }),
-        /* @__PURE__ */ t(U, { name: "explanation", label: e("Explanation"), multiline: !0, rows: 3 }),
-        /* @__PURE__ */ t(he, { submitLabel: e("Send Request"), onCancel: () => a(l.attendance) })
+        /* @__PURE__ */ t(he, { name: "from_date", label: e("From Date"), required: !0 }),
+        /* @__PURE__ */ t(he, { name: "to_date", label: e("To Date"), required: !0, minDate: c || void 0 }),
+        /* @__PURE__ */ t(Ze, { name: "half_day", label: e("Half Day") }),
+        /* @__PURE__ */ t(H, { name: "explanation", label: e("Explanation"), multiline: !0, rows: 3 }),
+        /* @__PURE__ */ t(fe, { submitLabel: e("Send Request"), onCancel: () => a(l.attendance) })
       ]
     }
   ) });
 }
-function tt({ doctype: a }) {
-  const i = D(), n = oe(Z().name), { data: o, isLoading: s, error: c, mutate: r } = N(f.attendanceRecord, { doctype: a, name: n }), u = a === "Shift Request";
+function ut({ doctype: a }) {
+  const r = N(), n = ie(Z().name), { data: o, isLoading: s, error: c, mutate: i } = A(v.attendanceRecord, { doctype: a, name: n }), d = a === "Shift Request";
   return /* @__PURE__ */ t(
     Q,
     {
-      title: u ? e("Shift Request") : e("Attendance Request"),
+      title: d ? e("Shift Request") : e("Attendance Request"),
       subtitle: o && (o.mine ? n : o.employee_name),
-      meta: o && /* @__PURE__ */ t(T, { value: u ? o.status : o.docstatus === 1 ? "Approved" : "Open" }),
-      onBack: () => i(u ? l.shifts : l.attendance),
+      meta: o && /* @__PURE__ */ t($, { value: d ? o.status : o.docstatus === 1 ? "Approved" : "Open" }),
+      onBack: () => r(d ? l.shifts : l.attendance),
       loading: s,
       error: c,
-      onRetry: r,
+      onRetry: i,
       children: o && /* @__PURE__ */ t(
-        J,
+        U,
         {
           items: [
             { label: e("Shift Type"), value: o.shift_type ?? null, hideWhenEmpty: !0 },
             { label: e("Reason"), value: o.reason ?? null, hideWhenEmpty: !0 },
-            { label: e("From Date"), value: g(o.from_date) },
-            { label: e("To Date"), value: o.to_date ? g(o.to_date) : null, hideWhenEmpty: !0 },
+            { label: e("From Date"), value: _(o.from_date) },
+            { label: e("To Date"), value: o.to_date ? _(o.to_date) : null, hideWhenEmpty: !0 },
             { label: e("Approver"), value: o.approver_name, hideWhenEmpty: !0 },
             { label: e("Explanation"), value: o.explanation ?? null, hideWhenEmpty: !0, full: !0 }
           ]
@@ -1004,10 +1044,10 @@ function tt({ doctype: a }) {
     }
   );
 }
-function jn() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.attendanceRequests);
+function ta() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.attendanceRequests);
   return /* @__PURE__ */ t(
-    ne,
+    oe,
     {
       title: e("Shift Requests"),
       onBack: () => a(""),
@@ -1015,188 +1055,188 @@ function jn() {
       error: o,
       onRetry: s,
       actions: /* @__PURE__ */ m(w, { onClick: () => a(l.shiftNew), children: [
-        /* @__PURE__ */ t(me, {}),
+        /* @__PURE__ */ t(ve, {}),
         e("New Request")
       ] }),
-      children: c && !i?.shifts.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Tt, {}), title: e("No shift requests"), description: e("Ask to work a different shift for some days.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i?.shifts ?? []).map((r) => /* @__PURE__ */ t(
+      children: c && !r?.shifts.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Vt, {}), title: e("No shift requests"), description: e("Ask to work a different shift for some days.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r?.shifts ?? []).map((i) => /* @__PURE__ */ t(
         M,
         {
-          primary: r.shift_type,
-          secondary: r.to_date ? e("{0} to {1}", [g(r.from_date), g(r.to_date)]) : e("From {0}", [g(r.from_date)]),
-          action: /* @__PURE__ */ t(T, { value: r.status }),
-          onClick: () => a(l.shiftRecord(r.name))
+          primary: i.shift_type,
+          secondary: i.to_date ? e("{0} to {1}", [_(i.from_date), _(i.to_date)]) : e("From {0}", [_(i.from_date)]),
+          action: /* @__PURE__ */ t($, { value: i.status }),
+          onClick: () => a(l.shiftRecord(i.name))
         },
-        r.name
+        i.name
       )) })
     }
   );
 }
-function Yn() {
-  const a = D(), i = V(), n = N(f.attendanceOptions), o = q(f.requestShift), s = ce(() => le.object({ shift_type: we(() => e("Shift Type")), from_date: _e(() => e("From Date")) }).loose(), []), c = de({ schema: s, defaultValues: { shift_type: "", from_date: Y(), to_date: "" } });
-  return /* @__PURE__ */ m(te, { title: e("New Shift Request"), onBack: () => a(l.shifts), loading: n.isLoading, error: n.error, onRetry: n.mutate, children: [
-    n.data && !n.data.has_shift_approver && /* @__PURE__ */ t($, { tone: "warning", children: e("Nobody approves your shift requests yet. Ask HR to set a shift approver.") }),
+function na() {
+  const a = N(), r = O(), n = A(v.attendanceOptions), o = W(v.requestShift), s = me(() => ee.object({ shift_type: le(() => e("Shift Type")), from_date: Re(() => e("From Date")) }).loose(), []), c = pe({ schema: s, defaultValues: { shift_type: "", from_date: J(), to_date: "" } });
+  return /* @__PURE__ */ m(ae, { title: e("New Shift Request"), onBack: () => a(l.shifts), loading: n.isLoading, error: n.error, onRetry: n.mutate, children: [
+    n.data && /* @__PURE__ */ t(S, { tone: n.data.has_shift_approver ? "info" : "warning", children: _e(n.data.has_shift_approver ? n.data.shift_approver_name : null) }),
     /* @__PURE__ */ m(
-      ue,
+      ye,
       {
         form: c,
-        onSubmit: async (r) => {
-          const u = await o.run({ shift_type: r.shift_type, from_date: r.from_date, to_date: r.to_date || void 0 });
-          i.success(e("Request sent to {0}.", [n.data?.shift_approver_name ?? e("your shift approver")])), a(l.shiftRecord(u));
+        onSubmit: async (i) => {
+          const d = await o.run({ shift_type: i.shift_type, from_date: i.from_date, to_date: i.to_date || void 0 });
+          r.success(e("Request sent to {0}.", [n.data?.shift_approver_name ?? e("your shift approver")])), a(l.shiftRecord(d));
         },
         children: [
-          /* @__PURE__ */ t(Ae, { name: "shift_type", label: e("Shift Type"), required: !0, options: (n.data?.shift_types ?? []).map((r) => ({ value: r, label: r })) }),
-          /* @__PURE__ */ t(re, { name: "from_date", label: e("From Date"), required: !0 }),
-          /* @__PURE__ */ t(re, { name: "to_date", label: e("To Date"), hint: e("Leave empty if the shift carries on.") }),
-          /* @__PURE__ */ t(he, { submitLabel: e("Send Request"), onCancel: () => a(l.shifts) })
+          /* @__PURE__ */ t(se, { name: "shift_type", label: e("Shift Type"), required: !0, options: (n.data?.shift_types ?? []).map((i) => ({ value: i, label: i })) }),
+          /* @__PURE__ */ t(he, { name: "from_date", label: e("From Date"), required: !0 }),
+          /* @__PURE__ */ t(he, { name: "to_date", label: e("To Date"), hint: e("Leave empty if the shift carries on.") }),
+          /* @__PURE__ */ t(fe, { submitLabel: e("Send Request"), onCancel: () => a(l.shifts) })
         ]
       }
     )
   ] });
 }
-function We(a, i, n) {
-  return /* @__PURE__ */ t(L, { divided: !0, children: a.map((o) => /* @__PURE__ */ t(
+function He(a, r, n) {
+  return /* @__PURE__ */ t(T, { divided: !0, children: a.map((o) => /* @__PURE__ */ t(
     M,
     {
-      primary: i ? e("Covered by {0}", [o.stand_in]) : o.employee_name,
-      secondary: e("{0} to {1}", [g(o.leave_from), g(o.leave_to)]),
-      action: /* @__PURE__ */ t(T, { value: o.waiting_for_me ? "Pending" : o.status }),
+      primary: r ? e("Covered by {0}", [o.stand_in]) : o.employee_name,
+      secondary: e("{0} to {1}", [_(o.leave_from), _(o.leave_to)]),
+      action: /* @__PURE__ */ t($, { value: o.waiting_for_me ? "Pending" : o.status }),
       onClick: () => n(l.handover(o.name))
     },
     o.name
   )) });
 }
-function Vn() {
-  const a = D(), [i, n] = E("to_answer"), { data: o, isLoading: s, error: c, mutate: r, hasLoaded: u } = N(f.cover), p = (v, y) => /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Pt, {}), title: v, description: y });
-  return /* @__PURE__ */ m(ne, { title: e("Cover"), onBack: () => a(""), loading: s, error: c, onRetry: r, children: [
+function aa() {
+  const a = N(), [r, n] = q("to_answer"), { data: o, isLoading: s, error: c, mutate: i, hasLoaded: d } = A(v.cover), y = (p, f) => /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Gt, {}), title: p, description: f });
+  return /* @__PURE__ */ m(oe, { title: e("Cover"), onBack: () => a(""), loading: s, error: c, onRetry: i, children: [
     /* @__PURE__ */ t(
-      on,
+      yn,
       {
         label: e("Handovers"),
-        value: i,
+        value: r,
         onChange: n,
         items: [
-          { id: "to_answer", label: e("To Answer"), count: o?.to_answer.filter((v) => v.waiting_for_me).length },
+          { id: "to_answer", label: e("To Answer"), count: o?.to_answer.filter((p) => p.waiting_for_me).length },
           { id: "covering", label: e("Covering"), count: o?.covering.length },
           { id: "mine", label: e("Mine"), count: o?.mine.length }
         ]
       }
     ),
-    /* @__PURE__ */ t(Se, { id: "to_answer", value: i, children: u && !o?.to_answer.length ? p(e("Nobody has asked you to cover"), e("When a colleague names you as their stand-in, it shows here for you to agree or decline.")) : We(o?.to_answer ?? [], !1, a) }),
-    /* @__PURE__ */ t(Se, { id: "covering", value: i, children: u && !o?.covering.length ? p(e("You are not covering anyone now"), e("Work you agreed to cover shows here while the person is away.")) : We(o?.covering ?? [], !1, a) }),
-    /* @__PURE__ */ t(Se, { id: "mine", value: i, children: u && !o?.mine.length ? p(e("No handovers of your own"), e("When you apply for leave, the handover you send shows here.")) : We(o?.mine ?? [], !0, a) })
+    /* @__PURE__ */ t(Pe, { id: "to_answer", value: r, children: d && !o?.to_answer.length ? y(e("Nobody has asked you to cover"), e("When a colleague names you as their stand-in, it shows here for you to agree or decline.")) : He(o?.to_answer ?? [], !1, a) }),
+    /* @__PURE__ */ t(Pe, { id: "covering", value: r, children: d && !o?.covering.length ? y(e("You are not covering anyone now"), e("Work you agreed to cover shows here while the person is away.")) : He(o?.covering ?? [], !1, a) }),
+    /* @__PURE__ */ t(Pe, { id: "mine", value: r, children: d && !o?.mine.length ? y(e("No handovers of your own"), e("When you apply for leave, the handover you send shows here.")) : He(o?.mine ?? [], !0, a) })
   ] });
 }
-function Un() {
-  const a = D(), i = V(), n = oe(Z().name), { data: o, isLoading: s, error: c, mutate: r } = N(f.handoverRecord, { name: n }), u = q(f.respond), p = q(f.respondAuthority), v = q(f.addNote), y = q(f.returnNote), d = q(f.returnWork), [h, R] = E(null), [x, W] = E(""), [S, A] = E(!1), [P, j] = E(!1), [I, G] = E(null), O = async (k, Ne) => {
-    j(!0), G(null);
+function oa() {
+  const a = N(), r = O(), n = ie(Z().name), { data: o, isLoading: s, error: c, mutate: i } = A(v.handoverRecord, { name: n }), d = W(v.respond), y = W(v.respondAuthority), p = W(v.addNote), f = W(v.returnNote), u = W(v.returnWork), [h, g] = q(null), [x, E] = q(""), [D, L] = q(!1), [I, V] = q(!1), [z, G] = q(null), j = async (C, $e) => {
+    V(!0), G(null);
     try {
-      await k(), i.success(Ne), R(null), W(""), await r();
-    } catch (ie) {
-      G(ie);
+      await C(), r.success($e), g(null), E(""), await i();
+    } catch (ce) {
+      G(ce);
     } finally {
-      j(!1);
+      V(!1);
     }
-  }, _ = o && o.can_answer ? /* @__PURE__ */ m("div", { className: "flex gap-2", children: [
-    /* @__PURE__ */ t(w, { variant: "outline", onClick: () => R({ kind: "decline" }), children: e("Decline") }),
-    /* @__PURE__ */ t(w, { loading: P, onClick: () => O(() => u.run({ name: n, answer: "Accepted" }), e("You agreed to cover this.")), children: e("Accept") })
-  ] }) : o && o.can_return ? /* @__PURE__ */ t(w, { onClick: () => A(!0), children: e("I'm Back") }) : void 0;
+  }, b = o && o.can_answer ? /* @__PURE__ */ m("div", { className: "flex gap-2", children: [
+    /* @__PURE__ */ t(w, { variant: "outline", onClick: () => g({ kind: "decline" }), children: e("Decline") }),
+    /* @__PURE__ */ t(w, { loading: I, onClick: () => j(() => d.run({ name: n, answer: "Accepted" }), e("You agreed to cover this.")), children: e("Accept") })
+  ] }) : o && o.can_return ? /* @__PURE__ */ t(w, { onClick: () => L(!0), children: e("I'm Back") }) : void 0;
   return /* @__PURE__ */ m(
     Q,
     {
       title: o ? o.is_owner ? e("My Handover") : e("Cover for {0}", [o.employee_name]) : e("Handover"),
-      subtitle: o && e("{0} to {1}", [g(o.leave_from), g(o.leave_to)]),
-      meta: o && /* @__PURE__ */ t(T, { value: o.status }),
+      subtitle: o && e("{0} to {1}", [_(o.leave_from), _(o.leave_to)]),
+      meta: o && /* @__PURE__ */ t($, { value: o.status }),
       onBack: () => a(l.cover),
-      actions: _,
+      actions: b,
       loading: s,
       error: c,
-      onRetry: r,
+      onRetry: i,
       children: [
         o && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
-          I ? /* @__PURE__ */ t($, { tone: "error", children: u.errorMessage || p.errorMessage || d.errorMessage || e("That did not go through. Try again.") }) : null,
+          z ? /* @__PURE__ */ t(S, { tone: "error", children: d.errorMessage || y.errorMessage || u.errorMessage || e("That did not go through. Try again.") }) : null,
           /* @__PURE__ */ t(
-            J,
+            U,
             {
               items: [
                 { label: e("Stand-in"), value: o.stand_in },
-                { label: e("Back On"), value: o.return_date ? g(o.return_date) : null, hideWhenEmpty: !0 },
+                { label: e("Back On"), value: o.return_date ? _(o.return_date) : null, hideWhenEmpty: !0 },
                 { label: e("Decline Reason"), value: o.decline_reason, hideWhenEmpty: !0, full: !0 },
                 { label: e("Handover Notes"), value: o.notes, hideWhenEmpty: !0, full: !0 },
                 { label: e("Return Note"), value: o.return_note, hideWhenEmpty: !0, full: !0 }
               ]
             }
           ),
-          /* @__PURE__ */ t(F, { title: e("Work"), children: o.work.length === 0 ? /* @__PURE__ */ t(ee, { muted: !0, children: e("No work items were handed over; the notes say what to look after.") }) : /* @__PURE__ */ t(L, { divided: !0, children: o.work.map((k) => /* @__PURE__ */ t(
+          /* @__PURE__ */ t(B, { title: e("Work"), children: o.work.length === 0 ? /* @__PURE__ */ t(te, { muted: !0, children: e("No work items were handed over; the notes say what to look after.") }) : /* @__PURE__ */ t(T, { divided: !0, children: o.work.map((C) => /* @__PURE__ */ t(
             M,
             {
-              primary: k.description,
-              secondary: [k.covered_by, k.due_date ? e("Due {0}", [g(k.due_date)]) : "", k.notes ?? ""].filter(Boolean).join(" · "),
-              action: k.mine && o.status === "Active" ? /* @__PURE__ */ t(w, { variant: "ghost", onClick: () => R({ kind: "note", row: k.row, text: k.notes ?? "" }), children: e("Leave a Note") }) : k.progress || k.acceptance ? /* @__PURE__ */ t(T, { value: k.progress || k.acceptance }) : void 0
+              primary: C.description,
+              secondary: [C.covered_by, C.due_date ? e("Due {0}", [_(C.due_date)]) : "", C.notes ?? ""].filter(Boolean).join(" · "),
+              action: C.mine && o.status === "Active" ? /* @__PURE__ */ t(w, { variant: "ghost", onClick: () => g({ kind: "note", row: C.row, text: C.notes ?? "" }), children: e("Leave a Note") }) : C.progress || C.acceptance ? /* @__PURE__ */ t($, { value: C.progress || C.acceptance }) : void 0
             },
-            k.row
+            C.row
           )) }) }),
-          o.approvals.length > 0 && /* @__PURE__ */ t(F, { title: e("Approvals"), children: /* @__PURE__ */ t(L, { divided: !0, children: o.approvals.map((k) => /* @__PURE__ */ t(
+          o.approvals.length > 0 && /* @__PURE__ */ t(B, { title: e("Approvals"), children: /* @__PURE__ */ t(T, { divided: !0, children: o.approvals.map((C) => /* @__PURE__ */ t(
             M,
             {
-              primary: k.label,
-              secondary: k.covered_by,
-              action: k.mine && o.can_answer && k.acceptance === "Pending" ? /* @__PURE__ */ m("div", { className: "flex gap-1", children: [
-                /* @__PURE__ */ t(w, { variant: "ghost", onClick: () => R({ kind: "decline-approval", row: k.row }), children: e("Decline") }),
+              primary: C.label,
+              secondary: C.covered_by,
+              action: C.mine && o.can_answer && C.acceptance === "Pending" ? /* @__PURE__ */ m("div", { className: "flex gap-1", children: [
+                /* @__PURE__ */ t(w, { variant: "ghost", onClick: () => g({ kind: "decline-approval", row: C.row }), children: e("Decline") }),
                 /* @__PURE__ */ t(
                   w,
                   {
                     variant: "ghost",
-                    onClick: () => O(() => p.run({ name: n, row: k.row, answer: "Accepted" }), e("You agreed to approve in their place.")),
+                    onClick: () => j(() => y.run({ name: n, row: C.row, answer: "Accepted" }), e("You agreed to approve in their place.")),
                     children: e("Accept")
                   }
                 )
-              ] }) : k.acceptance ? /* @__PURE__ */ t(T, { value: k.acceptance }) : void 0
+              ] }) : C.acceptance ? /* @__PURE__ */ t($, { value: C.acceptance }) : void 0
             },
-            k.row
+            C.row
           )) }) }),
-          o.is_stand_in && o.status === "Active" && /* @__PURE__ */ t(w, { variant: "outline", onClick: () => R({ kind: "return-note" }), children: e("Note for Return") })
+          o.is_stand_in && o.status === "Active" && /* @__PURE__ */ t(w, { variant: "outline", onClick: () => g({ kind: "return-note" }), children: e("Note for Return") })
         ] }),
         /* @__PURE__ */ t(
-          mt,
+          wt,
           {
             open: !!h,
-            onClose: () => R(null),
+            onClose: () => g(null),
             title: h?.kind === "note" ? e("Leave a Note") : h?.kind === "return-note" ? e("Note for Return") : e("Decline"),
             description: h?.kind === "note" ? e("What you did on this piece of work, for when they are back.") : h?.kind === "return-note" ? e("What they should know on their first day back.") : e("Say why you cannot cover it, so they can ask someone else."),
-            actions: /* @__PURE__ */ m(fe, { children: [
-              /* @__PURE__ */ t(w, { variant: "outline", onClick: () => R(null), children: e("Cancel") }),
+            actions: /* @__PURE__ */ m(de, { children: [
+              /* @__PURE__ */ t(w, { variant: "outline", onClick: () => g(null), children: e("Cancel") }),
               /* @__PURE__ */ t(
                 w,
                 {
-                  loading: P,
+                  loading: I,
                   disabled: !(h?.kind === "note" ? h.text : x).trim(),
                   onClick: () => {
-                    h && (h.kind === "decline" ? O(() => u.run({ name: n, answer: "Declined", reason: x }), e("You declined.")) : h.kind === "decline-approval" ? O(() => p.run({ name: n, row: h.row, answer: "Declined", reason: x }), e("You declined.")) : h.kind === "note" ? O(() => v.run({ name: n, row: h.row, note: h.text }), e("Note saved.")) : O(() => y.run({ name: n, note: x }), e("Note saved.")));
+                    h && (h.kind === "decline" ? j(() => d.run({ name: n, answer: "Declined", reason: x }), e("You declined.")) : h.kind === "decline-approval" ? j(() => y.run({ name: n, row: h.row, answer: "Declined", reason: x }), e("You declined.")) : h.kind === "note" ? j(() => p.run({ name: n, row: h.row, note: h.text }), e("Note saved.")) : j(() => f.run({ name: n, note: x }), e("Note saved.")));
                   },
                   children: h?.kind === "decline" || h?.kind === "decline-approval" ? e("Decline") : e("Save Note")
                 }
               )
             ] }),
             children: /* @__PURE__ */ t(
-              rn,
+              fn,
               {
                 "aria-label": e("Note"),
                 rows: 4,
                 value: h?.kind === "note" ? h.text : x,
-                onChange: (k) => h?.kind === "note" ? R({ ...h, text: k.target.value }) : W(k.target.value)
+                onChange: (C) => h?.kind === "note" ? g({ ...h, text: C.target.value }) : E(C.target.value)
               }
             )
           }
         ),
         /* @__PURE__ */ t(
-          pt,
+          bt,
           {
-            open: S,
-            onClose: () => A(!1),
+            open: D,
+            onClose: () => L(!1),
             title: e("Take your work back now?"),
             confirmLabel: e("I'm Back"),
             onConfirm: async () => {
-              await d.run({ name: n }), i.success(e("Your work is back with you.")), await r();
+              await u.run({ name: n }), r.success(e("Your work is back with you.")), await i();
             },
             children: e("Everything your stand-in was covering comes back to you, and they stop approving in your place.")
           }
@@ -1205,70 +1245,71 @@ function Un() {
     }
   );
 }
-function Jn() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s } = N(f.home), c = l.week(Ve(Y())), r = [
-    { label: e("Leave"), hint: e("Apply, and see what you asked for"), path: l.leave, icon: /* @__PURE__ */ t(He, {}) },
-    { label: e("Cover"), hint: e("Handovers to answer and work you cover"), path: l.cover, icon: /* @__PURE__ */ t(Pt, {}) },
-    { label: e("Time Off in Lieu"), hint: e("Claim extra hours as time off"), path: l.toil, icon: /* @__PURE__ */ t(Pe, {}) },
-    { label: e("Timesheets"), hint: e("Your week, day by day"), path: l.timesheet, icon: /* @__PURE__ */ t(Be, {}) },
-    { label: e("Expense Claims"), hint: e("Claims and receipts"), path: l.expenses, icon: /* @__PURE__ */ t(Fe, {}) },
-    { label: e("Advances"), hint: e("Money paid ahead and what is left to settle"), path: l.advances, icon: /* @__PURE__ */ t(Nt, {}) },
-    { label: e("Payslips"), hint: e("Your pay, month by month"), path: l.pay, icon: /* @__PURE__ */ t(It, {}) },
-    { label: e("Attendance Requests"), hint: e("Days worked away from the office"), path: l.attendance, icon: /* @__PURE__ */ t(Ye, {}) },
-    { label: e("Shift Requests"), hint: e("Ask to work another shift"), path: l.shifts, icon: /* @__PURE__ */ t(Tt, {}) },
-    { label: e("My Details"), hint: e("Contact, dependants and where you are paid"), path: l.me, icon: /* @__PURE__ */ t(Nn, {}) }
+function ra() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s } = A(v.home), c = l.week(et(J())), i = [
+    { label: e("Leave"), hint: e("Apply, and see what you asked for"), path: l.leave, icon: /* @__PURE__ */ t(Ve, {}) },
+    { label: e("Cover"), hint: e("Handovers to answer and work you cover"), path: l.cover, icon: /* @__PURE__ */ t(Gt, {}) },
+    { label: e("Time Off in Lieu"), hint: e("Claim extra hours as time off"), path: l.toil, icon: /* @__PURE__ */ t(Je, {}) },
+    { label: e("Timesheets"), hint: e("Your week, day by day"), path: l.timesheet, icon: /* @__PURE__ */ t(Ue, {}) },
+    { label: e("Expense Claims"), hint: e("Claims and receipts"), path: l.expenses, icon: /* @__PURE__ */ t(Ge, {}) },
+    { label: e("Advances"), hint: e("Money paid ahead and what is left to settle"), path: l.advances, icon: /* @__PURE__ */ t($t, {}) },
+    { label: e("Payslips"), hint: e("Your pay, month by month"), path: l.pay, icon: /* @__PURE__ */ t(Xt, {}) },
+    { label: e("Attendance Requests"), hint: e("Days worked away from the office"), path: l.attendance, icon: /* @__PURE__ */ t(Qe, {}) },
+    { label: e("Shift Requests"), hint: e("Ask to work another shift"), path: l.shifts, icon: /* @__PURE__ */ t(Vt, {}) },
+    { label: e("Travel Requests"), hint: e("Trips for work, approved by your line manager"), path: l.travel, icon: /* @__PURE__ */ t(It, {}) },
+    { label: e("My Details"), hint: e("Contact, dependants and where you are paid"), path: l.me, icon: /* @__PURE__ */ t(Pn, {}) }
   ];
-  return i?.checkin.offered && r.splice(4, 0, { label: e("Check-in"), hint: e("Check in and out from your phone"), path: l.checkIn, icon: /* @__PURE__ */ t(Qe, {}) }), /* @__PURE__ */ t(sn, { title: e("My HR"), subtitle: i?.employee.employee_name, loading: n, error: o, onRetry: s, children: /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
-    i && i.balances.length > 0 && /* @__PURE__ */ t(yt, { columns: 2, children: i.balances.map((u) => /* @__PURE__ */ t(Ee, { label: u.label, value: e("{0} days", [String(u.value)]), onClick: () => a(u.key.startsWith("toil") ? l.toil : l.leave) }, u.key)) }),
-    /* @__PURE__ */ t(F, { title: e("Quick Actions"), children: /* @__PURE__ */ m("div", { className: "grid grid-cols-1 gap-2 sm:grid-cols-2", children: [
+  return r?.checkin.offered && i.splice(4, 0, { label: e("Check-in"), hint: e("Check in and out from your phone"), path: l.checkIn, icon: /* @__PURE__ */ t(ct, {}) }), /* @__PURE__ */ t(vn, { title: e("Self Service"), subtitle: r?.employee.employee_name, loading: n, error: o, onRetry: s, children: /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
+    r && r.balances.length > 0 && /* @__PURE__ */ t(Ct, { columns: 2, children: r.balances.map((d) => /* @__PURE__ */ t(ze, { label: d.label, value: e("{0} days", [String(d.value)]), onClick: () => a(d.key.startsWith("toil") ? l.toil : l.leave) }, d.key)) }),
+    /* @__PURE__ */ t(B, { title: e("Quick Actions"), children: /* @__PURE__ */ m("div", { className: "grid grid-cols-1 gap-2 sm:grid-cols-2", children: [
       /* @__PURE__ */ m(w, { variant: "outline", onClick: () => a(l.leaveNew), children: [
-        /* @__PURE__ */ t(He, {}),
+        /* @__PURE__ */ t(Ve, {}),
         e("Apply for Leave")
       ] }),
       /* @__PURE__ */ m(w, { variant: "outline", onClick: () => a(l.toilNew), children: [
-        /* @__PURE__ */ t(Pe, {}),
+        /* @__PURE__ */ t(Je, {}),
         e("Claim Time Off")
       ] }),
       /* @__PURE__ */ m(w, { variant: "outline", onClick: () => a(c), children: [
-        /* @__PURE__ */ t(An, {}),
+        /* @__PURE__ */ t(En, {}),
         e("This Week's Timesheet")
       ] }),
       /* @__PURE__ */ m(w, { variant: "outline", onClick: () => a(l.expenseNew), children: [
-        /* @__PURE__ */ t(Fe, {}),
+        /* @__PURE__ */ t(Ge, {}),
         e("New Expense Claim")
       ] }),
-      i?.checkin.offered && /* @__PURE__ */ m(w, { variant: "outline", onClick: () => a(l.checkIn), children: [
-        /* @__PURE__ */ t(Qe, {}),
+      r?.checkin.offered && /* @__PURE__ */ m(w, { variant: "outline", onClick: () => a(l.checkIn), children: [
+        /* @__PURE__ */ t(ct, {}),
         e("Check In")
       ] })
     ] }) }),
-    i && i.in_flight.length > 0 && /* @__PURE__ */ t(F, { title: e("In Progress"), children: /* @__PURE__ */ t(L, { divided: !0, children: i.in_flight.map((u) => {
-      const p = hn(u.doctype);
-      return /* @__PURE__ */ t(M, { primary: u.label, action: /* @__PURE__ */ t(ge, { children: u.count }), onClick: p ? () => a(p) : void 0 }, u.key);
+    r && r.in_flight.length > 0 && /* @__PURE__ */ t(B, { title: e("In Progress"), children: /* @__PURE__ */ t(T, { divided: !0, children: r.in_flight.map((d) => {
+      const y = bn(d.doctype);
+      return /* @__PURE__ */ t(M, { primary: d.label, action: /* @__PURE__ */ t(we, { children: d.count }), onClick: y ? () => a(y) : void 0 }, d.key);
     }) }) }),
-    /* @__PURE__ */ t(F, { title: e("Everything in My HR"), children: /* @__PURE__ */ t(L, { divided: !0, children: r.map((u) => /* @__PURE__ */ t(M, { primary: u.label, secondary: u.hint, icon: u.icon, action: /* @__PURE__ */ t(kt, { "aria-hidden": !0 }), onClick: () => a(u.path) }, u.path)) }) })
+    /* @__PURE__ */ t(B, { title: e("Everything in Self Service"), children: /* @__PURE__ */ t(T, { divided: !0, children: i.map((d) => /* @__PURE__ */ t(M, { primary: d.label, secondary: d.hint, icon: d.icon, action: /* @__PURE__ */ t(St, { "aria-hidden": !0 }), onClick: () => a(d.path) }, d.path)) }) })
   ] }) });
 }
-const Gn = "seal-draft:", Kn = 30, Xn = 400;
-function Zn(a, i, n) {
-  return `${Gn}${a}:${i}:${n}`;
+const ia = "seal-draft:", sa = 30, la = 400;
+function ca(a, r, n) {
+  return `${ia}${a}:${r}:${n}`;
 }
-function Ue() {
+function tt() {
   try {
     return typeof window < "u" ? window.localStorage : null;
   } catch {
     return null;
   }
 }
-function Oe(a, i = Date.now()) {
-  const n = Ue();
+function Xe(a, r = Date.now()) {
+  const n = tt();
   if (!n) return null;
   try {
     const o = n.getItem(a);
     if (!o) return null;
     const s = JSON.parse(o);
     if (!s || typeof s.saved != "number" || !("value" in s)) throw new Error("not a draft");
-    return i - s.saved > Kn * 864e5 ? (n.removeItem(a), null) : { value: s.value, saved: s.saved };
+    return r - s.saved > sa * 864e5 ? (n.removeItem(a), null) : { value: s.value, saved: s.saved };
   } catch {
     try {
       n.removeItem(a);
@@ -1277,293 +1318,324 @@ function Oe(a, i = Date.now()) {
     return null;
   }
 }
-function Qn(a, i, n = Date.now()) {
-  const o = Ue();
+function da(a, r, n = Date.now()) {
+  const o = tt();
   if (!o) return !1;
   try {
-    return o.setItem(a, JSON.stringify({ saved: n, value: i })), !0;
+    return o.setItem(a, JSON.stringify({ saved: n, value: r })), !0;
   } catch {
     return !1;
   }
 }
-function jt(a) {
+function en(a) {
   try {
-    Ue()?.removeItem(a);
+    tt()?.removeItem(a);
   } catch {
   }
 }
-function Je(a, i, n) {
-  const o = a && n ? Zn(a, i, n) : null, [s, c] = E(() => o ? Oe(o) : null), r = Re(null), u = Re(o);
-  ye(() => {
-    u.current !== o && (u.current = o, c(o ? Oe(o) : null));
-  }, [o]), ye(
+function Me(a, r, n) {
+  const o = a && n ? ca(a, r, n) : null, [s, c] = q(() => o ? Xe(o) : null), i = be(null), d = be(o);
+  ue(() => {
+    d.current !== o && (d.current = o, c(o ? Xe(o) : null));
+  }, [o]), ue(
     () => () => {
-      r.current && clearTimeout(r.current);
+      i.current && clearTimeout(i.current);
     },
     []
   );
-  const p = be(
-    (d) => {
-      o && (r.current && clearTimeout(r.current), r.current = setTimeout(() => Qn(o, d), Xn));
+  const y = Ae(
+    (u) => {
+      o && (i.current && clearTimeout(i.current), i.current = setTimeout(() => da(o, u), la));
     },
     [o]
-  ), v = be(() => {
-    r.current && clearTimeout(r.current), r.current = null, o && jt(o), c(null);
-  }, [o]), y = be(() => c(null), []);
-  return { key: o, restored: s, keep: p, clear: v, dismiss: y };
+  ), p = Ae(() => {
+    i.current && clearTimeout(i.current), i.current = null, o && en(o), c(null);
+  }, [o]), f = Ae(() => c(null), []);
+  return { key: o, restored: s, keep: y, clear: p, dismiss: f };
 }
-function Ge(a) {
-  return Y(new Date(a));
+function qe(a) {
+  return J(new Date(a));
 }
-function ea(a) {
+function ua(a) {
   return { show: !!a?.needed, standInRequired: !!a?.needed && !!a?.required };
 }
-function ta(a, i) {
-  const n = a.filter((c) => c.work_date), o = new Set(n.map((c) => c.work_date)), s = i.filter((c) => !o.has(c.work_date)).map((c) => ({ work_date: c.work_date, hours: c.hours, work_done: "" }));
-  return [...n, ...s].sort((c, r) => c.work_date.localeCompare(r.work_date));
+function ha(a, r) {
+  const n = a.filter((c) => c.work_date), o = new Set(n.map((c) => c.work_date)), s = r.filter((c) => !o.has(c.work_date)).map((c) => ({ work_date: c.work_date, hours: c.hours, work_done: "" }));
+  return [...n, ...s].sort((c, i) => c.work_date.localeCompare(i.work_date));
 }
-function na(a) {
+function ma(a) {
   if (a.change === "Mobile Money") return a.mobile_no?.trim() ? [] : ["mobile_no"];
-  const i = ["bank", "bank_account_no", "account_name"].filter((n) => !a[n]?.trim());
-  return a.evidence ? i : [...i, "evidence"];
+  const r = ["bank", "bank_account_no", "account_name"].filter((n) => !a[n]?.trim());
+  return a.evidence ? r : [...r, "evidence"];
 }
-function aa() {
-  const a = D(), [i, n] = E("all"), { data: o, isLoading: s, error: c, mutate: r, hasLoaded: u } = N(f.leaveList), p = o ?? [], v = p.filter((d) => d.status === "Open" && d.docstatus === 0), y = i === "open" ? v : i === "decided" ? p.filter((d) => !v.includes(d)) : p;
+function pa(a, r) {
+  return {
+    itinerary: a.filter((n) => n.travel_from.trim() || n.travel_to.trim()),
+    costings: r.filter((n) => n.expense_type || (n.total_amount ?? 0) > 0)
+  };
+}
+function ya() {
+  const a = N(), [r, n] = q("all"), { data: o, isLoading: s, error: c, mutate: i, hasLoaded: d } = A(v.leaveList), y = o ?? [], p = y.filter((u) => u.status === "Open" && u.docstatus === 0), f = r === "open" ? p : r === "decided" ? y.filter((u) => !p.includes(u)) : y;
   return /* @__PURE__ */ t(
-    ne,
+    oe,
     {
       title: e("Leave"),
       onBack: () => a(""),
       loading: s,
       error: c,
-      onRetry: r,
+      onRetry: i,
       actions: /* @__PURE__ */ m(w, { onClick: () => a(l.leaveNew), children: [
-        /* @__PURE__ */ t(me, {}),
+        /* @__PURE__ */ t(ve, {}),
         e("Apply for Leave")
       ] }),
       toolbar: /* @__PURE__ */ t(
-        ln,
+        gn,
         {
           label: e("Show"),
-          value: i,
+          value: r,
           onChange: n,
           options: [
-            { value: "all", label: e("All"), count: p.length },
-            { value: "open", label: e("Waiting"), count: v.length },
-            { value: "decided", label: e("Decided"), count: p.length - v.length }
+            { value: "all", label: e("All"), count: y.length },
+            { value: "open", label: e("Waiting"), count: p.length },
+            { value: "decided", label: e("Decided"), count: y.length - p.length }
           ]
         }
       ),
-      children: u && y.length === 0 ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(He, {}), title: e("No leave here"), description: e("Leave you apply for shows here until it is decided, and after.") }) : /* @__PURE__ */ t(L, { divided: !0, children: y.map((d) => /* @__PURE__ */ t(
+      children: d && f.length === 0 ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Ve, {}), title: e("No leave here"), description: e("Leave you apply for shows here until it is decided, and after.") }) : /* @__PURE__ */ t(T, { divided: !0, children: f.map((u) => /* @__PURE__ */ t(
         M,
         {
-          primary: d.leave_type,
-          secondary: d.handover ? e("{0} to {1} · {2} days · covered by {3}", [g(d.from_date), g(d.to_date), String(d.total_leave_days), d.handover.stand_in]) : e("{0} to {1} · {2} days", [g(d.from_date), g(d.to_date), String(d.total_leave_days)]),
-          action: /* @__PURE__ */ t(T, { value: d.status }),
-          onClick: () => a(l.leaveRecord(d.name))
+          primary: u.leave_type,
+          secondary: u.handover ? e("{0} to {1} · {2} days · covered by {3}", [_(u.from_date), _(u.to_date), String(u.total_leave_days), u.handover.stand_in]) : e("{0} to {1} · {2} days", [_(u.from_date), _(u.to_date), String(u.total_leave_days)]),
+          action: /* @__PURE__ */ t($, { value: u.status }),
+          onClick: () => a(l.leaveRecord(u.name))
         },
-        d.name
+        u.name
       )) })
     }
   );
 }
-function oa() {
-  const a = D(), i = V(), [n] = rt(), o = ce(
-    () => le.object({
-      leave_type: we(() => e("Leave Type")),
-      from_date: _e(() => e("From Date")),
-      to_date: _e(() => e("To Date"))
+function fa() {
+  const a = N(), r = O(), [n] = ft(), o = me(
+    () => ee.object({
+      leave_type: le(() => e("Leave Type")),
+      from_date: Re(() => e("From Date")),
+      to_date: Re(() => e("To Date"))
     }),
     []
-  ), s = () => ({ leave_type: n.get("type") ?? "", from_date: "", to_date: "", half_day: !1, description: "", stand_in: "", handover_notes: "", todos: [], approvals: [] }), c = de({ schema: o.passthrough(), defaultValues: s() }), r = Je(ve().user, "leave-application", "new"), [u, p] = E(null);
-  ye(() => {
-    r.restored?.value && !n.get("type") && (c.reset({ ...s(), ...r.restored.value }), p(r.restored.saved)), r.dismiss();
-    const _ = c.watch((k) => r.keep({ ...s(), ...k }));
-    return () => _.unsubscribe();
+  ), s = () => ({ leave_type: n.get("type") ?? "", from_date: "", to_date: "", half_day: !1, description: "", stand_in: "", handover_notes: "", todos: [], approvals: [] }), c = pe({ schema: o.passthrough(), defaultValues: s() }), i = Me(ne().user, "leave-application", "new"), [d, y] = q(null);
+  ue(() => {
+    i.restored?.value && !n.get("type") && (c.reset({ ...s(), ...i.restored.value }), y(i.restored.saved)), i.dismiss();
+    const b = c.watch((C) => i.keep({ ...s(), ...C }));
+    return () => b.unsubscribe();
   }, []);
-  const v = () => {
-    r.clear(), p(null), c.reset(s());
-  }, [y, d, h, R] = c.watch(["leave_type", "from_date", "to_date", "half_day"]), x = !!(y && d && h), W = N(f.leaveOptions), S = N(f.leaveOptions, { leave_type: y, from_date: d, to_date: h, half_day: R ? 1 : 0 }, { enabled: x }), A = { ...S, data: x ? S.data : void 0 }, P = N(f.colleagues, {}, { enabled: !!A.data?.handover.needed }), j = q(f.applyForLeave), I = ea(x ? A.data?.handover : void 0), G = (A.data ?? W.data)?.leave_types.find((_) => _.name === y), O = async (_) => {
-    if (I.standInRequired && !_.stand_in) return { errors: { stand_in: e("Your company asks for cover on this leave. Choose who will cover your work.") } };
-    const k = await j.run({
-      leave_type: _.leave_type,
-      from_date: _.from_date,
-      to_date: _.to_date,
-      half_day: _.half_day ? 1 : 0,
-      description: _.description,
-      stand_in: I.show && _.stand_in || void 0,
-      handover_notes: _.handover_notes,
-      todos: JSON.stringify(_.todos),
-      approvals: JSON.stringify(_.approvals)
+  const p = () => {
+    i.clear(), y(null), c.reset(s());
+  }, [f, u, h, g] = c.watch(["leave_type", "from_date", "to_date", "half_day"]), x = !!(f && u && h), E = A(v.leaveOptions), D = A(v.leaveOptions, { leave_type: f, from_date: u, to_date: h, half_day: g ? 1 : 0 }, { enabled: x }), L = { ...D, data: x ? D.data : void 0 }, I = A(v.colleagues, {}, { enabled: !!L.data?.handover.needed }), V = W(v.applyForLeave), z = ua(x ? L.data?.handover : void 0), G = (L.data ?? E.data)?.leave_types.find((b) => b.name === f), j = async (b) => {
+    if (z.standInRequired && !b.stand_in) return { errors: { stand_in: e("Your company asks for cover on this leave. Choose who will cover your work.") } };
+    const C = await V.run({
+      leave_type: b.leave_type,
+      from_date: b.from_date,
+      to_date: b.to_date,
+      half_day: b.half_day ? 1 : 0,
+      description: b.description,
+      stand_in: z.show && b.stand_in || void 0,
+      handover_notes: b.handover_notes,
+      todos: JSON.stringify(b.todos),
+      approvals: JSON.stringify(b.approvals)
     });
-    r.clear(), i.success(k.handover ? e("Leave applied for, and the handover sent to your stand-in.") : e("Leave applied for.")), a(l.leaveRecord(k.name));
+    i.clear(), r.success(C.handover ? e("Leave applied for, and the handover sent to your stand-in.") : e("Leave applied for.")), a(l.leaveRecord(C.name));
   };
-  return /* @__PURE__ */ m(te, { title: e("Apply for Leave"), onBack: () => a(l.leave), loading: W.isLoading && !W.data, error: W.error, onRetry: W.mutate, children: [
-    u !== null && /* @__PURE__ */ t($, { tone: "info", title: e("Restored From This Phone"), action: /* @__PURE__ */ t(w, { onClick: v, children: e("Start Again") }), children: e("You started this application on {0} and had not sent it.", [g(Ge(u))]) }),
-    /* @__PURE__ */ m(ue, { form: c, onSubmit: O, children: [
-      /* @__PURE__ */ t(Ze, { title: e("Leave"), children: /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
+  return /* @__PURE__ */ m(ae, { title: e("Apply for Leave"), onBack: () => a(l.leave), loading: E.isLoading && !E.data, error: E.error, onRetry: E.mutate, children: [
+    d !== null && /* @__PURE__ */ t(S, { tone: "info", title: e("Restored From This Phone"), action: /* @__PURE__ */ t(w, { onClick: p, children: e("Start Again") }), children: e("You started this application on {0} and had not sent it.", [_(qe(d))]) }),
+    /* @__PURE__ */ m(ye, { form: c, onSubmit: j, children: [
+      /* @__PURE__ */ t(st, { title: e("Leave"), children: /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
         /* @__PURE__ */ t(
-          Ae,
+          se,
           {
             name: "leave_type",
             label: e("Leave Type"),
             required: !0,
-            options: (W.data?.leave_types ?? []).map((_) => ({
-              value: _.name,
-              label: _.name,
-              description: _.left === null ? e("Unpaid") : e("{0} days left", [String(_.left)])
+            options: (E.data?.leave_types ?? []).map((b) => ({
+              value: b.name,
+              label: b.name,
+              description: b.left === null ? e("Unpaid") : e("{0} days left", [String(b.left)])
             })),
             hint: G && G.left !== null ? e("{0} days left", [String(G.left)]) : void 0
           }
         ),
-        /* @__PURE__ */ t(re, { name: "from_date", label: e("From Date"), required: !0 }),
-        /* @__PURE__ */ t(re, { name: "to_date", label: e("To Date"), required: !0, minDate: d || void 0 }),
-        /* @__PURE__ */ t(ct, { name: "half_day", label: e("Half Day"), hint: e("Only the first day is a half day.") }),
-        /* @__PURE__ */ t(U, { name: "description", label: e("Reason"), multiline: !0, rows: 3 }),
-        x && A.data && /* @__PURE__ */ t($, { tone: "info", children: A.data.days !== null ? e("{0} days, approved by {1}.", [String(A.data.days), A.data.approver_name ?? e("your leave approver")]) : e("Approved by {0}.", [A.data.approver_name ?? e("your leave approver")]) })
+        /* @__PURE__ */ t(he, { name: "from_date", label: e("From Date"), required: !0 }),
+        /* @__PURE__ */ t(he, { name: "to_date", label: e("To Date"), required: !0, minDate: u || void 0 }),
+        /* @__PURE__ */ t(Ze, { name: "half_day", label: e("Half Day"), hint: e("Only the first day is a half day.") }),
+        /* @__PURE__ */ t(H, { name: "description", label: e("Reason"), multiline: !0, rows: 3 }),
+        x && L.data && /* @__PURE__ */ t(S, { tone: "info", children: In(L.data.days, L.data.approver_name) })
       ] }) }),
-      I.show && /* @__PURE__ */ t(
-        Ze,
+      z.show && /* @__PURE__ */ t(
+        st,
         {
           title: e("Handover"),
-          description: I.standInRequired ? e("Your company asks for cover on leave like this. Your stand-in is asked to agree before the leave is approved.") : e("Your company suggests arranging cover. You can leave this out."),
+          description: z.standInRequired ? e("Your company asks for cover on leave like this. Your stand-in is asked to agree before the leave is approved.") : e("Your company suggests arranging cover. You can leave this out."),
           children: /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
             /* @__PURE__ */ t(
-              De,
+              Ee,
               {
                 name: "stand_in",
                 label: e("Stand-in"),
-                required: I.standInRequired,
-                options: (P.data ?? []).map((_) => ({ value: _.name, label: _.employee_name })),
+                required: z.standInRequired,
+                options: (I.data ?? []).map((b) => ({ value: b.name, label: b.employee_name })),
                 hint: e("A colleague in your company who is not away at the same time.")
               }
             ),
-            /* @__PURE__ */ t(U, { name: "handover_notes", label: e("Handover Notes"), multiline: !0, rows: 4, hint: e("What your stand-in needs to know.") }),
-            (A.data?.work.length ?? 0) > 0 && /* @__PURE__ */ t(
-              De,
+            /* @__PURE__ */ t(H, { name: "handover_notes", label: e("Handover Notes"), multiline: !0, rows: 4, hint: e("What your stand-in needs to know.") }),
+            (L.data?.work.length ?? 0) > 0 && /* @__PURE__ */ t(
+              Ee,
               {
                 name: "todos",
                 multiple: !0,
                 label: e("Work to Hand Over"),
-                options: (A.data?.work ?? []).map((_) => ({ value: _.todo, label: _.description, description: _.due_date ? e("Due {0}", [g(_.due_date)]) : void 0 })),
+                options: (L.data?.work ?? []).map((b) => ({ value: b.todo, label: b.description, description: b.due_date ? e("Due {0}", [_(b.due_date)]) : void 0 })),
                 hint: e("Open items on your work list. Your stand-in gets them while you are away.")
               }
             ),
-            (A.data?.approvals.length ?? 0) > 0 && /* @__PURE__ */ t(
-              De,
+            (L.data?.approvals.length ?? 0) > 0 && /* @__PURE__ */ t(
+              Ee,
               {
                 name: "approvals",
                 multiple: !0,
                 label: e("Approvals to Hand Over"),
-                options: (A.data?.approvals ?? []).map((_) => ({ value: _.authority, label: _.authority_label })),
+                options: (L.data?.approvals ?? []).map((b) => ({ value: b.authority, label: b.authority_label })),
                 hint: e("Your stand-in approves these in your place, once they agree.")
               }
             )
           ] })
         }
       ),
-      /* @__PURE__ */ t(he, { submitLabel: e("Apply"), onCancel: () => a(l.leave) })
+      /* @__PURE__ */ t(fe, { submitLabel: e("Apply"), onCancel: () => a(l.leave) })
     ] })
   ] });
 }
-function ia() {
-  const a = D(), i = oe(Z().name), { data: n, isLoading: o, error: s, mutate: c } = N(f.leaveRecord, { name: i });
+function va() {
+  const a = N(), r = ie(Z().name), { data: n, isLoading: o, error: s, mutate: c } = A(v.leaveRecord, { name: r });
   return /* @__PURE__ */ t(
     Q,
     {
       title: n ? n.leave_type : e("Leave"),
-      subtitle: n && !n.mine ? n.employee_name : i,
-      meta: n && /* @__PURE__ */ t(T, { value: n.status }),
+      subtitle: n && !n.mine ? n.employee_name : r,
+      meta: n && /* @__PURE__ */ t($, { value: n.status }),
       onBack: () => a(l.leave),
       loading: o,
       error: s,
       onRetry: c,
       children: n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
         /* @__PURE__ */ t(
-          J,
+          U,
           {
             items: [
-              { label: e("From Date"), value: g(n.from_date) },
-              { label: e("To Date"), value: g(n.to_date) },
+              { label: e("From Date"), value: _(n.from_date) },
+              { label: e("To Date"), value: _(n.to_date) },
               { label: e("Days"), value: String(n.total_leave_days) },
               { label: e("Half Day"), value: n.half_day ? e("Yes") : e("No") },
               { label: e("Leave Approver"), value: n.leave_approver_name, hideWhenEmpty: !0 },
-              { label: e("Applied On"), value: g(n.posting_date) },
+              { label: e("Applied On"), value: _(n.posting_date) },
               { label: e("Reason"), value: n.description, hideWhenEmpty: !0, full: !0 }
             ]
           }
         ),
-        n.handover ? /* @__PURE__ */ t(L, { divided: !0, children: /* @__PURE__ */ t(
+        n.handover ? /* @__PURE__ */ t(T, { divided: !0, children: /* @__PURE__ */ t(
           M,
           {
             primary: e("Handover to {0}", [n.handover.stand_in]),
-            action: /* @__PURE__ */ t(T, { value: n.handover.status }),
+            action: /* @__PURE__ */ t($, { value: n.handover.status }),
             onClick: () => a(l.handover(n.handover.name))
           }
-        ) }) : /* @__PURE__ */ t(ee, { muted: !0, children: e("No handover for this leave.") })
+        ) }) : /* @__PURE__ */ t(te, { muted: !0, children: e("No handover for this leave.") })
       ] })
     }
   );
 }
-class Yt extends Error {
+class nt extends Error {
   constructor() {
     super(...arguments);
-    Xe(this, "name", "VerificationCancelled");
+    it(this, "name", "VerificationCancelled");
   }
 }
-function ze(a, i = 0) {
-  if (!a || typeof a != "object" || i > 3) return !1;
+function Le(a, r = 0) {
+  if (!a || typeof a != "object" || r > 3) return !1;
   const n = a;
-  return n.exc_type === "VerificationNeeded" || typeof n.exception == "string" && n.exception.includes("VerificationNeeded") ? !0 : ze(n.payload, i + 1) || ze(n.original, i + 1);
+  return n.exc_type === "VerificationNeeded" || typeof n.exception == "string" && n.exception.includes("VerificationNeeded") ? !0 : Le(n.payload, r + 1) || Le(n.original, r + 1);
 }
-async function Vt(a, i) {
+async function at(a, r) {
   try {
     return await a();
   } catch (n) {
-    if (!ze(n)) throw n;
-    if (!await i()) throw new Yt();
+    if (!Le(n)) throw n;
+    if (!await r()) throw new nt();
     return a();
   }
 }
-function ra() {
-  const a = D(), i = V(), { data: n, isLoading: o, error: s, mutate: c } = N(f.myDetails), r = q(f.updateMyContact), [u, p] = E(!1), [v, y] = E("");
+function ot(a, r) {
+  const n = ne(), o = Le(a), [s, c] = q(!1), i = be(!1), d = async () => {
+    c(!0);
+    try {
+      await n.verify() && await r();
+    } finally {
+      c(!1);
+    }
+  };
+  return ue(() => {
+    o && !i.current && (i.current = !0, d());
+  }, [o]), { needed: o, busy: s, confirm: d, error: o ? void 0 : a };
+}
+function We({ what: a, busy: r, onConfirm: n }) {
+  return /* @__PURE__ */ t(
+    S,
+    {
+      tone: "info",
+      role: "status",
+      title: e("Confirm It Is You"),
+      action: /* @__PURE__ */ t(w, { loading: r, onClick: n, children: e("Confirm") }),
+      children: a
+    }
+  );
+}
+function ga() {
+  const a = N(), r = O(), { data: n, isLoading: o, error: s, mutate: c } = A(v.myDetails), i = W(v.updateMyContact), [d, y] = q(!1), [p, f] = q("");
   return /* @__PURE__ */ m(Q, { title: e("My Details"), subtitle: n?.employee.employee_name, onBack: () => a(""), loading: o, error: s, onRetry: c, children: [
     n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
       /* @__PURE__ */ t(
-        J,
+        U,
         {
           items: [
             { label: e("Employee ID"), value: n.employee.name },
             { label: e("Designation"), value: n.employee.designation, hideWhenEmpty: !0 },
             { label: e("Department"), value: n.employee.department, hideWhenEmpty: !0 },
             { label: e("Company"), value: n.employee.company },
-            { label: e("Date of Joining"), value: n.employee.date_of_joining ? g(n.employee.date_of_joining) : null, hideWhenEmpty: !0 },
+            { label: e("Date of Joining"), value: n.employee.date_of_joining ? _(n.employee.date_of_joining) : null, hideWhenEmpty: !0 },
             { label: e("Company Email"), value: n.employee.company_email, hideWhenEmpty: !0 },
             { label: e("Personal Email"), value: n.employee.personal_email, hideWhenEmpty: !0 }
           ]
         }
       ),
       /* @__PURE__ */ m(
-        F,
+        B,
         {
           title: e("Contact"),
-          action: n.has_contact ? /* @__PURE__ */ t(w, { variant: "outline", onClick: () => p(!0), children: e("Change Mobile Number") }) : void 0,
+          action: n.has_contact ? /* @__PURE__ */ t(w, { variant: "outline", onClick: () => y(!0), children: e("Change Mobile Number") }) : void 0,
           children: [
-            /* @__PURE__ */ t(J, { items: [{ label: e("Mobile No."), value: n.mobile_no ?? e("None yet") }] }),
-            !n.has_contact && /* @__PURE__ */ t(ee, { muted: !0, children: e("HR has not linked a contact to your record yet; ask them to.") })
+            /* @__PURE__ */ t(U, { items: [{ label: e("Mobile No."), value: n.mobile_no ?? e("None yet") }] }),
+            !n.has_contact && /* @__PURE__ */ t(te, { muted: !0, children: e("HR has not linked a contact to your record yet; ask them to.") })
           ]
         }
       ),
-      /* @__PURE__ */ t(F, { title: e("Dependants and Beneficiaries"), children: n.dependants.length === 0 ? /* @__PURE__ */ t(ee, { muted: !0, children: e("None recorded. HR records dependants and beneficiaries.") }) : /* @__PURE__ */ t(L, { divided: !0, children: n.dependants.map((d) => /* @__PURE__ */ t(M, { primary: d.full_name, secondary: [d.relationship, d.type, d.dob ? g(d.dob) : ""].filter(Boolean).join(" · ") }, d.name)) }) }),
+      /* @__PURE__ */ t(B, { title: e("Dependants and Beneficiaries"), children: n.dependants.length === 0 ? /* @__PURE__ */ t(te, { muted: !0, children: e("None recorded. HR records dependants and beneficiaries.") }) : /* @__PURE__ */ t(T, { divided: !0, children: n.dependants.map((u) => /* @__PURE__ */ t(M, { primary: u.full_name, secondary: [u.relationship, u.type, u.dob ? _(u.dob) : ""].filter(Boolean).join(" · ") }, u.name)) }) }),
       /* @__PURE__ */ m(
-        F,
+        B,
         {
           title: e("Payout Details"),
           subtitle: e("Where your pay goes. Only the last four digits are shown."),
           action: /* @__PURE__ */ t(w, { disabled: !!n.payout_request, onClick: () => a(l.payoutNew), children: e("Request a Change") }),
           children: [
-            /* @__PURE__ */ t(
-              J,
+            n.payout ? /* @__PURE__ */ t(
+              U,
               {
                 items: [
                   { label: e("Bank"), value: n.payout.bank ?? e("None") },
@@ -1572,38 +1644,38 @@ function ra() {
                   { label: e("Mobile Money"), value: n.payout.mobile_no ?? e("None") }
                 ]
               }
-            ),
-            n.payout_requests.length > 0 && /* @__PURE__ */ t(L, { divided: !0, children: n.payout_requests.map((d) => /* @__PURE__ */ t(
+            ) : /* @__PURE__ */ t(_a, { onConfirmed: c }),
+            n.payout_requests.length > 0 && /* @__PURE__ */ t(T, { divided: !0, children: n.payout_requests.map((u) => /* @__PURE__ */ t(
               M,
               {
-                primary: d.change === "Mobile Money" ? e("Change to Mobile Money") : e("Change of Bank Account"),
-                secondary: xe(d.creation),
-                action: /* @__PURE__ */ t(T, { value: d.status }),
-                onClick: () => a(l.payoutRecord(d.name))
+                primary: u.change === "Mobile Money" ? e("Change to Mobile Money") : e("Change of Bank Account"),
+                secondary: Ce(u.creation),
+                action: /* @__PURE__ */ t($, { value: u.status }),
+                onClick: () => a(l.payoutRecord(u.name))
               },
-              d.name
+              u.name
             )) })
           ]
         }
       )
     ] }),
     /* @__PURE__ */ t(
-      mt,
+      wt,
       {
-        open: u,
-        onClose: () => p(!1),
+        open: d,
+        onClose: () => y(!1),
         title: e("Change Mobile Number"),
         description: e("Your contact number at work. Where your pay goes changes only by a request to HR."),
-        actions: /* @__PURE__ */ m(fe, { children: [
-          /* @__PURE__ */ t(w, { variant: "outline", onClick: () => p(!1), children: e("Cancel") }),
+        actions: /* @__PURE__ */ m(de, { children: [
+          /* @__PURE__ */ t(w, { variant: "outline", onClick: () => y(!1), children: e("Cancel") }),
           /* @__PURE__ */ t(
             w,
             {
-              loading: r.loading,
-              disabled: !v.trim(),
+              loading: i.loading,
+              disabled: !p.trim(),
               onClick: async () => {
                 try {
-                  await r.run({ mobile_no: v }), i.success(e("Mobile number changed.")), p(!1), y(""), await c();
+                  await i.run({ mobile_no: p }), r.success(e("Mobile number changed.")), y(!1), f(""), await c();
                 } catch {
                 }
               },
@@ -1612,49 +1684,60 @@ function ra() {
           )
         ] }),
         children: /* @__PURE__ */ m("div", { className: "flex flex-col gap-2", children: [
-          r.errorMessage && /* @__PURE__ */ t($, { tone: "error", children: r.errorMessage }),
-          /* @__PURE__ */ t(Ce, { htmlFor: "new-mobile", children: e("New Mobile No.") }),
-          /* @__PURE__ */ t(qe, { id: "new-mobile", type: "tel", inputMode: "tel", autoComplete: "tel", value: v, onChange: (d) => y(d.target.value) })
+          i.errorMessage && /* @__PURE__ */ t(S, { tone: "error", children: i.errorMessage }),
+          /* @__PURE__ */ t(Ne, { htmlFor: "new-mobile", children: e("New Mobile No.") }),
+          /* @__PURE__ */ t(je, { id: "new-mobile", type: "tel", inputMode: "tel", autoComplete: "tel", value: p, onChange: (u) => f(u.target.value) })
         ] })
       }
     )
   ] });
 }
-function sa() {
-  const a = D(), i = ve(), n = V(), o = N(f.payoutOptions), s = q(f.requestPayoutChange), c = q(f.setPayoutEvidence), r = q(f.sendPayoutChange), u = de({
+function _a({ onConfirmed: a }) {
+  const r = ne(), [n, o] = q(!1), s = async () => {
+    o(!0);
+    try {
+      await r.verify() && await a();
+    } finally {
+      o(!1);
+    }
+  };
+  return /* @__PURE__ */ t(We, { what: e("Your payout details show once you confirm it is you."), busy: n, onConfirm: s });
+}
+function ka() {
+  const a = N(), r = ne(), n = O(), o = A(v.payoutOptions), s = W(v.requestPayoutChange), c = W(v.setPayoutEvidence), i = W(v.sendPayoutChange), d = pe({
     defaultValues: { change: "Bank Account", bank: "", bank_account_no: "", branch_code: "", account_name: "", mobile_no: "", evidence: null, reason: "" }
-  }), p = u.watch("change"), v = ce(
+  }), y = d.watch("change"), p = me(
     () => ({ bank: e("Bank"), bank_account_no: e("Account No."), account_name: e("Account Name"), mobile_no: e("Mobile No."), evidence: e("Evidence") }),
     []
-  ), y = async (d) => {
-    const h = na(d);
-    if (h.length) return { errors: Object.fromEntries(h.map((x) => [x, e("{0} is needed.", [v[x]])])) };
-    const R = await s.run({
-      change: d.change,
-      bank: d.change === "Bank Account" ? d.bank : void 0,
-      bank_account_no: d.change === "Bank Account" ? d.bank_account_no : void 0,
-      branch_code: d.change === "Bank Account" ? d.branch_code : void 0,
-      account_name: d.change === "Bank Account" ? d.account_name : void 0,
-      mobile_no: d.change === "Mobile Money" ? d.mobile_no : void 0,
-      reason: d.reason
+  ), f = async (u) => {
+    const h = ma(u);
+    if (h.length) return { errors: Object.fromEntries(h.map((x) => [x, e("{0} is needed.", [p[x]])])) };
+    const g = await s.run({
+      change: u.change,
+      bank: u.change === "Bank Account" ? u.bank : void 0,
+      bank_account_no: u.change === "Bank Account" ? u.bank_account_no : void 0,
+      branch_code: u.change === "Bank Account" ? u.branch_code : void 0,
+      account_name: u.change === "Bank Account" ? u.account_name : void 0,
+      mobile_no: u.change === "Mobile Money" ? u.mobile_no : void 0,
+      reason: u.reason
     });
-    if (d.change === "Bank Account" && d.evidence) {
-      const x = await st(d.evidence, { doctype: "Payout Change Request", docname: R, fieldname: "evidence", isPrivate: !0 });
-      await c.run({ name: R, file_url: x.file_url });
+    if (u.change === "Bank Account" && u.evidence) {
+      const x = await vt(u.evidence, { doctype: "Payout Change Request", docname: g, fieldname: "evidence", isPrivate: !0 });
+      await c.run({ name: g, file_url: x.file_url });
     }
     try {
-      await Vt(() => r.run({ name: R }), i.verify), n.success(e("Sent to HR. Nothing changes until HR confirms it."));
+      await at(() => i.run({ name: g }), r.verify), n.success(e("Sent to HR. Nothing changes until HR confirms it."));
     } catch (x) {
-      if (!(x instanceof Yt)) throw x;
+      if (!(x instanceof nt)) throw x;
       n.info(e("Saved, not sent. Open it from My Details to send it."));
     }
-    a(l.payoutRecord(R));
+    a(l.payoutRecord(g));
   };
-  return /* @__PURE__ */ m(te, { title: e("Request a Change"), subtitle: e("Where your pay goes"), onBack: () => a(l.me), loading: o.isLoading, error: o.error, onRetry: o.mutate, children: [
-    /* @__PURE__ */ t($, { tone: "info", children: e("HR confirms every change before any pay goes there. We also tell your current number and email, in case this was not you.") }),
-    /* @__PURE__ */ m(ue, { form: u, onSubmit: y, children: [
+  return /* @__PURE__ */ m(ae, { title: e("Request a Change"), subtitle: e("Where your pay goes"), onBack: () => a(l.me), loading: o.isLoading, error: o.error, onRetry: o.mutate, children: [
+    /* @__PURE__ */ t(S, { tone: "info", children: e("HR confirms every change before any pay goes there. We also tell your current number and email, in case this was not you.") }),
+    /* @__PURE__ */ m(ye, { form: d, onSubmit: f, children: [
       /* @__PURE__ */ t(
-        lt,
+        gt,
         {
           name: "change",
           label: e("Change"),
@@ -1666,42 +1749,43 @@ function sa() {
           ]
         }
       ),
-      p === "Bank Account" ? /* @__PURE__ */ m(fe, { children: [
-        /* @__PURE__ */ t(Ae, { name: "bank", label: e("Bank"), required: !0, options: (o.data?.banks ?? []).map((d) => ({ value: d, label: d })) }),
-        /* @__PURE__ */ t(U, { name: "bank_account_no", label: e("Account No."), required: !0 }),
-        /* @__PURE__ */ t(U, { name: "branch_code", label: e("Branch") }),
-        /* @__PURE__ */ t(U, { name: "account_name", label: e("Account Name"), required: !0, hint: e("As the bank has it. It must be in your own name.") }),
-        /* @__PURE__ */ t(dt, { name: "evidence", label: e("Evidence"), required: !0, upload: !1, accept: "image/*,application/pdf", hint: e("A bank letter or the top of a statement, showing the account in your name.") })
-      ] }) : /* @__PURE__ */ t(tn, { name: "mobile_no", label: e("Mobile No."), required: !0, hint: e("The number your pay should go to by mobile money.") }),
-      /* @__PURE__ */ t(U, { name: "reason", label: e("Reason"), multiline: !0, rows: 2 }),
-      /* @__PURE__ */ t(he, { submitLabel: e("Send to HR"), onCancel: () => a(l.me), dirtyHint: !1 })
+      y === "Bank Account" ? /* @__PURE__ */ m(de, { children: [
+        /* @__PURE__ */ t(se, { name: "bank", label: e("Bank"), required: !0, options: (o.data?.banks ?? []).map((u) => ({ value: u, label: u })) }),
+        /* @__PURE__ */ t(H, { name: "bank_account_no", label: e("Account No."), required: !0 }),
+        /* @__PURE__ */ t(H, { name: "branch_code", label: e("Branch") }),
+        /* @__PURE__ */ t(H, { name: "account_name", label: e("Account Name"), required: !0, hint: e("As the bank has it. It must be in your own name.") }),
+        /* @__PURE__ */ t(_t, { name: "evidence", label: e("Evidence"), required: !0, upload: !1, accept: "image/*,application/pdf", hint: e("A bank letter or the top of a statement, showing the account in your name.") })
+      ] }) : /* @__PURE__ */ t(hn, { name: "mobile_no", label: e("Mobile No."), required: !0, hint: e("The number your pay should go to by mobile money.") }),
+      /* @__PURE__ */ t(H, { name: "reason", label: e("Reason"), multiline: !0, rows: 2 }),
+      /* @__PURE__ */ t(fe, { submitLabel: e("Send to HR"), onCancel: () => a(l.me), dirtyHint: !1 })
     ] })
   ] });
 }
-function la() {
-  const a = D(), i = ve(), n = V(), o = oe(Z().name), { data: s, isLoading: c, error: r, mutate: u } = N(f.payoutRequestRecord, { name: o }), p = q(f.sendPayoutChange), v = q(f.withdrawPayoutChange), [y, d] = E(!1), h = async () => {
+function wa() {
+  const a = N(), r = ne(), n = O(), o = ie(Z().name), { data: s, isLoading: c, error: i, mutate: d } = A(v.payoutRequestRecord, { name: o }), y = ot(i, d), p = W(v.sendPayoutChange), f = W(v.withdrawPayoutChange), [u, h] = q(!1), g = async () => {
     try {
-      await Vt(() => p.run({ name: o }), i.verify), n.success(e("Sent to HR. Nothing changes until HR confirms it.")), await u();
+      await at(() => p.run({ name: o }), r.verify), n.success(e("Sent to HR. Nothing changes until HR confirms it.")), await d();
     } catch {
     }
-  }, R = s?.mine && s.status === "Draft" ? /* @__PURE__ */ t(w, { loading: p.loading, onClick: h, children: e("Send to HR") }) : s?.mine && s.status === "Waiting for HR" ? /* @__PURE__ */ t(w, { variant: "outline", onClick: () => d(!0), children: e("Withdraw") }) : void 0;
+  }, x = s?.mine && s.status === "Draft" ? /* @__PURE__ */ t(w, { loading: p.loading, onClick: g, children: e("Send to HR") }) : s?.mine && s.status === "Waiting for HR" ? /* @__PURE__ */ t(w, { variant: "outline", onClick: () => h(!0), children: e("Withdraw") }) : void 0;
   return /* @__PURE__ */ m(
     Q,
     {
       title: s?.change === "Mobile Money" ? e("Change to Mobile Money") : e("Change of Bank Account"),
       subtitle: o,
-      meta: s && /* @__PURE__ */ t(T, { value: s.status }),
+      meta: s && /* @__PURE__ */ t($, { value: s.status }),
       onBack: () => a(l.me),
-      actions: R,
+      actions: x,
       loading: c,
-      error: r,
-      onRetry: u,
+      error: y.error,
+      onRetry: d,
       children: [
+        y.needed && /* @__PURE__ */ t(We, { what: e("This request shows once you confirm it is you."), busy: y.busy, onConfirm: y.confirm }),
         s && /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
-          p.errorMessage && /* @__PURE__ */ t($, { tone: "error", children: p.errorMessage }),
-          s.status === "Waiting for HR" && /* @__PURE__ */ t($, { tone: "info", children: e("HR confirms it on the desk. You are told either way.") }),
+          p.errorMessage && /* @__PURE__ */ t(S, { tone: "error", children: p.errorMessage }),
+          s.status === "Waiting for HR" && /* @__PURE__ */ t(S, { tone: "info", children: e("HR confirms it on the desk. You are told either way.") }),
           /* @__PURE__ */ t(
-            J,
+            U,
             {
               items: [
                 { label: e("Bank"), value: s.bank, hideWhenEmpty: !0 },
@@ -1710,8 +1794,8 @@ function la() {
                 { label: e("Mobile No."), value: s.mobile_no, hideWhenEmpty: !0 },
                 { label: e("Provider"), value: s.provider, hideWhenEmpty: !0 },
                 { label: e("Evidence"), value: s.change === "Bank Account" ? s.has_evidence ? e("Attached") : e("Missing") : null, hideWhenEmpty: !0 },
-                { label: e("Sent On"), value: s.sent_on ? xe(s.sent_on) : null, hideWhenEmpty: !0 },
-                { label: e("Effective From"), value: s.effective_from ? g(s.effective_from) : null, hideWhenEmpty: !0 },
+                { label: e("Sent On"), value: s.sent_on ? Ce(s.sent_on) : null, hideWhenEmpty: !0 },
+                { label: e("Effective From"), value: s.effective_from ? _(s.effective_from) : null, hideWhenEmpty: !0 },
                 { label: e("Decision Note"), value: s.decision_note, hideWhenEmpty: !0, full: !0 },
                 { label: e("Reason"), value: s.reason, hideWhenEmpty: !0, full: !0 }
               ]
@@ -1719,15 +1803,15 @@ function la() {
           )
         ] }),
         /* @__PURE__ */ t(
-          pt,
+          bt,
           {
-            open: y,
-            onClose: () => d(!1),
+            open: u,
+            onClose: () => h(!1),
             title: e("Withdraw this request?"),
             confirmLabel: e("Withdraw"),
             destructive: !0,
             onConfirm: async () => {
-              await v.run({ name: o }), n.success(e("Request withdrawn.")), await u();
+              await f.run({ name: o }), n.success(e("Request withdrawn.")), await d();
             },
             children: e("HR will not act on it. Your pay keeps going where it goes now.")
           }
@@ -1736,10 +1820,10 @@ function la() {
     }
   );
 }
-function ca() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.expenseList);
+function ba() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.expenseList);
   return /* @__PURE__ */ t(
-    ne,
+    oe,
     {
       title: e("Expense Claims"),
       onBack: () => a(""),
@@ -1747,108 +1831,108 @@ function ca() {
       error: o,
       onRetry: s,
       actions: /* @__PURE__ */ m(w, { onClick: () => a(l.expenseNew), children: [
-        /* @__PURE__ */ t(me, {}),
+        /* @__PURE__ */ t(ve, {}),
         e("New Expense Claim")
       ] }),
-      children: c && !i?.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Fe, {}), title: e("No expense claims yet"), description: e("Claim what you spent for work, with a photo of each receipt.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i ?? []).map((r) => /* @__PURE__ */ t(
+      children: c && !r?.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Ge, {}), title: e("No expense claims yet"), description: e("Claim what you spent for work, with a photo of each receipt.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r ?? []).map((i) => /* @__PURE__ */ t(
         M,
         {
-          primary: B(r.total_claimed_amount, r.currency),
-          secondary: g(r.posting_date || r.creation),
-          action: /* @__PURE__ */ t(T, { value: r.docstatus === 0 ? r.approval_status || "Draft" : r.status }),
-          onClick: () => a(l.expenseRecord(r.name))
+          primary: F(i.total_claimed_amount, i.currency),
+          secondary: _(i.posting_date || i.creation),
+          action: /* @__PURE__ */ t($, { value: i.docstatus === 0 ? i.approval_status || "Draft" : i.status }),
+          onClick: () => a(l.expenseRecord(i.name))
         },
-        r.name
+        i.name
       )) })
     }
   );
 }
-function da() {
-  const a = D(), i = V(), n = N(f.expenseOptions), o = q(f.claimExpenses), s = ce(
-    () => le.object({
-      lines: le.array(le.object({ expense_type: we(() => e("Expense Type")), amount: ut(() => e("Amount"), { min: 0.01 }) }).loose()).min(1)
+function Ca() {
+  const a = N(), r = O(), n = A(v.expenseOptions), o = W(v.claimExpenses), s = me(
+    () => ee.object({
+      lines: ee.array(ee.object({ expense_type: le(() => e("Expense Type")), amount: kt(() => e("Amount"), { min: 0.01 }) }).loose()).min(1)
     }).loose(),
     []
-  ), c = () => ({ lines: [{ expense_date: Y(), expense_type: "", amount: null, description: "" }], remark: "", receipts: [] }), r = de({ schema: s, defaultValues: c() }), u = Je(ve().user, "expense-claim", "new"), [p, v] = E(null);
-  ye(() => {
-    u.restored && Array.isArray(u.restored.value?.lines) && u.restored.value.lines.length && (r.reset({ ...c(), ...u.restored.value, receipts: [] }), v(u.restored.saved), u.dismiss());
-    const h = r.watch((R) => u.keep({ lines: R.lines ?? [], remark: R.remark ?? "" }));
+  ), c = () => ({ lines: [{ expense_date: J(), expense_type: "", amount: null, description: "" }], remark: "", receipts: [] }), i = pe({ schema: s, defaultValues: c() }), d = Me(ne().user, "expense-claim", "new"), [y, p] = q(null);
+  ue(() => {
+    d.restored && Array.isArray(d.restored.value?.lines) && d.restored.value.lines.length && (i.reset({ ...c(), ...d.restored.value, receipts: [] }), p(d.restored.saved), d.dismiss());
+    const h = i.watch((g) => d.keep({ lines: g.lines ?? [], remark: g.remark ?? "" }));
     return () => h.unsubscribe();
   }, []);
-  const y = () => {
-    u.clear(), v(null), r.reset(c());
-  }, d = async (h) => {
-    const R = await o.run({ lines: JSON.stringify(h.lines), remark: h.remark });
-    u.clear();
+  const f = () => {
+    d.clear(), p(null), i.reset(c());
+  }, u = async (h) => {
+    const g = await o.run({ lines: JSON.stringify(h.lines), remark: h.remark });
+    d.clear();
     const x = [];
-    for (const W of h.receipts ?? [])
+    for (const E of h.receipts ?? [])
       try {
-        await st(W, { doctype: "Expense Claim", docname: R, isPrivate: !0 });
+        await vt(E, { doctype: "Expense Claim", docname: g, isPrivate: !0 });
       } catch {
-        x.push(W.name);
+        x.push(E.name);
       }
-    x.length ? i.warning(e("The claim was saved, but {0} receipts did not upload. Add them on a computer.", [String(x.length)])) : i.success(e("Claim sent to {0}.", [n.data?.approver_name ?? e("your expense approver")])), a(l.expenseRecord(R));
+    x.length ? r.warning(e("The claim was saved, but {0} receipts did not upload. Add them on a computer.", [String(x.length)])) : r.success(e("Claim sent to {0}.", [n.data?.approver_name ?? e("your expense approver")])), a(l.expenseRecord(g));
   };
-  return /* @__PURE__ */ m(te, { title: e("New Expense Claim"), onBack: () => a(l.expenses), loading: n.isLoading, error: n.error, onRetry: n.mutate, children: [
-    p !== null && /* @__PURE__ */ t($, { tone: "info", title: e("Restored From This Phone"), action: /* @__PURE__ */ t(w, { onClick: y, children: e("Start Again") }), children: e("You started this claim on {0}. Add the receipts again before you send it.", [g(Ge(p))]) }),
-    n.data && !n.data.approver_name && /* @__PURE__ */ t($, { tone: "warning", children: e("Nobody approves your expense claims yet. Ask HR to set an expense approver.") }),
-    /* @__PURE__ */ m(ue, { form: r, onSubmit: d, children: [
+  return /* @__PURE__ */ m(ae, { title: e("New Expense Claim"), onBack: () => a(l.expenses), loading: n.isLoading, error: n.error, onRetry: n.mutate, children: [
+    y !== null && /* @__PURE__ */ t(S, { tone: "info", title: e("Restored From This Phone"), action: /* @__PURE__ */ t(w, { onClick: f, children: e("Start Again") }), children: e("You started this claim on {0}. Add the receipts again before you send it.", [_(qe(y))]) }),
+    n.data && /* @__PURE__ */ t(S, { tone: n.data.approver_name ? "info" : "warning", children: _e(n.data.approver_name) }),
+    /* @__PURE__ */ m(ye, { form: i, onSubmit: u, children: [
       /* @__PURE__ */ t(
-        ht,
+        De,
         {
           name: "lines",
           label: e("Expenses"),
           minRows: 1,
           addLabel: e("Add an Expense"),
-          newRow: () => ({ expense_date: Y(), expense_type: "", amount: null, description: "" }),
-          renderRow: (h) => /* @__PURE__ */ m(fe, { children: [
-            /* @__PURE__ */ t(Ae, { name: h("expense_type"), label: e("Expense Type"), required: !0, options: (n.data?.types ?? []).map((R) => ({ value: R.name, label: R.name, description: R.description ?? void 0 })) }),
-            /* @__PURE__ */ t(je, { name: h("amount"), label: e("Amount ({0})", [n.data?.currency ?? ""]), required: !0, min: 0, step: 0.01 }),
-            /* @__PURE__ */ t(re, { name: h("expense_date"), label: e("Date"), maxDate: Y() }),
-            /* @__PURE__ */ t(U, { name: h("description"), label: e("Description") })
+          newRow: () => ({ expense_date: J(), expense_type: "", amount: null, description: "" }),
+          renderRow: (h) => /* @__PURE__ */ m(de, { children: [
+            /* @__PURE__ */ t(se, { name: h("expense_type"), label: e("Expense Type"), required: !0, options: (n.data?.types ?? []).map((g) => ({ value: g.name, label: g.name, description: g.description ?? void 0 })) }),
+            /* @__PURE__ */ t(Te, { name: h("amount"), label: e("Amount ({0})", [n.data?.currency ?? ""]), required: !0, min: 0, step: 0.01 }),
+            /* @__PURE__ */ t(he, { name: h("expense_date"), label: e("Date"), maxDate: J() }),
+            /* @__PURE__ */ t(H, { name: h("description"), label: e("Description") })
           ] })
         }
       ),
-      /* @__PURE__ */ t(dt, { name: "receipts", label: e("Receipts"), multiple: !0, upload: !1, accept: "image/*,application/pdf", hint: e("Take a photo of each receipt, or choose a file. Only you, your approver and HR can open them.") }),
-      /* @__PURE__ */ t(U, { name: "remark", label: e("Note"), multiline: !0, rows: 2 }),
-      /* @__PURE__ */ t(he, { submitLabel: e("Send Claim"), onCancel: () => a(l.expenses) })
+      /* @__PURE__ */ t(_t, { name: "receipts", label: e("Receipts"), multiple: !0, upload: !1, accept: "image/*,application/pdf", hint: e("Take a photo of each receipt, or choose a file. Only you, your approver and HR can open them.") }),
+      /* @__PURE__ */ t(H, { name: "remark", label: e("Note"), multiline: !0, rows: 2 }),
+      /* @__PURE__ */ t(fe, { submitLabel: e("Send Claim"), onCancel: () => a(l.expenses) })
     ] })
   ] });
 }
-function ua() {
-  const a = D(), i = oe(Z().name), { data: n, isLoading: o, error: s, mutate: c } = N(f.expenseRecord, { name: i });
+function Ra() {
+  const a = N(), r = ie(Z().name), { data: n, isLoading: o, error: s, mutate: c } = A(v.expenseRecord, { name: r });
   return /* @__PURE__ */ t(
     Q,
     {
-      title: n ? B(n.total_claimed_amount, n.currency) : e("Expense Claim"),
-      subtitle: n && (n.mine ? i : n.employee_name),
-      meta: n && /* @__PURE__ */ t(T, { value: n.docstatus === 0 ? n.approval_status || "Draft" : n.status }),
+      title: n ? F(n.total_claimed_amount, n.currency) : e("Expense Claim"),
+      subtitle: n && (n.mine ? r : n.employee_name),
+      meta: n && /* @__PURE__ */ t($, { value: n.docstatus === 0 ? n.approval_status || "Draft" : n.status }),
       onBack: () => a(l.expenses),
       loading: o,
       error: s,
       onRetry: c,
       children: n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
         /* @__PURE__ */ t(
-          J,
+          U,
           {
             items: [
-              { label: e("Claimed"), value: B(n.total_claimed_amount, n.currency) },
-              { label: e("Approved Amount"), value: n.docstatus === 1 ? B(n.total_sanctioned_amount, n.currency) : null, hideWhenEmpty: !0 },
+              { label: e("Claimed"), value: F(n.total_claimed_amount, n.currency) },
+              { label: e("Approved Amount"), value: n.docstatus === 1 ? F(n.total_sanctioned_amount, n.currency) : null, hideWhenEmpty: !0 },
               { label: e("Expense Approver"), value: n.approver_name, hideWhenEmpty: !0 },
               { label: e("Note"), value: n.remark, hideWhenEmpty: !0, full: !0 }
             ]
           }
         ),
-        /* @__PURE__ */ t(F, { title: e("Expenses"), children: /* @__PURE__ */ t(L, { divided: !0, children: n.expenses.map((r, u) => /* @__PURE__ */ t(M, { primary: `${r.expense_type} · ${B(r.amount, n.currency)}`, secondary: [g(r.expense_date), r.description ?? ""].filter(Boolean).join(" · ") }, u)) }) }),
-        n.receipts.length > 0 && /* @__PURE__ */ t(F, { title: e("Receipts"), children: /* @__PURE__ */ t(L, { divided: !0, children: n.receipts.map((r) => /* @__PURE__ */ t(M, { primary: r.file_name, href: r.file_url }, r.name)) }) })
+        /* @__PURE__ */ t(B, { title: e("Expenses"), children: /* @__PURE__ */ t(T, { divided: !0, children: n.expenses.map((i, d) => /* @__PURE__ */ t(M, { primary: `${i.expense_type} · ${F(i.amount, n.currency)}`, secondary: [_(i.expense_date), i.description ?? ""].filter(Boolean).join(" · ") }, d)) }) }),
+        n.receipts.length > 0 && /* @__PURE__ */ t(B, { title: e("Receipts"), children: /* @__PURE__ */ t(T, { divided: !0, children: n.receipts.map((i) => /* @__PURE__ */ t(M, { primary: i.file_name, href: i.file_url }, i.name)) }) })
       ] })
     }
   );
 }
-function ha() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.advanceList);
+function xa() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.advanceList);
   return /* @__PURE__ */ t(
-    ne,
+    oe,
     {
       title: e("Advances"),
       onBack: () => a(""),
@@ -1856,302 +1940,315 @@ function ha() {
       error: o,
       onRetry: s,
       actions: /* @__PURE__ */ m(w, { onClick: () => a(l.advanceNew), children: [
-        /* @__PURE__ */ t(me, {}),
+        /* @__PURE__ */ t(ve, {}),
         e("Request an Advance")
       ] }),
-      children: c && !i?.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Nt, {}), title: e("No advances"), description: e("Money paid to you ahead of work shows here, with what is left to settle.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i ?? []).map((r) => /* @__PURE__ */ t(
+      children: c && !r?.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t($t, {}), title: e("No advances"), description: e("Money paid to you ahead of work shows here, with what is left to settle.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r ?? []).map((i) => /* @__PURE__ */ t(
         M,
         {
-          primary: r.purpose,
-          secondary: r.to_settle > 0 ? e("{0} · {1} left to settle", [B(r.advance_amount, r.currency), B(r.to_settle, r.currency)]) : B(r.advance_amount, r.currency),
-          action: /* @__PURE__ */ t(T, { value: r.docstatus === 0 ? "Draft" : r.status }),
-          onClick: () => a(l.advanceRecord(r.name))
+          primary: i.purpose,
+          secondary: i.to_settle > 0 ? e("{0} · {1} left to settle", [F(i.advance_amount, i.currency), F(i.to_settle, i.currency)]) : F(i.advance_amount, i.currency),
+          action: /* @__PURE__ */ t($, { value: i.docstatus === 0 ? "Draft" : i.status }),
+          onClick: () => a(l.advanceRecord(i.name))
         },
-        r.name
+        i.name
       )) })
     }
   );
 }
-function ma() {
-  const a = D(), i = V(), n = q(f.requestAdvance), o = ce(() => le.object({ purpose: we(() => e("Purpose")), amount: ut(() => e("Amount"), { min: 1 }) }), []), s = de({ schema: o, defaultValues: { purpose: "", amount: null } });
-  return /* @__PURE__ */ t(te, { title: e("Request an Advance"), onBack: () => a(l.advances), children: /* @__PURE__ */ m(
-    ue,
+function Aa() {
+  const a = N(), r = O(), n = W(v.requestAdvance), o = me(() => ee.object({ purpose: le(() => e("Purpose")), amount: kt(() => e("Amount"), { min: 1 }) }), []), s = pe({ schema: o, defaultValues: { purpose: "", amount: null } });
+  return /* @__PURE__ */ t(ae, { title: e("Request an Advance"), onBack: () => a(l.advances), children: /* @__PURE__ */ m(
+    ye,
     {
       form: s,
       onSubmit: async (c) => {
-        const r = await n.run({ purpose: c.purpose, amount: c.amount });
-        i.success(e("Advance requested.")), a(l.advanceRecord(r));
+        const i = await n.run({ purpose: c.purpose, amount: c.amount });
+        r.success(e("Advance requested.")), a(l.advanceRecord(i));
       },
       children: [
-        /* @__PURE__ */ t(U, { name: "purpose", label: e("Purpose"), required: !0, multiline: !0, rows: 2, hint: e("What the money is for, e.g. a field visit.") }),
-        /* @__PURE__ */ t(je, { name: "amount", label: e("Amount"), required: !0, min: 1, step: 1 }),
-        /* @__PURE__ */ t(he, { submitLabel: e("Request"), onCancel: () => a(l.advances) })
+        /* @__PURE__ */ t(H, { name: "purpose", label: e("Purpose"), required: !0, multiline: !0, rows: 2, hint: e("What the money is for, e.g. a field visit.") }),
+        /* @__PURE__ */ t(Te, { name: "amount", label: e("Amount"), required: !0, min: 1, step: 1 }),
+        /* @__PURE__ */ t(fe, { submitLabel: e("Request"), onCancel: () => a(l.advances) })
       ]
     }
   ) });
 }
-function pa() {
-  const a = D(), i = oe(Z().name), { data: n, isLoading: o, error: s, mutate: c } = N(f.advanceRecord, { name: i });
+function Na() {
+  const a = N(), r = ie(Z().name), { data: n, isLoading: o, error: s, mutate: c } = A(v.advanceRecord, { name: r });
   return /* @__PURE__ */ t(
     Q,
     {
       title: n?.purpose ?? e("Advance"),
-      subtitle: n && (n.mine ? i : n.employee_name),
-      meta: n && /* @__PURE__ */ t(T, { value: n.docstatus === 0 ? "Draft" : n.status }),
+      subtitle: n && (n.mine ? r : n.employee_name),
+      meta: n && /* @__PURE__ */ t($, { value: n.docstatus === 0 ? "Draft" : n.status }),
       onBack: () => a(l.advances),
       loading: o,
       error: s,
       onRetry: c,
       children: n && /* @__PURE__ */ t(
-        J,
+        U,
         {
           items: [
-            { label: e("Amount"), value: B(n.advance_amount, n.currency) },
-            { label: e("Paid"), value: B(n.paid_amount, n.currency) },
-            { label: e("Claimed"), value: B(n.claimed_amount, n.currency) },
-            { label: e("Returned"), value: B(n.return_amount, n.currency) },
-            { label: e("Left to Settle"), value: B(n.to_settle, n.currency) },
-            { label: e("Requested On"), value: g(n.posting_date) }
+            { label: e("Amount"), value: F(n.advance_amount, n.currency) },
+            { label: e("Paid"), value: F(n.paid_amount, n.currency) },
+            { label: e("Claimed"), value: F(n.claimed_amount, n.currency) },
+            { label: e("Returned"), value: F(n.return_amount, n.currency) },
+            { label: e("Left to Settle"), value: F(n.to_settle, n.currency) },
+            { label: e("Requested On"), value: _(n.posting_date) }
           ]
         }
       )
     }
   );
 }
-function ya() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.payslips);
-  return /* @__PURE__ */ t(ne, { title: e("Payslips"), onBack: () => a(""), loading: n, error: o, onRetry: s, children: c && !i?.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(It, {}), title: e("No payslips yet"), description: e("Your payslips show here once payroll is run.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i ?? []).map((r) => /* @__PURE__ */ t(
+function Sa() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.payslips), i = ot(o, s);
+  return /* @__PURE__ */ t(oe, { title: e("Payslips"), onBack: () => a(""), loading: n, error: i.error, onRetry: s, children: i.needed ? /* @__PURE__ */ t(We, { what: e("Your payslips show once you confirm it is you."), busy: i.busy, onConfirm: i.confirm }) : c && !r?.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Xt, {}), title: e("No payslips yet"), description: e("Your payslips show here once payroll is run.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r ?? []).map((d) => /* @__PURE__ */ t(
     M,
     {
-      primary: e("{0} to {1}", [g(r.start_date), g(r.end_date)]),
-      secondary: e("Net pay {0}", [B(r.net_pay, r.currency)]),
-      onClick: () => a(l.payRecord(r.name))
+      primary: e("{0} to {1}", [_(d.start_date), _(d.end_date)]),
+      secondary: e("Net pay {0}", [F(d.net_pay, d.currency)]),
+      onClick: () => a(l.payRecord(d.name))
     },
-    r.name
+    d.name
   )) }) });
 }
-function fa() {
-  const a = D(), i = oe(Z().name), { data: n, isLoading: o, error: s, mutate: c } = N(f.payslipRecord, { name: i });
-  return /* @__PURE__ */ t(
+function Da() {
+  const a = N(), r = ie(Z().name), { data: n, isLoading: o, error: s, mutate: c } = A(v.payslipRecord, { name: r }), i = ot(s, c), d = ne(), y = O(), p = W(v.confirmScreen), f = async () => {
+    try {
+      await at(() => p.run({ screen: "payslips" }), d.verify);
+    } catch (g) {
+      g instanceof nt || y.error(e("The payslip could not be opened. Try again."));
+      return;
+    }
+    const u = On(r), h = window.open(u, "_blank");
+    h ? h.opener = null : window.location.assign(u);
+  };
+  return /* @__PURE__ */ m(
     Q,
     {
-      title: n ? e("{0} to {1}", [g(n.start_date), g(n.end_date)]) : e("Payslip"),
+      title: n ? e("{0} to {1}", [_(n.start_date), _(n.end_date)]) : e("Payslip"),
       subtitle: n?.employee_name,
       onBack: () => a(l.pay),
-      actions: /* @__PURE__ */ m(w, { href: Mn(i), target: "_blank", rel: "noopener", children: [
-        /* @__PURE__ */ t(xn, {}),
+      actions: n ? /* @__PURE__ */ m(w, { loading: p.loading, onClick: f, children: [
+        /* @__PURE__ */ t($n, {}),
         e("Open Payslip")
-      ] }),
+      ] }) : void 0,
       loading: o,
-      error: s,
+      error: i.error,
       onRetry: c,
-      children: n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
-        /* @__PURE__ */ t(
-          J,
-          {
-            items: [
-              { label: e("Gross Pay"), value: B(n.gross_pay, n.currency) },
-              { label: e("Total Deduction"), value: B(n.total_deduction, n.currency) },
-              { label: e("Net Pay"), value: B(n.net_pay, n.currency) }
-            ]
-          }
-        ),
-        /* @__PURE__ */ t(F, { title: e("Earnings"), children: /* @__PURE__ */ t(L, { divided: !0, children: n.earnings.map((r) => /* @__PURE__ */ t(M, { primary: r.component, action: B(r.amount, n.currency) }, r.component)) }) }),
-        /* @__PURE__ */ t(F, { title: e("Deductions"), children: /* @__PURE__ */ t(L, { divided: !0, children: n.deductions.map((r) => /* @__PURE__ */ t(M, { primary: r.component, action: B(r.amount, n.currency) }, r.component)) }) })
-      ] })
+      children: [
+        i.needed && /* @__PURE__ */ t(We, { what: e("This payslip shows once you confirm it is you."), busy: i.busy, onConfirm: i.confirm }),
+        n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
+          /* @__PURE__ */ t(
+            U,
+            {
+              items: [
+                { label: e("Gross Pay"), value: F(n.gross_pay, n.currency) },
+                { label: e("Total Deduction"), value: F(n.total_deduction, n.currency) },
+                { label: e("Net Pay"), value: F(n.net_pay, n.currency) }
+              ]
+            }
+          ),
+          /* @__PURE__ */ t(B, { title: e("Earnings"), children: /* @__PURE__ */ t(T, { divided: !0, children: n.earnings.map((u) => /* @__PURE__ */ t(M, { primary: u.component, action: F(u.amount, n.currency) }, u.component)) }) }),
+          /* @__PURE__ */ t(B, { title: e("Deductions"), children: /* @__PURE__ */ t(T, { divided: !0, children: n.deductions.map((u) => /* @__PURE__ */ t(M, { primary: u.component, action: F(u.amount, n.currency) }, u.component)) }) })
+        ] })
+      ]
     }
   );
 }
-function va() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.timesheets);
+function La() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.timesheets);
   return /* @__PURE__ */ m(
-    ne,
+    oe,
     {
       title: e("Timesheets"),
       onBack: () => a(""),
       loading: n,
       error: o,
       onRetry: s,
-      actions: i?.weekly ? /* @__PURE__ */ m(w, { onClick: () => a(l.week(Ve(Y()))), children: [
-        /* @__PURE__ */ t(Be, {}),
+      actions: r?.weekly ? /* @__PURE__ */ m(w, { onClick: () => a(l.week(et(J()))), children: [
+        /* @__PURE__ */ t(Ue, {}),
         e("This Week")
       ] }) : void 0,
       children: [
-        i && !i.weekly && /* @__PURE__ */ t($, { tone: "info", children: e("Your company does not keep weekly timesheets. Fill timesheets in on a computer; they show here.") }),
-        c && !i?.timesheets.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Be, {}), title: e("No timesheets yet"), description: e("Your timesheets show here, newest first.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i?.timesheets ?? []).map((r) => /* @__PURE__ */ t(
+        r && !r.weekly && /* @__PURE__ */ t(S, { tone: "info", children: e("Your company does not keep weekly timesheets. Fill timesheets in on a computer; they show here.") }),
+        c && !r?.timesheets.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Ue, {}), title: e("No timesheets yet"), description: e("Your timesheets show here, newest first.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r?.timesheets ?? []).map((i) => /* @__PURE__ */ t(
           M,
           {
-            primary: e("{0} to {1}", [g(r.start_date), g(r.end_date)]),
-            secondary: e("{0} hours", [String(r.total_hours ?? 0)]),
-            action: /* @__PURE__ */ t(T, { value: r.docstatus === 1 ? "Approved" : r.custom_approval_state || r.status }),
-            onClick: () => a(i?.weekly && r.custom_week_start ? l.week(r.custom_week_start) : l.timesheetRecord(r.name))
+            primary: e("{0} to {1}", [_(i.start_date), _(i.end_date)]),
+            secondary: e("{0} hours", [String(i.total_hours ?? 0)]),
+            action: /* @__PURE__ */ t($, { value: i.docstatus === 1 ? "Approved" : i.custom_approval_state || i.status }),
+            onClick: () => a(r?.weekly && i.custom_week_start ? l.week(i.custom_week_start) : l.timesheetRecord(i.name))
           },
-          r.name
+          i.name
         )) })
       ]
     }
   );
 }
-function nt(a) {
+function ht(a) {
   return a === "Rest day" ? e("Rest Day") : a === "Public holiday" ? e("Public Holiday") : null;
 }
-function at(a) {
-  const i = ((/* @__PURE__ */ new Date(`${a}T12:00:00Z`)).getUTCDay() + 6) % 7;
-  return [e("Monday"), e("Tuesday"), e("Wednesday"), e("Thursday"), e("Friday"), e("Saturday"), e("Sunday")][i];
+function mt(a) {
+  const r = ((/* @__PURE__ */ new Date(`${a}T12:00:00Z`)).getUTCDay() + 6) % 7;
+  return [e("Monday"), e("Tuesday"), e("Wednesday"), e("Thursday"), e("Friday"), e("Saturday"), e("Sunday")][r];
 }
-function ga() {
-  const a = D(), i = V(), n = Ve(Z().week || Y()), { data: o, isLoading: s, error: c, mutate: r } = N(f.timesheetWeek, { week_start: n }), u = q(f.saveTimesheetWeek), p = q(f.timesheetClaim), [v, y] = E([]), [d, h] = E(() => {
-    const b = Y();
-    return b >= n && b <= pe(n, 6) ? Ie(n).indexOf(b) : 0;
-  }), [R, x] = E(!1), W = Re(!1), S = (b) => {
-    W.current = b, x(b);
-  }, A = Je(ve().user, "timesheet-week", n), [P, j] = E(null), I = (b) => b.timesheet?.entries.length ? b.timesheet.entries : [et([], b.default_activity_type)], G = Re(null);
-  ye(() => {
+function Ta() {
+  const a = N(), r = O(), n = et(Z().week || J()), { data: o, isLoading: s, error: c, mutate: i } = A(v.timesheetWeek, { week_start: n }), d = W(v.saveTimesheetWeek), y = W(v.timesheetClaim), [p, f] = q([]), [u, h] = q(() => {
+    const R = J();
+    return R >= n && R <= ke(n, 6) ? Ke(n).indexOf(R) : 0;
+  }), [g, x] = q(!1), E = be(!1), D = (R) => {
+    E.current = R, x(R);
+  }, L = Me(ne().user, "timesheet-week", n), [I, V] = q(null), z = (R) => R.timesheet?.entries.length ? R.timesheet.entries : [dt([], R.default_activity_type)], G = be(null);
+  ue(() => {
     if (!o || o.week_start !== n) return;
-    const b = G.current === n;
-    if (G.current = n, b && W.current) return;
-    const K = o.weekly && (!o.timesheet || o.timesheet.can_edit), z = A.key ? Oe(A.key) : null;
-    if (z && K && Array.isArray(z.value) && z.value.length) {
-      y(z.value), S(!0), j(z.saved);
+    const R = G.current === n;
+    if (G.current = n, R && E.current) return;
+    const K = o.weekly && (!o.timesheet || o.timesheet.can_edit), Y = L.key ? Xe(L.key) : null;
+    if (Y && K && Array.isArray(Y.value) && Y.value.length) {
+      f(Y.value), D(!0), V(Y.saved);
       return;
     }
-    z && A.key && jt(A.key), y(I(o)), S(!1), j(null);
+    Y && L.key && en(L.key), f(z(o)), D(!1), V(null);
   }, [o, n]);
-  const O = Ie(n), _ = o?.days[d], k = !!o?.weekly && (!o.timesheet || o.timesheet.can_edit), Ne = ce(() => (o?.activity_types ?? []).map((b) => ({ value: b, label: b })), [o]), ie = (b) => {
-    y(b), S(!0), A.keep(b);
-  }, Ut = () => {
-    A.clear(), j(null), o && y(I(o)), S(!1);
-  }, Ke = async (b) => {
+  const j = Ke(n), b = o?.days[u], C = !!o?.weekly && (!o.timesheet || o.timesheet.can_edit), $e = me(() => (o?.activity_types ?? []).map((R) => ({ value: R, label: R })), [o]), ce = (R) => {
+    f(R), D(!0), L.keep(R);
+  }, an = () => {
+    L.clear(), V(null), o && f(z(o)), D(!1);
+  }, rt = async (R) => {
     try {
-      const K = await u.run({ week_start: n, entries: JSON.stringify(Pn(v)), send: b ? 1 : 0 });
-      return i.success(b ? e("Week sent for approval.") : e("Week saved.")), A.clear(), j(null), S(!1), await r(), K;
+      const K = await d.run({ week_start: n, entries: JSON.stringify(Kn(p)), send: R ? 1 : 0 });
+      return r.success(R ? e("Week sent for approval.") : e("Week saved.")), L.clear(), V(null), D(!1), await i(), K;
     } catch {
       return null;
     }
-  }, Jt = o?.timesheet?.can_claim ? /* @__PURE__ */ t(
+  }, on = o?.timesheet?.can_claim ? /* @__PURE__ */ t(
     w,
     {
       onClick: async () => {
         try {
-          a(l.toilRecord(await p.run({ name: o.timesheet.name })));
+          a(l.toilRecord(await y.run({ name: o.timesheet.name })));
         } catch {
         }
       },
-      loading: p.loading,
+      loading: y.loading,
       children: e("Claim as Time Off in Lieu")
     }
-  ) : k ? /* @__PURE__ */ m("div", { className: "flex gap-2", children: [
-    /* @__PURE__ */ t(w, { variant: "outline", loading: u.loading, disabled: !R, onClick: () => Ke(!1), children: e("Save") }),
-    o?.approval && /* @__PURE__ */ t(w, { loading: u.loading, onClick: () => Ke(!0), children: e("Send for Approval") })
+  ) : C ? /* @__PURE__ */ m("div", { className: "flex gap-2", children: [
+    /* @__PURE__ */ t(w, { variant: "outline", loading: d.loading, disabled: !g, onClick: () => rt(!1), children: e("Save") }),
+    o?.approval && /* @__PURE__ */ t(w, { loading: d.loading, onClick: () => rt(!0), children: e("Send for Approval") })
   ] }) : void 0;
   return /* @__PURE__ */ t(
-    te,
+    ae,
     {
-      title: e("Week of {0}", [g(n)]),
-      subtitle: e("{0} hours this week", [String(Tn(v))]),
-      meta: o?.timesheet && /* @__PURE__ */ t(T, { value: o.timesheet.docstatus === 1 ? "Approved" : o.timesheet.state }),
+      title: e("Week of {0}", [_(n)]),
+      subtitle: e("{0} hours this week", [String(Un(p))]),
+      meta: o?.timesheet && /* @__PURE__ */ t($, { value: o.timesheet.docstatus === 1 ? "Approved" : o.timesheet.state }),
       onBack: () => a(l.timesheet),
-      actions: Jt,
+      actions: on,
       loading: s,
       error: c,
-      onRetry: r,
+      onRetry: i,
       children: o && /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
-        (u.errorMessage || p.errorMessage) && /* @__PURE__ */ t($, { tone: "error", children: u.errorMessage || p.errorMessage }),
-        P !== null && /* @__PURE__ */ t(
-          $,
+        (d.errorMessage || y.errorMessage) && /* @__PURE__ */ t(S, { tone: "error", children: d.errorMessage || y.errorMessage }),
+        I !== null && /* @__PURE__ */ t(
+          S,
           {
             tone: "info",
             title: e("Restored From This Phone"),
-            action: /* @__PURE__ */ t(w, { onClick: Ut, children: e("Discard") }),
-            children: e("What you entered on {0} was not saved yet. Save or send it when you are ready.", [g(Ge(P))])
+            action: /* @__PURE__ */ t(w, { onClick: an, children: e("Discard") }),
+            children: e("What you entered on {0} was not saved yet. Save or send it when you are ready.", [_(qe(I))])
           }
         ),
-        !o.weekly && /* @__PURE__ */ t($, { tone: "info", children: e("Your company does not keep weekly timesheets. Fill timesheets in on a computer.") }),
-        o.timesheet?.state === "Returned" && o.timesheet.return_reason && /* @__PURE__ */ t($, { tone: "warning", title: e("Returned to You"), children: o.timesheet.return_reason }),
+        !o.weekly && /* @__PURE__ */ t(S, { tone: "info", children: e("Your company does not keep weekly timesheets. Fill timesheets in on a computer.") }),
+        C && o.approval && /* @__PURE__ */ t(S, { tone: o.approver_name ? "info" : "warning", children: _e(o.approver_name) }),
+        o.timesheet?.state === "Returned" && o.timesheet.return_reason && /* @__PURE__ */ t(S, { tone: "warning", title: e("Returned to You"), children: o.timesheet.return_reason }),
         /* @__PURE__ */ m("div", { className: "flex items-center justify-between gap-2", children: [
-          /* @__PURE__ */ t(Le, { label: e("Previous Day"), variant: "outline", onClick: () => d > 0 ? h(d - 1) : a(l.week(pe(n, -7))), children: /* @__PURE__ */ t(Cn, {}) }),
+          /* @__PURE__ */ t(Fe, { label: e("Previous Day"), variant: "outline", onClick: () => u > 0 ? h(u - 1) : a(l.week(ke(n, -7))), children: /* @__PURE__ */ t(qn, {}) }),
           /* @__PURE__ */ m("div", { className: "flex flex-col items-center", children: [
-            /* @__PURE__ */ t(ee, { size: "lg", children: at(O[d]) }),
-            /* @__PURE__ */ t(ee, { size: "sm", muted: !0, children: g(O[d]) })
+            /* @__PURE__ */ t(te, { size: "lg", children: mt(j[u]) }),
+            /* @__PURE__ */ t(te, { size: "sm", muted: !0, children: _(j[u]) })
           ] }),
-          /* @__PURE__ */ t(Le, { label: e("Next Day"), variant: "outline", onClick: () => d < 6 ? h(d + 1) : a(l.week(pe(n, 7))), children: /* @__PURE__ */ t(kt, {}) })
+          /* @__PURE__ */ t(Fe, { label: e("Next Day"), variant: "outline", onClick: () => u < 6 ? h(u + 1) : a(l.week(ke(n, 7))), children: /* @__PURE__ */ t(St, {}) })
         ] }),
         /* @__PURE__ */ m("div", { className: "flex flex-wrap gap-2", children: [
-          /* @__PURE__ */ t(ge, { children: e("{0} hours entered", [String(zt(v, d))]) }),
-          _?.attendance_hours !== null && _?.attendance_hours !== void 0 && /* @__PURE__ */ t(ge, { variant: "outline", children: e("Attendance {0} hours", [String(_.attendance_hours)]) }),
-          _ && nt(_.kind) && /* @__PURE__ */ t(ge, { tone: "info", children: nt(_.kind) }),
-          _?.leave && /* @__PURE__ */ t(ge, { tone: "warning", children: _.leave_fraction === 0.5 ? e("Half Day of Leave") : e("On Leave") })
+          /* @__PURE__ */ t(we, { children: e("{0} hours entered", [String(Qt(p, u))]) }),
+          b?.attendance_hours !== null && b?.attendance_hours !== void 0 && /* @__PURE__ */ t(we, { variant: "outline", children: e("Attendance {0} hours", [String(b.attendance_hours)]) }),
+          b && ht(b.kind) && /* @__PURE__ */ t(we, { tone: "info", children: ht(b.kind) }),
+          b?.leave && /* @__PURE__ */ t(we, { tone: "warning", children: b.leave_fraction === 0.5 ? e("Half Day of Leave") : e("On Leave") })
         ] }),
-        v.map((b) => /* @__PURE__ */ t(cn, { children: /* @__PURE__ */ m(dn, { className: "flex flex-col gap-3", children: [
+        p.map((R) => /* @__PURE__ */ t(_n, { children: /* @__PURE__ */ m(kn, { className: "flex flex-col gap-3", children: [
           /* @__PURE__ */ m("div", { className: "flex flex-col gap-1", children: [
-            /* @__PURE__ */ t(Ce, { htmlFor: `activity-${b.row}`, children: e("Activity Type") }),
+            /* @__PURE__ */ t(Ne, { htmlFor: `activity-${R.row}`, children: e("Activity Type") }),
             /* @__PURE__ */ t(
-              un,
+              wn,
               {
-                id: `activity-${b.row}`,
-                value: b.activity_type,
-                options: Ne,
-                disabled: !k,
-                onValueChange: (K) => ie(v.map((z) => z.row === b.row ? { ...z, activity_type: K } : z))
+                id: `activity-${R.row}`,
+                value: R.activity_type,
+                options: $e,
+                disabled: !C,
+                onValueChange: (K) => ce(p.map((Y) => Y.row === R.row ? { ...Y, activity_type: K } : Y))
               }
             )
           ] }),
           /* @__PURE__ */ m("div", { className: "flex flex-col gap-1", children: [
-            /* @__PURE__ */ t(Ce, { htmlFor: `description-${b.row}`, children: e("Description") }),
+            /* @__PURE__ */ t(Ne, { htmlFor: `description-${R.row}`, children: e("Description") }),
             /* @__PURE__ */ t(
-              qe,
+              je,
               {
-                id: `description-${b.row}`,
-                value: b.description ?? "",
-                disabled: !k,
-                onChange: (K) => ie(v.map((z) => z.row === b.row ? { ...z, description: K.target.value } : z))
+                id: `description-${R.row}`,
+                value: R.description ?? "",
+                disabled: !C,
+                onChange: (K) => ce(p.map((Y) => Y.row === R.row ? { ...Y, description: K.target.value } : Y))
               }
             )
           ] }),
           /* @__PURE__ */ m("div", { className: "flex items-end gap-2", children: [
             /* @__PURE__ */ m("div", { className: "flex flex-1 flex-col gap-1", children: [
-              /* @__PURE__ */ t(Ce, { htmlFor: `hours-${b.row}`, children: e("Hours on {0}", [at(O[d])]) }),
+              /* @__PURE__ */ t(Ne, { htmlFor: `hours-${R.row}`, children: e("Hours on {0}", [mt(j[u])]) }),
               /* @__PURE__ */ t(
-                qe,
+                je,
                 {
-                  id: `hours-${b.row}`,
+                  id: `hours-${R.row}`,
                   type: "number",
                   inputMode: "decimal",
                   min: 0,
                   max: 24,
                   step: 0.25,
-                  value: b.hours[d] ? String(b.hours[d]) : "",
-                  disabled: !k,
-                  onChange: (K) => ie(Bn(v, b.row, d, K.target.value))
+                  value: R.hours[u] ? String(R.hours[u]) : "",
+                  disabled: !C,
+                  onChange: (K) => ce(Gn(p, R.row, u, K.target.value))
                 }
               )
             ] }),
-            k && v.length > 1 && /* @__PURE__ */ t(Le, { label: e("Remove Line"), variant: "ghost", onClick: () => ie(v.filter((K) => K.row !== b.row)), children: /* @__PURE__ */ t(Ln, {}) })
+            C && p.length > 1 && /* @__PURE__ */ t(Fe, { label: e("Remove Line"), variant: "ghost", onClick: () => ce(p.filter((K) => K.row !== R.row)), children: /* @__PURE__ */ t(Hn, {}) })
           ] })
-        ] }) }, b.row)),
-        k && /* @__PURE__ */ m("div", { className: "flex flex-wrap gap-2", children: [
-          /* @__PURE__ */ m(w, { variant: "outline", onClick: () => ie([...v, et(v, o.default_activity_type)]), children: [
-            /* @__PURE__ */ t(me, {}),
+        ] }) }, R.row)),
+        C && /* @__PURE__ */ m("div", { className: "flex flex-wrap gap-2", children: [
+          /* @__PURE__ */ m(w, { variant: "outline", onClick: () => ce([...p, dt(p, o.default_activity_type)]), children: [
+            /* @__PURE__ */ t(ve, {}),
             e("Add Line")
           ] }),
-          o.previous_entries.length > 0 && /* @__PURE__ */ m(w, { variant: "outline", onClick: () => ie(Hn(o.previous_entries)), children: [
-            /* @__PURE__ */ t(Rn, {}),
+          o.previous_entries.length > 0 && /* @__PURE__ */ m(w, { variant: "outline", onClick: () => ce(Jn(o.previous_entries)), children: [
+            /* @__PURE__ */ t(Wn, {}),
             e("Copy Last Week")
           ] })
         ] }),
-        o.checks.length > 0 && /* @__PURE__ */ t(F, { title: e("Weekly Check"), children: /* @__PURE__ */ t(L, { divided: !0, children: o.checks.map((b) => /* @__PURE__ */ t(M, { primary: b }, b)) }) })
+        o.checks.length > 0 && /* @__PURE__ */ t(B, { title: e("Weekly Check"), children: /* @__PURE__ */ t(T, { divided: !0, children: o.checks.map((R) => /* @__PURE__ */ t(M, { primary: R }, R)) }) })
       ] })
     }
   );
 }
-function _a() {
-  const a = D(), i = oe(Z().name), { data: n, isLoading: o, error: s, mutate: c } = N(f.timesheetRecord, { name: i });
+function Ma() {
+  const a = N(), r = ie(Z().name), { data: n, isLoading: o, error: s, mutate: c } = A(v.timesheetRecord, { name: r });
   return /* @__PURE__ */ t(
     Q,
     {
       title: e("Timesheet"),
-      subtitle: n && (n.mine ? i : n.employee_name),
-      meta: n && /* @__PURE__ */ t(T, { value: n.docstatus === 1 ? "Approved" : n.state }),
+      subtitle: n && (n.mine ? r : n.employee_name),
+      meta: n && /* @__PURE__ */ t($, { value: n.docstatus === 1 ? "Approved" : n.state }),
       onBack: () => a(l.timesheet),
       actions: n?.mine && n.week_start ? /* @__PURE__ */ t(w, { onClick: () => a(l.week(n.week_start)), children: e("Open the Week") }) : void 0,
       loading: o,
@@ -2159,125 +2256,126 @@ function _a() {
       onRetry: c,
       children: n && /* @__PURE__ */ m("div", { className: "flex flex-col gap-4", children: [
         /* @__PURE__ */ t(
-          J,
+          U,
           {
             items: [
-              { label: e("From"), value: g(n.start_date) },
-              { label: e("To"), value: g(n.end_date) },
+              { label: e("From"), value: _(n.start_date) },
+              { label: e("To"), value: _(n.end_date) },
               { label: e("Total Hours"), value: String(n.total_hours ?? 0) }
             ]
           }
         ),
-        /* @__PURE__ */ t(L, { divided: !0, children: n.lines.map((r, u) => /* @__PURE__ */ t(M, { primary: e("{0} · {1} hours", [g(r.date), String(r.hours)]), secondary: [r.activity_type, r.description].filter(Boolean).join(" · ") }, u)) })
+        /* @__PURE__ */ t(T, { divided: !0, children: n.lines.map((i, d) => /* @__PURE__ */ t(M, { primary: e("{0} · {1} hours", [_(i.date), String(i.hours)]), secondary: [i.activity_type, i.description].filter(Boolean).join(" · ") }, d)) })
       ] })
     }
   );
 }
-function ka() {
-  const a = D(), { data: i, isLoading: n, error: o, mutate: s, hasLoaded: c } = N(f.toilList);
+function qa() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.toilList);
   return /* @__PURE__ */ m(
-    ne,
+    oe,
     {
       title: e("Time Off in Lieu"),
       onBack: () => a(""),
       loading: n,
       error: o,
       onRetry: s,
-      actions: i?.eligible ? /* @__PURE__ */ m(w, { onClick: () => a(l.toilNew), children: [
-        /* @__PURE__ */ t(me, {}),
+      actions: r?.eligible ? /* @__PURE__ */ m(w, { onClick: () => a(l.toilNew), children: [
+        /* @__PURE__ */ t(ve, {}),
         e("Claim Time Off")
       ] }) : void 0,
       children: [
-        i && !i.eligible && /* @__PURE__ */ t($, { tone: "info", children: e("Your grade does not bank extra hours as time off. Ask HR if you think it should.") }),
-        i?.eligible && /* @__PURE__ */ m(yt, { columns: 2, children: [
-          /* @__PURE__ */ t(Ee, { label: e("Days Left"), value: String(i.left) }),
+        r && !r.eligible && /* @__PURE__ */ t(S, { tone: "info", children: e("Your grade does not bank extra hours as time off. Ask HR if you think it should.") }),
+        r?.eligible && /* @__PURE__ */ m(Ct, { columns: 2, children: [
+          /* @__PURE__ */ t(ze, { label: e("Days Left"), value: String(r.left) }),
           /* @__PURE__ */ t(
-            Ee,
+            ze,
             {
               label: e("Lapsing in 30 Days"),
-              value: String(i.lapsing),
-              hint: i.first_lapse ? e("First on {0}", [g(i.first_lapse)]) : void 0
+              value: String(r.lapsing),
+              hint: r.first_lapse ? e("First on {0}", [_(r.first_lapse)]) : void 0
             }
           )
         ] }),
-        c && !i?.claims.length ? /* @__PURE__ */ t(ae, { icon: /* @__PURE__ */ t(Pe, {}), title: e("No claims yet"), description: e("Claim the extra hours you worked, a day at a time.") }) : /* @__PURE__ */ t(L, { divided: !0, children: (i?.claims ?? []).map((r) => /* @__PURE__ */ t(
+        c && !r?.claims.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(Je, {}), title: e("No claims yet"), description: e("Claim the extra hours you worked, a day at a time.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r?.claims ?? []).map((i) => /* @__PURE__ */ t(
           M,
           {
-            primary: e("{0} hours · {1} days", [String(r.total_hours ?? 0), String(r.days ?? 0)]),
-            secondary: r.status === "Approved" && r.lapses_on ? e("{0} days left, usable until {1}", [String(r.days_left ?? 0), g(r.lapses_on)]) : g(r.creation),
-            action: /* @__PURE__ */ t(T, { value: r.status }),
-            onClick: () => a(l.toilRecord(r.name))
+            primary: e("{0} hours · {1} days", [String(i.total_hours ?? 0), String(i.days ?? 0)]),
+            secondary: i.status === "Approved" && i.lapses_on ? e("{0} days left, usable until {1}", [String(i.days_left ?? 0), _(i.lapses_on)]) : _(i.creation),
+            action: /* @__PURE__ */ t($, { value: i.status }),
+            onClick: () => a(l.toilRecord(i.name))
           },
-          r.name
+          i.name
         )) })
       ]
     }
   );
 }
-const ot = () => ({ work_date: "", hours: null, work_done: "" });
-function wa() {
-  const a = D(), i = V(), [n] = rt(), o = n.get("claim"), s = N(f.toilList), c = N(f.toilRecord, { name: o ?? "" }, { enabled: !!o }), r = q(f.saveToilClaim), u = en(), [p, v] = E(!1), [y, d] = E(null), h = de({ defaultValues: { lines: [ot()], note: "" } });
-  ye(() => {
-    c.data && h.reset({ lines: c.data.lines.map((S) => ({ work_date: S.work_date, hours: S.hours, work_done: S.work_done })), note: c.data.note ?? "" });
+const pt = () => ({ work_date: "", hours: null, work_done: "" });
+function Wa() {
+  const a = N(), r = O(), [n] = ft(), o = n.get("claim"), s = A(v.toilList), c = A(v.toilRecord, { name: o ?? "" }, { enabled: !!o }), i = W(v.saveToilClaim), d = un(), [y, p] = q(!1), [f, u] = q(null), h = pe({ defaultValues: { lines: [pt()], note: "" } });
+  ue(() => {
+    c.data && h.reset({ lines: c.data.lines.map((D) => ({ work_date: D.work_date, hours: D.hours, work_done: D.work_done })), note: c.data.note ?? "" });
   }, [c.data, h]);
-  const R = async () => {
+  const g = async () => {
     if (s.data) {
-      v(!0), d(null);
+      p(!0), u(null);
       try {
-        const S = s.data.from_attendance ? "Attendance" : "Timesheet", A = Y(), P = await u.get(f.extraTime, { employee: s.data.employee, from_date: pe(A, -30), to_date: A, source: S }) ?? [], j = h.getValues("lines").filter((I) => I.work_date);
-        h.setValue("lines", ta(j, P), { shouldDirty: !0 }), d(P.length ? e("{0} days found in the last 30 days. Say what the work was on each.", [String(P.length)]) : e("The records show no extra hours you have not claimed in the last 30 days."));
+        const D = s.data.from_attendance ? "Attendance" : "Timesheet", L = J(), I = await d.get(v.extraTime, { employee: s.data.employee, from_date: ke(L, -30), to_date: L, source: D }) ?? [], V = h.getValues("lines").filter((z) => z.work_date);
+        h.setValue("lines", ha(V, I), { shouldDirty: !0 }), u(I.length ? e("{0} days found in the last 30 days. Say what the work was on each.", [String(I.length)]) : e("The records show no extra hours you have not claimed in the last 30 days."));
       } catch {
-        d(e("The records could not be read. Enter the days yourself."));
+        u(e("The records could not be read. Enter the days yourself."));
       } finally {
-        v(!1);
+        p(!1);
       }
     }
-  }, x = async (S) => {
-    const A = await r.run({ lines: JSON.stringify(S.lines.filter((P) => P.work_date)), note: S.note, name: o ?? void 0 });
-    i.success(e("Claim saved. Send it when it is ready.")), a(l.toilRecord(A));
-  }, W = s.data && (s.data.from_attendance || s.data.from_timesheets);
+  }, x = async (D) => {
+    const L = await i.run({ lines: JSON.stringify(D.lines.filter((I) => I.work_date)), note: D.note, name: o ?? void 0 });
+    r.success(e("Claim saved. Send it when it is ready.")), a(l.toilRecord(L));
+  }, E = s.data && (s.data.from_attendance || s.data.from_timesheets);
   return /* @__PURE__ */ m(
-    te,
+    ae,
     {
       title: o ? e("Change Claim") : e("Claim Time Off"),
       onBack: () => a(o ? l.toilRecord(o) : l.toil),
       loading: s.isLoading || c.isLoading,
       error: s.error ?? c.error,
-      actions: W ? /* @__PURE__ */ t(w, { variant: "outline", loading: p, onClick: R, children: e("Fill from Records") }) : void 0,
+      actions: E ? /* @__PURE__ */ t(w, { variant: "outline", loading: y, onClick: g, children: e("Fill from Records") }) : void 0,
       children: [
-        y && /* @__PURE__ */ t($, { tone: "info", children: y }),
-        /* @__PURE__ */ m(ue, { form: h, onSubmit: x, children: [
+        s.data && /* @__PURE__ */ t(S, { tone: s.data.approver_name ? "info" : "warning", children: _e(s.data.approver_name) }),
+        f && /* @__PURE__ */ t(S, { tone: "info", children: f }),
+        /* @__PURE__ */ m(ye, { form: h, onSubmit: x, children: [
           /* @__PURE__ */ t(
-            ht,
+            De,
             {
               name: "lines",
               label: e("Days Worked"),
               minRows: 1,
               addLabel: e("Add a Day"),
-              newRow: ot,
-              renderRow: (S) => /* @__PURE__ */ m(fe, { children: [
-                /* @__PURE__ */ t(re, { name: S("work_date"), label: e("Date"), required: !0, maxDate: Y() }),
-                /* @__PURE__ */ t(je, { name: S("hours"), label: e("Hours Worked"), min: 0, max: 24, step: 0.25 }),
-                /* @__PURE__ */ t(U, { name: S("work_done"), label: e("Work Done"), required: !0, multiline: !0, rows: 2 })
+              newRow: pt,
+              renderRow: (D) => /* @__PURE__ */ m(de, { children: [
+                /* @__PURE__ */ t(he, { name: D("work_date"), label: e("Date"), required: !0, maxDate: J() }),
+                /* @__PURE__ */ t(Te, { name: D("hours"), label: e("Hours Worked"), min: 0, max: 24, step: 0.25 }),
+                /* @__PURE__ */ t(H, { name: D("work_done"), label: e("Work Done"), required: !0, multiline: !0, rows: 2 })
               ] })
             }
           ),
-          /* @__PURE__ */ t(U, { name: "note", label: e("Note"), multiline: !0, rows: 2, hint: e("Anything your approver should know about these days.") }),
-          /* @__PURE__ */ t(he, { submitLabel: e("Save Claim"), onCancel: () => a(o ? l.toilRecord(o) : l.toil) })
+          /* @__PURE__ */ t(H, { name: "note", label: e("Note"), multiline: !0, rows: 2, hint: e("Anything your approver should know about these days.") }),
+          /* @__PURE__ */ t(fe, { submitLabel: e("Save Claim"), onCancel: () => a(o ? l.toilRecord(o) : l.toil) })
         ] })
       ]
     }
   );
 }
-function ba() {
-  const a = D(), i = V(), n = oe(Z().name), { data: o, isLoading: s, error: c, mutate: r } = N(f.toilRecord, { name: n }), u = q(f.toilAction), p = async (y) => {
+function $a() {
+  const a = N(), r = O(), n = ie(Z().name), { data: o, isLoading: s, error: c, mutate: i } = A(v.toilRecord, { name: n }), d = W(v.toilAction), y = async (f) => {
     try {
-      await u.run({ name: n, action: y }), i.success(e("Claim sent.")), await r();
+      await d.run({ name: n, action: f }), r.success(e("Claim sent.")), await i();
     } catch {
     }
-  }, v = o && /* @__PURE__ */ m("div", { className: "flex gap-2", children: [
+  }, p = o && /* @__PURE__ */ m("div", { className: "flex gap-2", children: [
     o.can_edit && /* @__PURE__ */ t(w, { variant: "outline", onClick: () => a(`${l.toilNew}?claim=${encodeURIComponent(n)}`), children: e("Change") }),
-    o.actions.map((y) => /* @__PURE__ */ t(w, { loading: u.loading, onClick: () => p(y), children: y === "Send for Authorisation" ? e("Send for Authorisation") : e("Send for Approval") }, y)),
+    o.actions.map((f) => /* @__PURE__ */ t(w, { loading: d.loading, onClick: () => y(f), children: f === "Send for Authorisation" ? e("Send for Authorisation") : e("Send for Approval") }, f)),
     o.mine && o.status === "Approved" && (o.days_left ?? 0) > 0 && o.leave_type && /* @__PURE__ */ t(w, { onClick: () => a(`${l.leaveNew}?type=${encodeURIComponent(o.leave_type ?? "")}`), children: e("Apply for Leave") })
   ] });
   return /* @__PURE__ */ t(
@@ -2285,86 +2383,264 @@ function ba() {
     {
       title: e("Time Off in Lieu Claim"),
       subtitle: o && !o.mine ? o.employee_name : n,
-      meta: o && /* @__PURE__ */ t(T, { value: o.status }),
+      meta: o && /* @__PURE__ */ t($, { value: o.status }),
       onBack: () => a(l.toil),
-      actions: v,
+      actions: p,
       loading: s,
       error: c,
-      onRetry: r,
+      onRetry: i,
       children: o && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
-        u.errorMessage && /* @__PURE__ */ t($, { tone: "error", children: u.errorMessage }),
-        o.stage.items.length > 0 && /* @__PURE__ */ t($, { tone: o.stage.tone, children: /* @__PURE__ */ t("div", { className: "flex flex-col gap-1", children: o.stage.items.map((y) => /* @__PURE__ */ m(ee, { children: [
+        d.errorMessage && /* @__PURE__ */ t(S, { tone: "error", children: d.errorMessage }),
+        o.stage.items.length > 0 && /* @__PURE__ */ t(S, { tone: o.stage.tone, children: /* @__PURE__ */ t("div", { className: "flex flex-col gap-1", children: o.stage.items.map((f) => /* @__PURE__ */ m(te, { children: [
           /* @__PURE__ */ m("strong", { children: [
-            y.label,
+            f.label,
             ":"
           ] }),
           " ",
-          y.text
-        ] }, y.label)) }) }),
+          f.text
+        ] }, f.label)) }) }),
         /* @__PURE__ */ t(
-          J,
+          U,
           {
             items: [
               { label: e("Total Extra Hours"), value: String(o.total_hours ?? 0) },
               { label: e("Time Off (Days)"), value: String(o.days ?? 0) },
               { label: e("Approver"), value: o.approver_name, hideWhenEmpty: !0 },
               { label: e("Days Left"), value: o.days_left === null ? null : String(o.days_left), hideWhenEmpty: !0 },
-              { label: e("Usable Until"), value: o.lapses_on ? g(o.lapses_on) : null, hideWhenEmpty: !0 },
+              { label: e("Usable Until"), value: o.lapses_on ? _(o.lapses_on) : null, hideWhenEmpty: !0 },
               { label: e("Note"), value: o.note, hideWhenEmpty: !0, full: !0 },
               { label: e("Approver's Note"), value: o.decision_note, hideWhenEmpty: !0, full: !0 }
             ]
           }
         ),
-        /* @__PURE__ */ t(F, { title: e("Days Worked"), children: /* @__PURE__ */ t(L, { divided: !0, children: o.lines.map((y) => /* @__PURE__ */ t(
+        /* @__PURE__ */ t(B, { title: e("Days Worked"), children: /* @__PURE__ */ t(T, { divided: !0, children: o.lines.map((f) => /* @__PURE__ */ t(
           M,
           {
-            primary: e("{0} · {1} hours", [g(y.work_date), String(y.hours ?? y.planned_hours ?? 0)]),
-            secondary: [y.work_done, y.supported_by ?? ""].filter(Boolean).join(" · ")
+            primary: e("{0} · {1} hours", [_(f.work_date), String(f.hours ?? f.planned_hours ?? 0)]),
+            secondary: [f.work_done, f.supported_by ?? ""].filter(Boolean).join(" · ")
           },
-          y.work_date
+          f.work_date
         )) }) })
       ] })
     }
   );
 }
-const Ca = [
-  { path: "leave", element: /* @__PURE__ */ t(aa, {}) },
-  { path: "leave/new", element: /* @__PURE__ */ t(oa, {}) },
-  { path: "leave/:name", element: /* @__PURE__ */ t(ia, {}) },
-  { path: "cover", element: /* @__PURE__ */ t(Vn, {}) },
-  { path: "cover/:name", element: /* @__PURE__ */ t(Un, {}) },
-  { path: "toil", element: /* @__PURE__ */ t(ka, {}) },
-  { path: "toil/new", element: /* @__PURE__ */ t(wa, {}) },
-  { path: "toil/:name", element: /* @__PURE__ */ t(ba, {}) },
-  { path: "timesheet", element: /* @__PURE__ */ t(va, {}) },
-  { path: "timesheet/week/:week", element: /* @__PURE__ */ t(ga, {}) },
-  { path: "timesheet/:name", element: /* @__PURE__ */ t(_a, {}) },
-  { path: "expenses", element: /* @__PURE__ */ t(ca, {}) },
-  { path: "expenses/new", element: /* @__PURE__ */ t(da, {}) },
-  { path: "expenses/:name", element: /* @__PURE__ */ t(ua, {}) },
-  { path: "advances", element: /* @__PURE__ */ t(ha, {}) },
-  { path: "advances/new", element: /* @__PURE__ */ t(ma, {}) },
-  { path: "advances/:name", element: /* @__PURE__ */ t(pa, {}) },
-  { path: "pay", element: /* @__PURE__ */ t(ya, {}) },
-  { path: "pay/:name", element: /* @__PURE__ */ t(fa, {}) },
-  { path: "check-in", element: /* @__PURE__ */ t(In, {}) },
-  { path: "attendance", element: /* @__PURE__ */ t(On, {}) },
-  { path: "attendance/new", element: /* @__PURE__ */ t(zn, {}) },
-  { path: "attendance/:name", element: /* @__PURE__ */ t(tt, { doctype: "Attendance Request" }) },
-  { path: "shifts", element: /* @__PURE__ */ t(jn, {}) },
-  { path: "shifts/new", element: /* @__PURE__ */ t(Yn, {}) },
-  { path: "shifts/:name", element: /* @__PURE__ */ t(tt, { doctype: "Shift Request" }) },
-  { path: "me", element: /* @__PURE__ */ t(ra, {}) },
-  { path: "me/payout/new", element: /* @__PURE__ */ t(sa, {}) },
-  { path: "me/payout/:name", element: /* @__PURE__ */ t(la, {}) }
-], Wa = Xt({
+function tn(a) {
+  return a.travel_from && a.travel_to ? e("{0} to {1}", [a.travel_from, a.travel_to]) : a.travel_to || a.travel_from || a.purpose_of_travel;
+}
+function Ea() {
+  const a = N(), { data: r, isLoading: n, error: o, mutate: s, hasLoaded: c } = A(v.travelList);
+  return /* @__PURE__ */ t(
+    oe,
+    {
+      title: e("Travel Requests"),
+      onBack: () => a(""),
+      loading: n,
+      error: o,
+      onRetry: s,
+      actions: /* @__PURE__ */ m(w, { onClick: () => a(l.travelNew), children: [
+        /* @__PURE__ */ t(ve, {}),
+        e("New Travel Request")
+      ] }),
+      children: c && !r?.length ? /* @__PURE__ */ t(re, { icon: /* @__PURE__ */ t(It, {}), title: e("No travel requests yet"), description: e("Ask to travel for work. Your line manager approves it.") }) : /* @__PURE__ */ t(T, { divided: !0, children: (r ?? []).map((i) => /* @__PURE__ */ t(
+        M,
+        {
+          primary: tn(i),
+          secondary: [i.purpose_of_travel, i.departure_date ? _(i.departure_date) : _(i.creation)].filter(Boolean).join(" · "),
+          action: /* @__PURE__ */ t($, { value: i.state }),
+          onClick: () => a(l.travelRecord(i.name))
+        },
+        i.name
+      )) })
+    }
+  );
+}
+const nn = () => ({ travel_from: "", travel_to: "", mode_of_travel: "", departure_date: "", arrival_date: "", lodging_required: !1 }), Pa = () => ({ expense_type: "", total_amount: null, comments: "" }), Oe = () => ({ travel_type: "", purpose_of_travel: "", travel_funding: "", description: "", itinerary: [nn()], costings: [] });
+function Se(a) {
+  switch (a) {
+    case "Domestic":
+      return e("Domestic");
+    case "International":
+      return e("International");
+    case "Require Full Funding":
+      return e("Require Full Funding");
+    case "Fully Sponsored":
+      return e("Fully Sponsored");
+    case "Partially Sponsored, Require Partial Funding":
+      return e("Partially Sponsored, Require Partial Funding");
+    case "Flight":
+      return e("Flight");
+    case "Train":
+      return e("Train");
+    case "Taxi":
+      return e("Taxi");
+    case "Rented Car":
+      return e("Rented Car");
+    default:
+      return a;
+  }
+}
+function Fa() {
+  const a = N(), r = O(), n = A(v.travelOptions), o = W(v.requestTravel), s = me(
+    () => ee.object({
+      travel_type: le(() => e("Travel Type")),
+      purpose_of_travel: le(() => e("Purpose of Travel")),
+      itinerary: ee.array(ee.object({ travel_from: le(() => e("From")), travel_to: le(() => e("To")) }).loose()).min(1)
+    }).loose(),
+    []
+  ), c = pe({ schema: s, defaultValues: Oe() }), i = Me(ne().user, "travel-request", "new"), [d, y] = q(null);
+  ue(() => {
+    i.restored && Array.isArray(i.restored.value?.itinerary) && (c.reset({ ...Oe(), ...i.restored.value }), y(i.restored.saved), i.dismiss());
+    const h = c.watch((g) => i.keep(g));
+    return () => h.unsubscribe();
+  }, []);
+  const p = () => {
+    i.clear(), y(null), c.reset(Oe());
+  }, f = async (h) => {
+    const g = pa(h.itinerary, h.costings), x = await o.run({
+      travel_type: h.travel_type,
+      purpose_of_travel: h.purpose_of_travel,
+      travel_funding: h.travel_funding || void 0,
+      description: h.description,
+      itinerary: JSON.stringify(g.itinerary),
+      costings: JSON.stringify(g.costings),
+      send: 1
+    });
+    i.clear(), r.success(n.data?.approver_name ? e("Travel request sent to {0}.", [n.data.approver_name]) : e("Travel request sent.")), a(l.travelRecord(x.name));
+  }, u = (h) => (h ?? []).map((g) => ({ value: g, label: Se(g) }));
+  return /* @__PURE__ */ m(ae, { title: e("New Travel Request"), onBack: () => a(l.travel), loading: n.isLoading, error: n.error, onRetry: n.mutate, children: [
+    d !== null && /* @__PURE__ */ t(S, { tone: "info", title: e("Restored From This Phone"), action: /* @__PURE__ */ t(w, { onClick: p, children: e("Start Again") }), children: e("You started this request on {0} and had not sent it.", [_(qe(d))]) }),
+    n.data && /* @__PURE__ */ t(S, { tone: n.data.approver_name ? "info" : "warning", children: _e(n.data.approver_name) }),
+    /* @__PURE__ */ m(ye, { form: c, onSubmit: f, children: [
+      /* @__PURE__ */ t(se, { name: "travel_type", label: e("Travel Type"), required: !0, options: u(n.data?.travel_types) }),
+      /* @__PURE__ */ t(se, { name: "purpose_of_travel", label: e("Purpose of Travel"), required: !0, options: (n.data?.purposes ?? []).map((h) => ({ value: h, label: h })), hint: n.data && !n.data.purposes.length ? e("HR has not set up purposes of travel yet. Ask them to.") : void 0 }),
+      /* @__PURE__ */ t(se, { name: "travel_funding", label: e("Travel Funding"), options: u(n.data?.funding) }),
+      /* @__PURE__ */ t(
+        De,
+        {
+          name: "itinerary",
+          label: e("Journeys"),
+          minRows: 1,
+          addLabel: e("Add a Journey"),
+          newRow: nn,
+          renderRow: (h) => /* @__PURE__ */ m(de, { children: [
+            /* @__PURE__ */ t(H, { name: h("travel_from"), label: e("From"), required: !0 }),
+            /* @__PURE__ */ t(H, { name: h("travel_to"), label: e("To"), required: !0 }),
+            /* @__PURE__ */ t(se, { name: h("mode_of_travel"), label: e("Mode of Travel"), options: u(n.data?.modes) }),
+            /* @__PURE__ */ t(lt, { name: h("departure_date"), label: e("Departure") }),
+            /* @__PURE__ */ t(lt, { name: h("arrival_date"), label: e("Arrival") }),
+            /* @__PURE__ */ t(Ze, { name: h("lodging_required"), label: e("Lodging Required") })
+          ] })
+        }
+      ),
+      /* @__PURE__ */ t(
+        De,
+        {
+          name: "costings",
+          label: e("Expected Costs"),
+          addLabel: e("Add a Cost"),
+          newRow: Pa,
+          emptyText: e("None yet. Add what the trip is expected to cost, if you know."),
+          renderRow: (h) => /* @__PURE__ */ m(de, { children: [
+            /* @__PURE__ */ t(se, { name: h("expense_type"), label: e("Expense Type"), options: (n.data?.expense_types ?? []).map((g) => ({ value: g, label: g })) }),
+            /* @__PURE__ */ t(Te, { name: h("total_amount"), label: e("Amount ({0})", [n.data?.currency ?? ""]), min: 0, step: 0.01 }),
+            /* @__PURE__ */ t(H, { name: h("comments"), label: e("Comments") })
+          ] })
+        }
+      ),
+      /* @__PURE__ */ t(H, { name: "description", label: e("Other Details"), multiline: !0, rows: 3 }),
+      /* @__PURE__ */ t(fe, { submitLabel: e("Send for Approval"), onCancel: () => a(l.travel) })
+    ] })
+  ] });
+}
+function Ba() {
+  const a = N(), r = O(), n = ie(Z().name), { data: o, isLoading: s, error: c, mutate: i } = A(v.travelRecord, { name: n }), d = W(v.travelAction), y = async () => {
+    try {
+      await d.run({ name: n, action: "Send for Approval" }), r.success(e("Travel request sent.")), await i();
+    } catch {
+    }
+  };
+  return /* @__PURE__ */ t(
+    Q,
+    {
+      title: o ? tn({ ...o.itinerary[0] ?? { travel_from: null, travel_to: null }, purpose_of_travel: o.purpose_of_travel }) : e("Travel Request"),
+      subtitle: o && (o.mine ? n : o.employee_name),
+      meta: o && /* @__PURE__ */ t($, { value: o.state }),
+      onBack: () => a(l.travel),
+      actions: o?.can_send ? /* @__PURE__ */ t(w, { loading: d.loading, onClick: y, children: e("Send for Approval") }) : void 0,
+      loading: s,
+      error: c,
+      onRetry: i,
+      children: o && /* @__PURE__ */ m("div", { className: "flex flex-col gap-6", children: [
+        d.errorMessage && /* @__PURE__ */ t(S, { tone: "error", children: d.errorMessage }),
+        o.mine && o.state === "Pending Approval" && /* @__PURE__ */ t(S, { tone: "info", children: _e(o.approver_name) }),
+        /* @__PURE__ */ t(
+          U,
+          {
+            items: [
+              { label: e("Purpose of Travel"), value: o.purpose_of_travel },
+              { label: e("Travel Type"), value: Se(o.travel_type) },
+              { label: e("Travel Funding"), value: o.travel_funding ? Se(o.travel_funding) : null, hideWhenEmpty: !0 },
+              { label: e("Line Manager"), value: o.approver_name, hideWhenEmpty: !0 },
+              { label: e("Other Details"), value: o.description, hideWhenEmpty: !0, full: !0 }
+            ]
+          }
+        ),
+        /* @__PURE__ */ t(B, { title: e("Journeys"), children: /* @__PURE__ */ t(T, { divided: !0, children: o.itinerary.map((p, f) => /* @__PURE__ */ t(
+          M,
+          {
+            primary: e("{0} to {1}", [p.travel_from || "?", p.travel_to || "?"]),
+            secondary: [p.mode_of_travel ? Se(p.mode_of_travel) : "", p.departure_date ? Ce(p.departure_date) : "", p.lodging_required ? e("Lodging required") : ""].filter(Boolean).join(" · ")
+          },
+          f
+        )) }) }),
+        o.costings.length > 0 && /* @__PURE__ */ t(B, { title: e("Expected Costs"), children: /* @__PURE__ */ t(T, { divided: !0, children: o.costings.map((p, f) => /* @__PURE__ */ t(M, { primary: p.expense_type || e("Other"), secondary: p.comments ?? void 0, action: o.currency ? F(p.total_amount, o.currency) : String(p.total_amount) }, f)) }) }),
+        !o.mine && /* @__PURE__ */ t(te, { muted: !0, children: e("Decide this request from Approvals.") })
+      ] })
+    }
+  );
+}
+const Ha = [
+  { path: "leave", element: /* @__PURE__ */ t(ya, {}) },
+  { path: "leave/new", element: /* @__PURE__ */ t(fa, {}) },
+  { path: "leave/:name", element: /* @__PURE__ */ t(va, {}) },
+  { path: "cover", element: /* @__PURE__ */ t(aa, {}) },
+  { path: "cover/:name", element: /* @__PURE__ */ t(oa, {}) },
+  { path: "toil", element: /* @__PURE__ */ t(qa, {}) },
+  { path: "toil/new", element: /* @__PURE__ */ t(Wa, {}) },
+  { path: "toil/:name", element: /* @__PURE__ */ t($a, {}) },
+  { path: "timesheet", element: /* @__PURE__ */ t(La, {}) },
+  { path: "timesheet/week/:week", element: /* @__PURE__ */ t(Ta, {}) },
+  { path: "timesheet/:name", element: /* @__PURE__ */ t(Ma, {}) },
+  { path: "expenses", element: /* @__PURE__ */ t(ba, {}) },
+  { path: "expenses/new", element: /* @__PURE__ */ t(Ca, {}) },
+  { path: "expenses/:name", element: /* @__PURE__ */ t(Ra, {}) },
+  { path: "advances", element: /* @__PURE__ */ t(xa, {}) },
+  { path: "advances/new", element: /* @__PURE__ */ t(Aa, {}) },
+  { path: "advances/:name", element: /* @__PURE__ */ t(Na, {}) },
+  { path: "pay", element: /* @__PURE__ */ t(Sa, {}) },
+  { path: "pay/:name", element: /* @__PURE__ */ t(Da, {}) },
+  { path: "check-in", element: /* @__PURE__ */ t(Zn, {}) },
+  { path: "attendance", element: /* @__PURE__ */ t(Qn, {}) },
+  { path: "attendance/new", element: /* @__PURE__ */ t(ea, {}) },
+  { path: "attendance/:name", element: /* @__PURE__ */ t(ut, { doctype: "Attendance Request" }) },
+  { path: "shifts", element: /* @__PURE__ */ t(ta, {}) },
+  { path: "shifts/new", element: /* @__PURE__ */ t(na, {}) },
+  { path: "shifts/:name", element: /* @__PURE__ */ t(ut, { doctype: "Shift Request" }) },
+  { path: "me", element: /* @__PURE__ */ t(ga, {}) },
+  { path: "me/payout/new", element: /* @__PURE__ */ t(ka, {}) },
+  { path: "me/payout/:name", element: /* @__PURE__ */ t(wa, {}) },
+  { path: "travel", element: /* @__PURE__ */ t(Ea, {}) },
+  { path: "travel/new", element: /* @__PURE__ */ t(Fa, {}) },
+  { path: "travel/:name", element: /* @__PURE__ */ t(Ba, {}) }
+], Ga = ln({
   key: "seal_hrms.my_hr",
-  home: Jn,
-  routes: Ca,
-  records: ft,
+  home: ra,
+  routes: Ha,
+  records: Rt,
   settings: [{ key: "hr_notifications", label: "HR", kind: "push-category" }]
 });
 export {
-  Ca as ROUTES,
-  Wa as default
+  Ha as ROUTES,
+  Ga as default
 };
