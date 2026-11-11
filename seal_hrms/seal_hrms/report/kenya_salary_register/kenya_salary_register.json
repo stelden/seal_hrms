@@ -10,7 +10,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-05-26 04:03:28.745574",
+ "modified": "2026-11-11 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "Kenya Salary Register",
@@ -25,12 +25,6 @@
   },
   {
    "role": "HR Manager"
-  },
-  {
-   "role": "Employee"
-  },
-  {
-   "role": "Employee Self Service"
   }
  ],
  "timeout": 0

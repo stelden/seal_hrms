@@ -11,6 +11,10 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.28.1 (2026-11-11)
+
+- **Fixed:** the [Kenya Salary Register](payroll-reports/kenya-salary-register.md) is for HR User and HR Manager only, and shows only the salary slips the person running it may open. Staff could otherwise have been shown everyone's pay where a site let them report on salary slips.
+
 ## 1.28.0 (2026-11-11)
 
 - **New:** [Compensatory leave requests](self-service/compensatory-leave-request.md) on the phone: ask for leave in return for working a public holiday or your day off. Your leave approver approves it from Approvals, and the days are added to your leave. Leave types used for time off in lieu are not offered.

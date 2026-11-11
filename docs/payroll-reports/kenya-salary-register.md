@@ -15,6 +15,8 @@ sources:
 
 **Where:** Self Service → search bar → **Kenya Salary Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
+It shows only the salary slips you may open in the Salary Slip list: if your access is limited to some employees or companies, so is the register. Staff cannot run it.
+
 ## Filters
 
 | Filter | Use it to |

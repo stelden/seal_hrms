@@ -5,9 +5,16 @@ from __future__ import unicode_literals
 import frappe, erpnext
 from frappe.utils import flt
 from frappe import _
-from functools import reduce 
 
 def execute(filters=None):
+	"""The register of salary slips for one pay period, as rows of pay and deductions.
+
+	Pay is the most private thing payroll holds, so the report checks access itself rather than
+	trusting whoever lists the report's roles: the reader needs Report on Salary Slip, and sees only
+	the slips the Salary Slip list would show them (their User Permissions and any permission
+	query conditions apply). A role added to the report later cannot reopen everyone's pay.
+	"""
+	frappe.has_permission("Salary Slip", "report", throw=True)
 	if not filters: filters = {}
 	currency = None
 	if filters.get('currency'):
@@ -27,7 +34,7 @@ def execute(filters=None):
 		if not emp_det:
 			continue
 
-		row = [ss.name, ss.employee, ss.employee_name, emp_det.date_of_joining, emp_det.national_id, emp_det.nssf_no, emp_det.sha_no, emp_det.kra_pin, 
+		row = [ss.name, ss.employee, ss.employee_name, emp_det.date_of_joining, emp_det.national_id, emp_det.nssf_no, emp_det.sha_no, emp_det.kra_pin,
 		ss.bank_name, ss.bank_account_no, ss.branch, ss.department, ss.designation,
 		ss.company, ss.start_date, ss.end_date, ss.leave_without_pay, ss.payment_days]
 
@@ -71,7 +78,7 @@ def get_columns(salary_slips):
 		_("SHA No") + "::90",
 		_("KRA PIN") + "::100",
 		_("Bank Name") + ":Link/Salary Slip:100",
-		_("Bank Account No") + ":Link/Salary Slip:120",		
+		_("Bank Account No") + ":Link/Salary Slip:120",
 		_("Branch") + ":Link/Branch:120",
 		_("Department") + ":Link/Department:120",
 		_("Designation") + ":Link/Designation:120",
@@ -93,7 +100,7 @@ def get_columns(salary_slips):
 	]
 
 	salary_components = {_("Earning"): [], _("Deduction"): []}
-	
+
 	salary_detail_doc=frappe.qb.DocType("Salary Detail")
 	salary_component_doc=frappe.qb.DocType("Salary Component")
 	salary_component_query = frappe.qb.from_(salary_detail_doc) \
@@ -103,23 +110,19 @@ def get_columns(salary_slips):
 			frappe.qb.functions("Distinct", salary_detail_doc.salary_component).as_("salary_component"),
 			salary_component_doc.type.as_("type")
 		)
-	salary_slips = [d.name for d in salary_slips]  
+	salary_slips = [d.name for d in salary_slips]
 
-	# Constructing the OR conditions for names in salary_slips
-	conditions = [
-		salary_detail_doc.parent.like("%" + name + "%") for name in salary_slips
-	]
+	# Exactly the slips the reader may see: a LIKE '%name%' also matched other slips whose names
+	# contain these, so their components showed up as columns.
+	salary_component_query = salary_component_query.where(
+		(salary_detail_doc.parenttype == "Salary Slip") & salary_detail_doc.parent.isin(salary_slips)
+	)
 
-	# Combining the conditions with OR logic
-	if conditions:
-		combined_condition = conditions[0] if len(conditions) == 1 else reduce(lambda x, y: x | y, conditions[1:], conditions[0])
-		salary_component_query = salary_component_query.where(combined_condition)
-  
 	salary_components_data = salary_component_query.run(as_dict=True)
-	
+
 	for component in salary_components_data:
 		salary_components[_(component.type)].append(component.salary_component)
-	
+
 	columns = columns + [(e + ":Currency:120") for e in salary_components[_("Earning")]] + \
 		[_("Gross Pay") + ":Currency:120"] + [(d + ":Currency:120") for d in salary_components[_("Deduction")]] + \
 		[_("Loan Repayment") + ":Currency:120", _("Total Deduction") + ":Currency:120", _("Net Pay") + ":Currency:120"]
@@ -127,32 +130,37 @@ def get_columns(salary_slips):
 	return columns, salary_components[_("Earning")], salary_components[_("Deduction")]
 
 def get_salary_slips(filters, company_currency):
-	filters.update({"from_date": filters.get("from_date"), "to_date":filters.get("to_date")})
-	salary_slip_doc=frappe.qb.DocType("Salary Slip")
-	salary_slip_query = frappe.qb.from_(salary_slip_doc).select("*").orderby(salary_slip_doc.employee)
-	salary_slip_query = apply_filters(salary_slip_query, filters, company_currency, salary_slip_doc)
-	salary_slips = salary_slip_query.run(as_dict=True)
-	
-	return salary_slips or []
+	"""Salary slips in the period and filters given that the session user may read.
 
-def apply_filters(query, filters, company_currency, salary_slip):
+	`frappe.get_list`, not a raw query: it applies the reader's Salary Slip permissions, User
+	Permissions and permission query conditions (security finding, 2026-11-10: the raw query
+	returned every slip on the site to anyone who could open the report).
+	"""
 	doc_status = {"Draft": 0, "Submitted": 1, "Cancelled": 2}
+	# The period is required; without it the old query matched nothing, and so does this.
+	if not (filters.get("from_date") and filters.get("to_date")):
+		return []
 
-	for filter_key, filter_value in filters.items():
-		if filter_key == "from_date":
-			query = query.where(salary_slip.start_date == filter_value)
-		if filter_key == "to_date":
-			query = query.where(salary_slip.end_date == filter_value)
-		if filter_key == "company":
-			query = query.where(salary_slip.company == filter_value)
-		if filter_key == "currency" and filter_value != company_currency:
-			query = query.where(salary_slip.currency == filter_value)
-		if filter_key == "docstatus":
-			query = query.where(salary_slip.docstatus == doc_status.get(filter_value, 0))
-		if filter_key == "employee":
-			query = query.where(salary_slip.employee == filter_value)
+	conditions = [
+		["start_date", "=", filters.get("from_date")],
+		["end_date", "=", filters.get("to_date")],
+	]
+	if filters.get("company"):
+		conditions.append(["company", "=", filters.get("company")])
+	if filters.get("currency") and filters.get("currency") != company_currency:
+		conditions.append(["currency", "=", filters.get("currency")])
+	if filters.get("docstatus"):
+		conditions.append(["docstatus", "=", doc_status.get(filters.get("docstatus"), 0)])
+	if filters.get("employee"):
+		conditions.append(["employee", "=", filters.get("employee")])
 
-	return query
+	return frappe.get_list(
+		"Salary Slip",
+		fields=["*"],
+		filters=conditions,
+		order_by="employee asc",
+		limit_page_length=0,
+	) or []
 
 def get_employee_doj_map():
 	doj_map = frappe._dict()
@@ -165,7 +173,7 @@ def get_employee_doj_map():
 		employee.custom_healthcare_fund_no.as_("sha_no"),
 		employee.custom_pin.as_("kra_pin")
 	)
-	
+
 	for d in employee_query.run(as_dict=True):
 		doj_map.setdefault(d.name, d)
 	return doj_map
@@ -188,15 +196,8 @@ def get_ss_deduction_and_earnings(salary_slips, currency, company_currency, is_e
             salary_slip_doc.name
         )
 
-    # Constructing the OR conditions for names in salary_slips
-    conditions = [
-        salary_detail_doc.parent.like("%" + name + "%") for name in salary_slips
-    ]
-
-    # Combining the conditions with OR logic
-    if conditions:
-        combined_condition = conditions[0] if len(conditions) == 1 else reduce(lambda x, y: x | y, conditions[1:], conditions[0])
-        salary_slip_query = salary_slip_query.where(combined_condition)
+    # Exactly the slips the reader may see (a LIKE '%name%' read other slips' pay as well).
+    salary_slip_query = salary_slip_query.where(salary_detail_doc.parent.isin(salary_slips))
 
     salary_slip_records = salary_slip_query.run(as_dict=True)
 
