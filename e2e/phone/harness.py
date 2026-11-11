@@ -252,8 +252,14 @@ def build_app():
 		HELD.db._cursor.execute(f"savepoint {SAVEPOINT}")
 		return site_app(environ, start_response)
 
+	# The worktrees' assets are the OUTER layer: each layer serves a file it has before asking the next,
+	# so with the bench's /assets outside, any unhashed file the shared checkout also has (the shell's
+	# shared/*.js import map targets, a section.js) came from apps/, not the worktree. The walk then ran
+	# the worktree shell's hashed chunks beside apps/seal_desk's library: two toast managers, and the
+	# section's toasts went to one nothing draws (2026-11-11, after apps/seal_desk was rebuilt for 1.23.2).
+	app = SharedDataMiddleware(per_request, {"/assets": f"{BENCH}/sites/assets", "/files": f"{BENCH}/sites/{SITE}/public/files"}, cache=False)
 	app = SharedDataMiddleware(
-		per_request,
+		app,
 		{
 			"/assets/seal_desk": f"{SEAL_DESK}/seal_desk/public",
 			"/assets/seal_frontend": f"{SEAL_FRONTEND}/seal_frontend/public",
@@ -261,7 +267,6 @@ def build_app():
 		},
 		cache=False,
 	)
-	app = SharedDataMiddleware(app, {"/assets": f"{BENCH}/sites/assets", "/files": f"{BENCH}/sites/{SITE}/public/files"}, cache=False)
 
 	def application(environ, start_response):
 		if environ["PATH_INFO"].startswith("/__harness/"):
