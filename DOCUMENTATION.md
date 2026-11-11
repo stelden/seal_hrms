@@ -27,7 +27,7 @@ pushed there.
 ### User guide
 
 The user guide lives in `docs/` and is published at https://docs.stelden.com/hrms. It describes what
-users see (My HR, handovers, time off in lieu, timesheets, employee details, the policies and reports);
+users see (Self Service, handovers, time off in lieu, timesheets, employee details, the policies and reports);
 each covered form and report links to its page from the Help menu, and "SEAL HRMS User Guide" sits in
 the desk's Help menu. `bench seal-docs check seal_hrms --strict` runs in the pre-commit hook, and a
 commit touching code a page describes must touch the page too (or say why in its message).
@@ -344,7 +344,7 @@ The health check *Work returned after leave* shows anything it had to skip.
 
 ## 5. Self Service
 
-**Where staff find it (1.11.0).** The **My HR** tile on the Apps screen opens Self
+**Where staff find it (1.11.0).** The **Self Service** tile (called **My HR** until 1.27.0) on the Apps screen opens Self
 Service, and its rail is its own (it was a row in Frappe HR's rail). It is the one Self
 Service on every site: client apps ship their own tiles and workspaces for their own
 records, not a Self Service of their own, and each person's daily work is on My Desk.
@@ -565,7 +565,7 @@ committed; HR_ON_MY_DESK §3). seal_desk's shell loads it at run time where seal
 `my_desk/section.visible`). It claims Leave Application, Leave Allocation, Task Assignment, Time Off in Lieu Claim,
 Timesheet, Expense Claim, Employee Advance, Salary Slip, Employee, Employee Checkin, Attendance Request, Shift
 Request, Employee Dependent and Beneficiary, Payout Change Request and (1.27.0) Travel Request: those records open
-in its screens anywhere in the app (`/my-desk/r/<DocType>/<name>`). The desk tile keeps its own name, **My HR**.
+in its screens anywhere in the app (`/my-desk/r/<DocType>/<name>`). The desk tile is **Self Service** too (Keith, 2026-11-11).
 
 - **Screens**: home (balances, in progress, quick actions); leave (apply, with the handover in the same step when
   the company's handover rule covers the leave: stand-in, work and approvals to hand over, sent to the stand-in at
@@ -693,7 +693,7 @@ cd apps/seal_hrms/e2e && SEAL_E2E_BASE_URL=http://localhost:8002 npx playwright 
 # 05-week-grid.spec.ts fills a week in the grid and checks the time lines it writes;
 # 04 also claims a timesheet's extra hours as time off.
 
-# The My HR phone section (frontend-my-desk/): unit tests, lint and the portal check, the build, and the
+# The Self Service phone section (frontend-my-desk/): unit tests, lint and the portal check, the build, and the
 # section in a browser at 390×844 in a small stand-in host (no seal_desk shell needed)
 cd apps/seal_hrms/frontend-my-desk && npm test && npx seal-portal-check && npm run build && npm run e2e
 
@@ -757,8 +757,7 @@ leaves a blank form and no server-side trace.
 
 - **2026-11-11** — 1.27.0. **From Keith's emulator walk of the phone section**: forms say who **will** approve a
   request before it is sent (it read as already approved); amounts confirmed to follow the company's currency (new
-  advance label too); the phone section is captioned **Self Service** (key and route unchanged; the desk tile stays
-  My HR); payslips and payout details ask "is it still you?" first, set in SEAL HRMS Settings (new section, App
+  advance label too); the phone section and the desk tile are captioned **Self Service** (key, route and tile icon unchanged); payslips and payout details ask "is it still you?" first, set in SEAL HRMS Settings (new section, App
   Health check, settings banner, seeding patch); **travel requests** on the phone with a shipped Frappe Workflow,
   Employee and Line Manager permissions, own-and-team scoping, and a refusal of self-decision. Needs migrate (settings
   fields, patch, the travel workflow and permissions) and a web restart; the phone bundle rebuilt.

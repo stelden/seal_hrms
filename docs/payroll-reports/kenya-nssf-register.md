@@ -13,7 +13,7 @@ sources:
 
 **What does each employee contribute to NSSF this month?**
 
-**Where:** My HR → search bar → **Kenya NSSF Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Kenya NSSF Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

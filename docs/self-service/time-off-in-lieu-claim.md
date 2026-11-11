@@ -17,7 +17,7 @@ sources:
 
 It is for grades given time off for extra hours instead of being paid for them. Once approved, you take the time like any other leave. Amina Hassan worked a Saturday stock count at Mwangaza Foods Ltd and claims it; Grace Wanjiru approves it and two days are added to her balance.
 
-**Where:** My HR → Self Service → Leave & Attendance → Time Off in Lieu
+**Where:** Self Service → Leave & Attendance → Time Off in Lieu
 
 ## Before you start
 
@@ -25,7 +25,7 @@ Your company has a [Working Time Policy](setup/working-time-policy.md) with **Ti
 
 ## Create a time off in lieu claim
 
-1. Open **My HR**, click **Time off in lieu**, then **+ Add Time Off in Lieu Claim**. Your own record is filled in as **Employee**.
+1. Open **Self Service**, click **Time off in lieu**, then **+ Add Time Off in Lieu Claim**. Your own record is filled in as **Employee**.
 2. Under **Extra Hours**, add a row for each day: the **Date**, the **Hours Worked** (the extra hours only) and the **Work Done**. Or click **Fill from Records**, then **Attendance** or **Timesheets**, and choose the dates (at most 62 days at a time).
 3. Click **Save**. Each row shows the **Kind of Day** (working day, rest day or public holiday, from your holiday list), the **Rate** and the **Hours Credited**; the claim totals them as **Time Off (Days)**.
 4. Click **Actions**, then **Send for Approval**. Your leave approver is emailed. While the claim waits it cannot be changed.

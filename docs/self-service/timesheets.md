@@ -21,7 +21,7 @@ sources:
 
 Where your company keeps timesheets by the week, the form shows a grid at the top: a line per piece of work and a column per day.
 
-1. Open **My HR** and click **Timesheets**, then **+ Add Timesheet**. **Week Starting** is set to this week's Monday; change it for another week.
+1. Open **Self Service** and click **Timesheets**, then **+ Add Timesheet**. **Week Starting** is set to this week's Monday; change it for another week.
 2. For each piece of work, click **Add a line** and choose the **Activity Type**, and the **Project**, **Task** and **Work Done** where they apply. Or click **Copy last week** to start from last week's lines.
 3. Enter the hours in each day's column.
 4. Click **Save**.

@@ -13,7 +13,7 @@ sources:
 
 **Who is away in a period, and who is covering for them?**
 
-**Where:** My HR → Self Service → Setup → Who Is Covering Whom · **Who can run it:** HR User, HR Manager, System Manager.
+**Where:** Self Service → Setup → Who Is Covering Whom · **Who can run it:** HR User, HR Manager, System Manager.
 
 ## Filters
 

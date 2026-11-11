@@ -11,7 +11,7 @@ sources:
 
 **What HR sets up so staff can use SEAL HRMS, and who can do what.**
 
-Staff open **My HR** on the Apps screen, which opens the **Self Service** page. The tile shows for anyone allowed to open that page, which needs the **Employee Self Service** role. Each member of staff needs an **Employee** record linked to their login (**User ID**).
+Staff open **Self Service** on the Apps screen (the tile was called **My HR** until 1.27.0). The tile shows for anyone allowed to open that page, which needs the **Employee Self Service** role. Each member of staff needs an **Employee** record linked to their login (**User ID**).
 
 ## Pages
 

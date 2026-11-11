@@ -13,7 +13,7 @@ sources:
 
 **Which employees repay a HELB loan this month, and how much?**
 
-**Where:** My HR → search bar → **Kenya HELB Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Kenya HELB Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

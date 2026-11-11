@@ -20,7 +20,7 @@ sources:
 
 ## Steps
 
-1. Open **My HR**, click **Leave**, then **+ Add Leave Application**.
+1. Open **Self Service**, click **Leave**, then **+ Add Leave Application**.
 2. Fill in the leave type and dates as usual, and click **Save**.
 3. Click **Prepare Handover**. The form saves if it has unsaved changes, and opens a new handover for this leave, filled with the open work on your to-do list and the approvals you give for others.
 4. Name your stand-in there and submit it. See [Task Assignment](task-assignment.md).

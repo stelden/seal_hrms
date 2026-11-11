@@ -13,7 +13,7 @@ sources:
 
 **Do each person's timesheet hours agree with their attendance and leave, day by day?**
 
-**Where:** My HR → Self Service → Setup → Timesheet Cross-Check · **Who can run it:** HR User, HR Manager, System Manager.
+**Where:** Self Service → Setup → Timesheet Cross-Check · **Who can run it:** HR User, HR Manager, System Manager.
 
 ## Filters
 

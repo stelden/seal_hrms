@@ -73,7 +73,7 @@ frappe.provide("frappe.help.help_links");
 	],
 	"Workspaces/Self Service": [
 		{
-			"label": "My HR and Self Service",
+			"label": "Self Service",
 			"url": "https://docs.stelden.com/hrms/self-service"
 		}
 	],

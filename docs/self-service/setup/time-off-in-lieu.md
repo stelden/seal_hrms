@@ -13,7 +13,7 @@ sources:
 
 **How much time off in lieu does each person hold, and when does it lapse?**
 
-**Where:** My HR → Self Service → Setup → TOIL Balances · **Who can run it:** HR User, HR Manager, System Manager, Leave Approver (an approver sees the staff whose claims they can see).
+**Where:** Self Service → Setup → TOIL Balances · **Who can run it:** HR User, HR Manager, System Manager, Leave Approver (an approver sees the staff whose claims they can see).
 
 ## Filters
 

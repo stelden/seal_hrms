@@ -39,4 +39,4 @@ The **Employee Self-Service** page shipped with SEAL HRMS now carries Balances, 
 
 ## Where you see it
 
-My Desk, on the desk and on the phone. Managers get their own page: see [Line Manager page](line-manager.md). An admin can place **Balances**, **Cover**, **Time off in lieu waiting for you**, **Timesheets waiting for you** and **HR work** on any desk page. See [Payout Change Request](payout-change-request.md). Your own HR on the phone is [My HR on the phone](my-hr-on-the-phone.md).
+My Desk, on the desk and on the phone. Managers get their own page: see [Line Manager page](line-manager.md). An admin can place **Balances**, **Cover**, **Time off in lieu waiting for you**, **Timesheets waiting for you** and **HR work** on any desk page. See [Payout Change Request](payout-change-request.md). Your own HR on the phone is [Self Service on the phone](my-hr-on-the-phone.md).

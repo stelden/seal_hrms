@@ -13,7 +13,7 @@ sources:
 
 **What does each employee pay to the health fund this month?**
 
-**Where:** My HR → search bar → **Kenya SHIF Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Kenya SHIF Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

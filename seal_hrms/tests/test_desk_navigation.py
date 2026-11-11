@@ -126,7 +126,7 @@ class TestDeskNavigation(IntegrationTestCase):
 			self.assertTrue(callable(frappe.get_attr(tile["has_permission"])), tile)
 
 	def test_tile_follows_page_access(self):
-		"""Anyone who may open Self Service gets the My HR tile; nobody else does."""
+		"""Anyone who may open Self Service gets the Self Service tile; nobody else does."""
 		for tile in _apps_screen():
 			gate = frappe.get_attr(tile["has_permission"])
 
@@ -145,7 +145,7 @@ class TestDeskNavigation(IntegrationTestCase):
 				with patch("frappe.get_roles", return_value=["All", "Guest", "Desk User"]):
 					self.assertFalse(gate(), "a user who may open none of the app's pages got the tile")
 				with patch("frappe.get_roles", return_value=["All", "Employee", "Employee Self Service"]):
-					self.assertTrue(gate(), "a member of staff was refused the My HR tile")
+					self.assertTrue(gate(), "a member of staff was refused the Self Service tile")
 			finally:
 				frappe.set_user("Administrator")
 
@@ -196,7 +196,7 @@ class TestMyHR(IntegrationTestCase):
 
 	def test_the_my_hr_tile_opens_self_service_on_its_own_rail(self):
 		(tile,) = _apps_screen()
-		self.assertEqual((tile["title"], tile["route"]), ("My HR", "/desk/self-service"))
+		self.assertEqual((tile["title"], tile["route"]), ("Self Service", "/desk/self-service"))
 		dock = _shipped_dock()
 		self.assertFalse(dock.get("mount_on"), "Self Service has its own rail, not a row in Frappe HR's")
 		self.assertEqual([(r["title"], r["link_to"]) for r in dock["items"]], [("Self Service", "Self Service")])

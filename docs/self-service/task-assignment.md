@@ -20,7 +20,7 @@ sources:
 
 The stand-in agrees first. Your work moves to their to-do list when the leave starts, and whatever is still open comes back to you on your first working day after it. Peter Otieno hands his supplier follow-ups to Amina Hassan for his two weeks' leave.
 
-**Where:** My HR → Self Service → Leave & Attendance → Task Assignment
+**Where:** Self Service → Leave & Attendance → Task Assignment
 
 ## Before you start
 
@@ -31,7 +31,7 @@ The stand-in agrees first. Your work moves to their to-do list when the leave st
 
 The quickest way is **Prepare Handover** on your leave application. To start one yourself:
 
-1. Open **My HR**, click **Hand over**, then **+ Add Task Assignment**.
+1. Open **Self Service**, click **Hand over**, then **+ Add Task Assignment**.
 2. Choose yourself as **Employee**. Your open to-dos fill the **Work** tab.
 3. Choose the **Leave Application**. Only your own leave that has not ended is offered.
 4. Choose your **Stand-in**. Only active colleagues in your company who are not on leave on those dates are offered.

@@ -1,6 +1,6 @@
 @node_modules/@stelden/seal-frontend/docs/CLAUDE-PORTAL.md
 
-# What is particular to the My HR section (seal_hrms)
+# What is particular to the Self Service section (seal_hrms)
 
 - This is a **section** of the My Desk phone app, not a portal: seal_desk's shell loads it at run time
   (`dev_notes/seal_desk/pwa/SECTIONS_CONTRACT.md`). It draws no chrome; its routes are relative to

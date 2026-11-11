@@ -18,7 +18,7 @@ sources:
 
 A company without one has time off in lieu off and ordinary timesheets. Grace Wanjiru sets Mwangaza Foods Ltd's policy: an 8-hour day, time off in lieu for supervisors, and weekly timesheets approved by line managers.
 
-**Where:** My HR → Self Service → Setup → Working Time Policy
+**Where:** Self Service → Setup → Working Time Policy
 
 ## Before you start
 

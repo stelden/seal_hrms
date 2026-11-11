@@ -13,7 +13,7 @@ sources:
 
 **How did each employee's gross pay change from last month?**
 
-**Where:** My HR → search bar → **Employee Salary Register With Monthly Comparison** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Employee Salary Register With Monthly Comparison** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

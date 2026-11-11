@@ -13,7 +13,7 @@ sources:
 
 **Who is covering for colleagues in a period, and is anyone covering too much?**
 
-**Where:** My HR → Self Service → Setup → Stand-in Load · **Who can run it:** HR User, HR Manager, System Manager.
+**Where:** Self Service → Setup → Stand-in Load · **Who can run it:** HR User, HR Manager, System Manager.
 
 ## Filters
 

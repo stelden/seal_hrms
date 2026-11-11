@@ -13,7 +13,7 @@ sources:
 
 **What should the bank pay into each employee's account?**
 
-**Where:** My HR → search bar → **Payroll Bank Advice** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Payroll Bank Advice** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

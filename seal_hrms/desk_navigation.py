@@ -6,7 +6,7 @@
 The dock and the sidebar ship as files (`dock/`, `<module>/sidebar/`) and need no
 code. Only the tile's gate does, because `add_to_apps_screen` names a function.
 
-The tile is "My HR" and opens Self Service, the page every member of staff uses, which
+The tile is "Self Service" ("My HR" until 1.27.0) and opens the Self Service page, the page every member of staff uses, which
 is gated on Employee Self Service. Most of what the page lists is Frappe HR's, so the gate
 asks the question Frappe asks before drawing a workspace
 (`frappe.desk.desktop.Workspace.is_permitted`): may this user open one of the app's

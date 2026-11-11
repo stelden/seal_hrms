@@ -13,7 +13,7 @@ sources:
 
 **What did each salary slip in the period pay and deduct?**
 
-**Where:** My HR → search bar → **Kenya Salary Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Kenya Salary Register** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

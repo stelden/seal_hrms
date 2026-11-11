@@ -13,7 +13,7 @@ sources:
 
 **How did each department's pay, component by component, change from last month?**
 
-**Where:** My HR → search bar → **Salary Register Summary With Monthly Comparison** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
+**Where:** Self Service → search bar → **Salary Register Summary With Monthly Comparison** (no sidebar entry) · **Who can run it:** HR User, HR Manager.
 
 ## Filters
 

@@ -1,5 +1,5 @@
 ---
-title: My HR and Self Service
+title: Self Service
 type: index
 order: 20
 audience:
@@ -14,9 +14,9 @@ sources:
 - seal_hrms/desk/providers.py
 ---
 
-**My HR is each member of staff's own HR in one place: leave, handovers, time off, timesheets, expenses and payslips.**
+**Self Service is each member of staff's own HR in one place: leave, handovers, time off, timesheets, expenses and payslips.**
 
-Click **My HR** on the Apps screen. The **Self Service** page greets you by name, with your designation and department, and shows a tile for each thing you can do: **Leave**, **Hand over**, **Attendance**, **Time off in lieu**, **Timesheets**, **Expenses**, **Shifts**, **Travel**, **Payroll**, **Training** and **HR**. Two cards open **My profile** (your employee record) and **Before you plan** (the holiday list). The sidebar lists the same in groups, with **Setup** for HR officers; you see only what you are allowed to open.
+Click **Self Service** on the Apps screen. Its page greets you by name, with your designation and department, and shows a tile for each thing you can do: **Leave**, **Hand over**, **Attendance**, **Time off in lieu**, **Timesheets**, **Expenses**, **Shifts**, **Travel**, **Payroll**, **Training** and **HR**. Two cards open **My profile** (your employee record) and **Before you plan** (the holiday list). The sidebar lists the same in groups, with **Setup** for HR officers; you see only what you are allowed to open.
 
 Attendance requests, expense claims, advances, shifts, travel, payroll and training work as Frappe HR ships them. See the [Frappe HR documentation](https://docs.frappe.io/hr). If your site uses My Desk, it shows your HR approvals, balances and cover there too: see [SEAL HRMS on My Desk](my-desk.md); managers also get the [Line Manager page](line-manager.md). To be paid into a new account or number, see [Payout Change Request](payout-change-request.md).
 

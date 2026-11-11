@@ -19,7 +19,7 @@ sources:
 
 Mwangaza Foods Ltd requires acceptance before approval for leave of three days or more, except sick leave.
 
-**Where:** My HR → Self Service → Setup → Task Assignment Policy
+**Where:** Self Service → Setup → Task Assignment Policy
 
 ## Before you start
 

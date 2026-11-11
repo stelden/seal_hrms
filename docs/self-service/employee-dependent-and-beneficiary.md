@@ -15,7 +15,7 @@ sources:
 
 Peter Otieno records his daughter as a dependant and his wife as a dependant and beneficiary.
 
-**Where:** My HR → search bar → **Employee Dependent and Beneficiary** (it has no sidebar entry)
+**Where:** Self Service → search bar → **Employee Dependent and Beneficiary** (it has no sidebar entry)
 
 ## Before you start
 

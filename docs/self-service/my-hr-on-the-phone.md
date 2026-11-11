@@ -55,4 +55,4 @@ Links to Frappe HR's own phone app (`/hrms`, and the links in its notifications)
 
 My Desk on the phone → Apps → Self Service. For HR: after the site is updated, staff on the Employee Self Service user type can open everything Self Service shows.
 
-On the desk the same things are under the **My HR** tile on the Apps screen, which opens the **Self Service** page.
+On the desk the same things are under the **Self Service** tile on the Apps screen.

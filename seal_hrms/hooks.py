@@ -38,8 +38,8 @@ fixtures = [
 
 # Each item in the list will be shown as an app in the apps page
 # Frappe 16.50 navigation (dev_notes/navigation_v16/CLIENT_SITE_REALIGNMENT.md): Self
-# Service is staff's own HR, on every site, under its own tile "My HR" with its own rail
-# (1.11.0; it was a row in Frappe HR's rail). Client apps no longer ship a Self Service of
+# Service is staff's own HR, on every site, under its own tile "Self Service" with its own rail
+# (1.11.0, called "My HR" until 1.27.0, Keith 2026-11-11; it was a row in Frappe HR's rail). Client apps no longer ship a Self Service of
 # their own: they ship their own tiles and workspaces, and My Desk carries each person's
 # work. The page keeps the name "Self Service", so its address and people's default page
 # do not move. The gate (desk_navigation.py) asks about pages: anyone with Employee Self
@@ -48,7 +48,7 @@ add_to_apps_screen = [
 	{
 		"name": "seal_hrms",
 		"logo": "/assets/seal_hrms/icons/my-hr-tile.svg",
-		"title": "My HR",
+		"title": "Self Service",
 		"route": "/desk/self-service",
 		"has_permission": "seal_hrms.desk_navigation.has_app_permission",
 		"sequence_id": 6,
