@@ -59,6 +59,7 @@ class TestTheMapping(unittest.TestCase):
 		self.assertEqual(target("/leave-applications", True), "/my-desk/l/Leave%20Application")
 		self.assertEqual(target("/leave-applications/new", True), "/my-desk/apps/my-hr/leave/new")
 		self.assertEqual(target("/shift-assignments/new", True), "/my-desk/l/Shift%20Assignment")
+		self.assertEqual(target("/compensatory-leave-requests/new", True), "/my-desk/l/Compensatory%20Leave%20Request")
 		self.assertEqual(target("/employee-checkins", True), "/my-desk/apps/my-hr/check-in")
 		self.assertEqual(target("/notifications", True), "/my-desk/notifications")
 		self.assertEqual(target("", True), "/my-desk/apps/my-hr")
