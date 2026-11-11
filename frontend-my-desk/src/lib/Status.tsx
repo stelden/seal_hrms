@@ -15,6 +15,7 @@ export function statusLabel(status: string | null | undefined): string {
 		case "Waiting for Authorisation": return __("Waiting for Authorisation");
 		case "Waiting for Approval": return __("Waiting for Approval");
 		case "Waiting for HR": return __("Waiting for HR");
+		case "Pending Approval": return __("Pending Approval");
 		case "Pending": return __("Answer Needed");
 		case "Authorised": return __("Authorised");
 		case "Accepted": return __("Accepted");

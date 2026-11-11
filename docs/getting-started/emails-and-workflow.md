@@ -9,6 +9,7 @@ sources:
 - seal_hrms/seal_hrms/timesheets/notifications.py
 - seal_hrms/seal_hrms/toil/notifications.py
 - seal_hrms/seal_hrms/toil/workflow.py
+- seal_hrms/seal_hrms/travel.py
 - seal_hrms/health/**
 ---
 
@@ -31,6 +32,8 @@ Each of these emails also puts its subject on the person's bell, so My Desk on t
 The time off and timesheet templates are created once and then left alone, so your wording stays.
 
 Time off claims move through the workflow **Time Off in Lieu Claim**. It is created for you and then belongs to your site: HR can change which role takes each action, or rename an action. Keep its eight states: **Draft**, **Waiting for Authorisation**, **Authorised**, **Waiting for Approval**, **Returned**, **Approved**, **Rejected**, **Cancelled**.
+
+Travel requests move through the workflow **Travel Request**: **Draft**, **Pending Approval**, **Approved**, **Rejected**, **Cancelled**. It too is created once and is then your site's; a site that already had its own travel workflow keeps it. It emails whoever may decide a request waiting for them: the person's line manager, and HR. See [Travel requests](../self-service/travel-request.md).
 
 ## Where you see it
 

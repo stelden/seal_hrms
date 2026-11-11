@@ -20,6 +20,7 @@ import { payoutMissing, type PayoutChange } from "../lib/forms";
 import { nameFrom, P } from "../lib/paths";
 import { useGo } from "../lib/shell";
 import { Status } from "../lib/Status";
+import { ConfirmToSee, useConfirmToSee } from "../lib/Confirm";
 import { VerificationCancelled, withVerification } from "../lib/verify";
 
 interface DetailsAnswer {
@@ -27,8 +28,10 @@ interface DetailsAnswer {
 	mobile_no: string | null;
 	has_contact: boolean;
 	dependants: Array<{ name: string; full_name: string; type: string; relationship: string; dob: string | null }>;
-	payout: { bank: string | null; account_name: string | null; account_no: string | null; mobile_no: string | null };
-	payout_request: { name: string; status: string; change: string } | null;
+	/** True while where they are paid is held back until the person confirms it is them (`payout` is then null). */
+	payout_locked?: boolean;
+	payout: { bank: string | null; account_name: string | null; account_no: string | null; mobile_no: string | null } | null;
+	payout_request: { name: string; status: string; change: string | null } | null;
 	payout_requests: Array<{ name: string; status: string; change: string; creation: string }>;
 }
 
@@ -91,14 +94,18 @@ export function MyDetails() {
 							</Button>
 						}
 					>
-						<DescriptionList
-							items={[
-								{ label: __("Bank"), value: data.payout.bank ?? __("None") },
-								{ label: __("Account No."), value: data.payout.account_no, hideWhenEmpty: true },
-								{ label: __("Account Name"), value: data.payout.account_name, hideWhenEmpty: true },
-								{ label: __("Mobile Money"), value: data.payout.mobile_no ?? __("None") },
-							]}
-						/>
+						{data.payout ? (
+							<DescriptionList
+								items={[
+									{ label: __("Bank"), value: data.payout.bank ?? __("None") },
+									{ label: __("Account No."), value: data.payout.account_no, hideWhenEmpty: true },
+									{ label: __("Account Name"), value: data.payout.account_name, hideWhenEmpty: true },
+									{ label: __("Mobile Money"), value: data.payout.mobile_no ?? __("None") },
+								]}
+							/>
+						) : (
+							<PayoutLocked onConfirmed={mutate} />
+						)}
 						{data.payout_requests.length > 0 && (
 							<List divided>
 								{data.payout_requests.map((r) => (
@@ -154,6 +161,21 @@ export function MyDetails() {
 			</SealDialog>
 		</DetailPage>
 	);
+}
+
+/** Where pay goes, held back until the person confirms it is them (the site's choice, SEAL HRMS Settings). */
+function PayoutLocked({ onConfirmed }: { onConfirmed: () => unknown }) {
+	const shell = useShell();
+	const [busy, setBusy] = useState(false);
+	const confirm = async () => {
+		setBusy(true);
+		try {
+			if (await shell.verify()) await onConfirmed();
+		} finally {
+			setBusy(false);
+		}
+	};
+	return <ConfirmToSee what={__("Your payout details show once you confirm it is you.")} busy={busy} onConfirm={confirm} />;
 }
 
 interface PayoutValues {
@@ -266,6 +288,7 @@ export function PayoutRecord() {
 	const notify = useNotify();
 	const name = nameFrom(useParams().name);
 	const { data, isLoading, error, mutate } = useGet<PayoutRecordAnswer>(M.payoutRequestRecord, { name });
+	const gate = useConfirmToSee(error, mutate);
 	const send = usePost<string>(M.sendPayoutChange);
 	const withdraw = usePost<string>(M.withdrawPayoutChange);
 	const [confirmWithdraw, setConfirmWithdraw] = useState(false);
@@ -299,9 +322,10 @@ export function PayoutRecord() {
 			onBack={() => go(P.me)}
 			actions={header}
 			loading={isLoading}
-			error={error}
+			error={gate.error}
 			onRetry={mutate}
 		>
+			{gate.needed && <ConfirmToSee what={__("This request shows once you confirm it is you.")} busy={gate.busy} onConfirm={gate.confirm} />}
 			{data && (
 				<div className="flex flex-col gap-4">
 					{send.errorMessage && <Alert tone="error">{send.errorMessage}</Alert>}

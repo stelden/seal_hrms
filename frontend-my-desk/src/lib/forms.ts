@@ -46,3 +46,28 @@ export function payoutMissing(draft: PayoutDraft): string[] {
 	const missing: string[] = (["bank", "bank_account_no", "account_name"] as const).filter((f) => !draft[f]?.trim());
 	return draft.evidence ? missing : [...missing, "evidence"];
 }
+
+/** One journey of a travel request as the form holds it. */
+export interface TravelLeg {
+	travel_from: string;
+	travel_to: string;
+	mode_of_travel: string;
+	departure_date: string;
+	arrival_date: string;
+	lodging_required: boolean;
+}
+
+/** One expected cost of a travel request as the form holds it. */
+export interface TravelCost {
+	expense_type: string;
+	total_amount: number | null;
+	comments: string;
+}
+
+/** The journeys and costs worth sending: a journey needs a place, a cost a kind or an amount. */
+export function travelRows(itinerary: TravelLeg[], costings: TravelCost[]): { itinerary: TravelLeg[]; costings: TravelCost[] } {
+	return {
+		itinerary: itinerary.filter((l) => l.travel_from.trim() || l.travel_to.trim()),
+		costings: costings.filter((c) => c.expense_type || (c.total_amount ?? 0) > 0),
+	};
+}

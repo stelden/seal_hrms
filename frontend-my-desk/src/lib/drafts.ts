@@ -25,7 +25,7 @@ export const DRAFT_MAX_AGE_DAYS = 30;
 export const DRAFT_DELAY = 400;
 
 /** The forms that keep drafts. Their names are part of the key. */
-export type DraftForm = "timesheet-week" | "expense-claim" | "leave-application";
+export type DraftForm = "timesheet-week" | "expense-claim" | "leave-application" | "travel-request";
 
 interface Stored<T> {
 	saved: number;

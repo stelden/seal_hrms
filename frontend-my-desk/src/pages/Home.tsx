@@ -1,7 +1,7 @@
 // Copyright (c) 2026, Stelden EA Ltd and contributors
 // For license information, please see license.txt
 
-/** My HR's first screen: balances, what is in flight, the five quick actions, and every area. */
+/** Self Service's first screen: balances, what is in flight, the five quick actions, and every area. */
 
 import type { ReactNode } from "react";
 import { useGet } from "@stelden/seal-frontend";
@@ -16,6 +16,7 @@ import {
 	Hourglass,
 	IdCard,
 	MapPin,
+	Plane,
 	Receipt,
 	Repeat,
 	Users,
@@ -49,12 +50,13 @@ export function MyHrHome() {
 		{ label: __("Payslips"), hint: __("Your pay, month by month"), path: P.pay, icon: <Wallet /> },
 		{ label: __("Attendance Requests"), hint: __("Days worked away from the office"), path: P.attendance, icon: <MapPin /> },
 		{ label: __("Shift Requests"), hint: __("Ask to work another shift"), path: P.shifts, icon: <Repeat /> },
+		{ label: __("Travel Requests"), hint: __("Trips for work, approved by your line manager"), path: P.travel, icon: <Plane /> },
 		{ label: __("My Details"), hint: __("Contact, dependants and where you are paid"), path: P.me, icon: <IdCard /> },
 	];
 	if (data?.checkin.offered) areas.splice(4, 0, { label: __("Check-in"), hint: __("Check in and out from your phone"), path: P.checkIn, icon: <Fingerprint /> });
 
 	return (
-		<DashboardPage title={__("My HR")} subtitle={data?.employee.employee_name} loading={isLoading} error={error} onRetry={mutate}>
+		<DashboardPage title={__("Self Service")} subtitle={data?.employee.employee_name} loading={isLoading} error={error} onRetry={mutate}>
 			<div className="flex flex-col gap-6">
 				{data && data.balances.length > 0 && (
 					<StatGrid columns={2}>
@@ -102,7 +104,7 @@ export function MyHrHome() {
 					</Section>
 				)}
 
-				<Section title={__("Everything in My HR")}>
+				<Section title={__("Everything in Self Service")}>
 					<List divided>
 						{areas.map((a) => (
 							<ListItem key={a.path} primary={a.label} secondary={a.hint} icon={a.icon} action={<ChevronRight aria-hidden />} onClick={() => go(a.path)} />

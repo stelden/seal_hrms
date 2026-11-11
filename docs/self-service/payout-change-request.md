@@ -33,6 +33,8 @@ You have an employee record with a login. For mobile money, HR has linked the co
 4. Say why under **Reason**, and click **Save**.
 5. Click **Send to HR**. Where your site asks, confirm your password first.
 
+On the phone, the request and your current payout details show only once you confirm it is you (fingerprint or password), where HR has left that on in [SEAL HRMS Settings](setup/seal-hrms-settings.md).
+
 Your old mobile number gets a text and your old email address an email: "A change to where your pay goes was requested in My Desk. If this wasn't you, call HR." The HR Managers who look after your company are emailed and see it on their bell. Until HR decides, you are paid as before.
 
 ## Fields worth knowing

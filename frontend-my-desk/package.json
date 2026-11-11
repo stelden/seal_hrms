@@ -1,7 +1,7 @@
 {
   "name": "seal-hrms-my-hr",
   "private": true,
-  "version": "1.25.0",
+  "version": "1.27.0",
   "type": "module",
   "scripts": {
     "build": "tsc --noEmit && vite build",

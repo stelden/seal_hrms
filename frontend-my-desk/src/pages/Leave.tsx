@@ -43,6 +43,7 @@ import {
 import { CalendarDays, Plus } from "@stelden/seal-frontend/icons";
 
 import { M } from "../lib/api";
+import { leavePreview } from "../lib/approver";
 import { savedDay, useDraft } from "../lib/drafts";
 import { handoverStep } from "../lib/forms";
 import { nameFrom, P } from "../lib/paths";
@@ -234,9 +235,7 @@ export function LeaveForm() {
 									<TextInput name="description" label={__("Reason")} multiline rows={3} />
 									{ready && options.data && (
 										<Alert tone="info">
-											{options.data.days !== null
-												? __("{0} days, approved by {1}.", [String(options.data.days), options.data.approver_name ?? __("your leave approver")])
-												: __("Approved by {0}.", [options.data.approver_name ?? __("your leave approver")])}
+											{leavePreview(options.data.days, options.data.approver_name)}
 										</Alert>
 									)}
 								</div>

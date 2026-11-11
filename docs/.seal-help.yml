@@ -7,9 +7,6 @@ guide:
   label: SEAL HRMS User Guide
   page: index
 exclude:
-  doctypes:
-    SEAL HRMS Settings: >-
-      holds only the banner picture My HR used to show; My HR now greets each person instead,
-      so nothing on this form changes what anyone sees
+  doctypes: {}
   reports: {}
   portal: {}

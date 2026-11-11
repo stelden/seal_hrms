@@ -50,6 +50,9 @@ export const P = {
 	me: "me",
 	payoutNew: "me/payout/new",
 	payoutRecord: (n: string) => `me/payout/${seg(n)}`,
+	travel: "travel",
+	travelNew: "travel/new",
+	travelRecord: (n: string) => `travel/${seg(n)}`,
 } as const;
 
 export type Opener = { list?: string; record?: (name: string) => string; create?: string };
@@ -70,6 +73,7 @@ export const RECORDS: Readonly<Record<string, Opener>> = {
 	"Shift Request": { list: P.shifts, record: P.shiftRecord, create: P.shiftNew },
 	"Employee Dependent and Beneficiary": { list: P.me, record: () => P.me },
 	"Payout Change Request": { list: P.me, record: P.payoutRecord, create: P.payoutNew },
+	"Travel Request": { list: P.travel, record: P.travelRecord, create: P.travelNew },
 };
 
 /** Where a count on the home screen opens: the list its DocType has here. */

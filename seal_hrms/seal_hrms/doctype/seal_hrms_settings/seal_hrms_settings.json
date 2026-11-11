@@ -5,11 +5,17 @@
  "creation": "2025-05-29 19:05:43.801613",
  "description": "SEAL HRMS Settings",
  "doctype": "DocType",
+ "documentation": "https://docs.stelden.com/hrms/self-service/setup/seal-hrms-settings",
  "engine": "InnoDB",
  "field_order": [
   "sb1",
   "ess_banner_image",
   "ess_banner_image_preview",
+  "sb2",
+  "confirm_before_payslips",
+  "confirm_before_payout_details",
+  "cb1",
+  "confirm_window_minutes",
   "sb0",
   "cb0"
  ],
@@ -31,6 +37,38 @@
    "label": "Leave Planning"
   },
   {
+   "fieldname": "sb2",
+   "fieldtype": "Section Break",
+   "label": "Confirm It Is You",
+   "description": "Screens on the phone app that ask for a fingerprint or the password before they show anything, so nobody can read them off an unlocked phone."
+  },
+  {
+   "default": "1",
+   "fieldname": "confirm_before_payslips",
+   "fieldtype": "Check",
+   "label": "Payslips",
+   "description": "Ask before showing payslips and their PDFs. Turning this off lets anyone holding a signed-in phone read the person's pay."
+  },
+  {
+   "default": "1",
+   "fieldname": "confirm_before_payout_details",
+   "fieldtype": "Check",
+   "label": "Payout Details",
+   "description": "Ask before showing the bank account or mobile number a person is paid to, and their requests to change it."
+  },
+  {
+   "fieldname": "cb1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "5",
+   "fieldname": "confirm_window_minutes",
+   "fieldtype": "Int",
+   "label": "Check Lasts (Minutes)",
+   "non_negative": 1,
+   "description": "How long one check lets these screens open without asking again. Between 1 and 60 minutes; shorter is safer."
+  },
+  {
    "fieldname": "cb0",
    "fieldtype": "Column Break"
   },
@@ -44,7 +82,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-05-10 12:00:00.000000",
+ "modified": "2026-11-11 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "SEAL HRMS",
  "name": "SEAL HRMS Settings",

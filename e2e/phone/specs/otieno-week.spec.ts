@@ -3,7 +3,7 @@
 
 /**
  * THE P5/P6 DONE-WHEN (seal_desk pwa/DESIGN.md §7): "Otieno does a week of self service on a phone;
- * Achieng approves it." In the real My Desk shell (seal_desk), at 390×844, with the My HR section
+ * Achieng approves it." In the real My Desk shell (seal_desk), at 390×844, with the Self Service section
  * (seal_hrms) loaded at run time:
  *
  *   Otieno Ochieng applies for leave with Njeri Mwangi covering, claims time off for a Saturday's
@@ -48,9 +48,9 @@ test("Otieno does a week of self service on his phone", async ({ page }) => {
 	who = await seeded(page.request);
 	await signIn(page, who.otieno_user, who.password);
 
-	await test.step("My HR opens from the Apps tab, in the shell", async () => {
+	await test.step("Self Service opens from the Apps tab, in the shell", async () => {
 		await page.goto("/my-desk/apps");
-		await expect(page.getByRole("heading", { name: "My HR" }).first()).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Self Service" }).first()).toBeVisible();
 		await expect(page.getByText(who.otieno_name).first()).toBeVisible();
 		await expectNoSidewaysScroll(page);
 		await shot(page, "01-my-hr");

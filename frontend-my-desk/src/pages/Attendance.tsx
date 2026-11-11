@@ -14,6 +14,7 @@ import { Alert, Button, DescriptionList, DetailPage, EmptyState, FormPage, List,
 import { LogIn, LogOut, MapPin, Plus, Repeat } from "@stelden/seal-frontend/icons";
 
 import { M } from "../lib/api";
+import { willApprove } from "../lib/approver";
 import { nameFrom, P } from "../lib/paths";
 import { useGo } from "../lib/shell";
 import { Status } from "../lib/Status";
@@ -285,7 +286,9 @@ export function ShiftForm() {
 	const form = useSealForm<{ shift_type: string; from_date: string; to_date: string }>({ schema, defaultValues: { shift_type: "", from_date: localToday(), to_date: "" } });
 	return (
 		<FormPage title={__("New Shift Request")} onBack={() => go(P.shifts)} loading={options.isLoading} error={options.error} onRetry={options.mutate}>
-			{options.data && !options.data.has_shift_approver && <Alert tone="warning">{__("Nobody approves your shift requests yet. Ask HR to set a shift approver.")}</Alert>}
+			{options.data && (
+				<Alert tone={options.data.has_shift_approver ? "info" : "warning"}>{willApprove(options.data.has_shift_approver ? options.data.shift_approver_name : null)}</Alert>
+			)}
 			<SealForm
 				form={form}
 				onSubmit={async (v) => {

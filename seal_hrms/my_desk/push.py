@@ -36,10 +36,11 @@ CLAIM, TIMESHEET = "Time Off in Lieu Claim", "Timesheet"
 ADVANCE, PAYSLIP = "Employee Advance", "Salary Slip"
 PAYOUT, HANDOVER = "Payout Change Request", "Task Assignment"
 SHIFT, ATTENDANCE = "Shift Request", "Attendance Request"
+TRAVEL = "Travel Request"
 
 #: Records whose notices are HR's. The section claims the same types (hooks.py
-#: `seal_desk_app_sections`), so tapping one opens it in My HR.
-HR_DOCTYPES = frozenset({LEAVE, EXPENSE, CLAIM, TIMESHEET, ADVANCE, PAYSLIP, PAYOUT, HANDOVER, SHIFT, ATTENDANCE})
+#: `seal_desk_app_sections`), so tapping one opens it in Self Service.
+HR_DOCTYPES = frozenset({LEAVE, EXPENSE, CLAIM, TIMESHEET, ADVANCE, PAYSLIP, PAYOUT, HANDOVER, SHIFT, ATTENDANCE, TRAVEL})
 
 #: Notices about these show only their subject on a locked phone: they are about pay.
 SUBJECT_ONLY = frozenset({PAYSLIP, PAYOUT, ADVANCE})
@@ -69,7 +70,7 @@ def kind_of(notification_log) -> str | None:
 		return None if waiting_for(user, doctype, name) else HR
 	except Exception:
 		frappe.log_error(
-			title="My HR: could not tell a notice's kind",
+			title="Self Service: could not tell a notice's kind",
 			reference_doctype="Notification Log",
 			reference_name=notification_log.get("name"),
 		)
@@ -127,8 +128,17 @@ def waiting_for(user: str, doctype: str, name: str) -> bool:
 		doc = frappe.db.get_value(SHIFT, name, ["employee", "approver", "status", "docstatus"], as_dict=True)
 		return doc.docstatus == 0 and doc.status == "Draft" and doc.approver == user and user_for_employee(doc.employee) != user
 
+	if doctype == TRAVEL:
+		from seal_hrms.seal_hrms import travel
+
+		doc = frappe.get_doc(TRAVEL, name)
+		# Waiting at the workflow's approval step for this person: their direct report's, or any for HR.
+		if doc.docstatus != 0 or doc.get(travel.STATE_FIELD) != travel.WAITING or travel.user_of(doc.employee) == user:
+			return False
+		return travel.manager_user_of(doc.employee) == user or not travel.is_narrowed(user)
+
 	# Payslips, advances, attendance requests and handovers ask nothing of the recipient that the
-	# Approvals inbox carries (a handover is answered on My HR's Cover screen).
+	# Approvals inbox carries (a handover is answered on Self Service's Cover screen).
 	return False
 
 

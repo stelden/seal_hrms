@@ -105,11 +105,16 @@ _SITE_SETUP = [
     # offered to it once (line_manager.py, Keith 2026-11-11). The role itself comes from a patch
     # (v1_26.create_line_manager_role) and, on a new site, from after_sync below (§1.23).
     "seal_hrms.seal_hrms.line_manager.sync_all",
+    # Travel requests on Self Service: the approval workflow and the Employee and Line Manager
+    # rights, created once, then the site's (travel.py, Keith 2026-11-11).
+    "seal_hrms.seal_hrms.travel.ensure_setup",
 ]
 
 after_install = "seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels"
 # A new site marks every patch as run, so the Line Manager role is created here too, before its sync.
-after_sync = ["seal_hrms.seal_hrms.line_manager.ensure_role", *_SITE_SETUP]
+# The "Confirm It Is You" defaults are written for the form to show (sensitive.py); on existing
+# sites patch v1_27.seed_sensitive_screen_defaults does it.
+after_sync = ["seal_hrms.seal_hrms.line_manager.ensure_role", "seal_hrms.seal_hrms.sensitive.seed_defaults", *_SITE_SETUP]
 after_migrate = ["seal_hrms.seal_hrms.employee_permissions.ensure_employee_permlevels", *_SITE_SETUP]
 
 # include js, css files in header of web template
@@ -325,6 +330,10 @@ doc_events = {
         "validate": "seal_hrms.seal_hrms.toil.guards.no_banked_dates",
         "on_update": "seal_hrms.seal_hrms.toil.guards.note_dropped_dates",
     },
+    # Travel requests (travel.py): the person travelling never decides their own request.
+    "Travel Request": {
+        "validate": "seal_hrms.seal_hrms.travel.validate",
+    },
 }
 
 # Permissions
@@ -338,12 +347,15 @@ permission_query_conditions = {
     "Time Off in Lieu Claim": "seal_hrms.seal_hrms.toil.access.query_conditions",
     # The member of staff and HR.
     "Payout Change Request": "seal_hrms.seal_hrms.payout_change.query_conditions",
+    # Staff and line managers: their own and their direct reports'; HR and others as the site says.
+    "Travel Request": "seal_hrms.seal_hrms.travel.query_conditions",
 }
 
 has_permission = {
     "Task Assignment": "seal_hrms.seal_hrms.task_assignment_access.has_permission",
     "Time Off in Lieu Claim": "seal_hrms.seal_hrms.toil.access.has_permission",
     "Payout Change Request": "seal_hrms.seal_hrms.payout_change.has_permission",
+    "Travel Request": "seal_hrms.seal_hrms.travel.has_permission",
 }
 # Scheduled Tasks
 # ---------------
@@ -477,6 +489,10 @@ app_health_checks = [
     # Payout change requests: shown on the request's form as well (health/my_desk.py).
     "seal_hrms.health.my_desk.payout_changes_waiting",
     "seal_hrms.health.my_desk.payout_change_without_fresh_check",
+    # Payslips and payout details shown without "Confirm It Is You" (SEAL HRMS Settings form too).
+    "seal_hrms.health.my_desk.sensitive_screens_without_a_check",
+    # Travel requests cannot be sent or decided (no workflow, or staff without access).
+    "seal_hrms.health.my_desk.travel_requests_cannot_move",
     # Staff get the My Desk phone app only where seal_desk is installed (Keith, 2026-11-11).
     "seal_hrms.health.my_desk.phone_app_needs_my_desk",
 ]
@@ -593,14 +609,14 @@ seal_desk_approval_sources = [
     },
 ]
 
-# The My HR section of the My Desk phone app (HR_ON_MY_DESK.md §3, SECTIONS_CONTRACT.md §1):
+# The Self Service section of the My Desk phone app (HR_ON_MY_DESK.md §3, SECTIONS_CONTRACT.md §1):
 # every self-service screen, built from frontend-my-desk/ into public/my-desk/ (committed).
 # seal_desk loads it at run time where it is installed; anywhere else this is inert. The
 # DocTypes it claims open in its screens from anywhere in the app (/my-desk/r/<DocType>/<name>).
 seal_desk_app_sections = [
     {
         "key": "seal_hrms.my_hr",
-        "label": "My HR",
+        "label": "Self Service",
         "icon": "id-card",
         "module": "/assets/seal_hrms/my-desk/section.js",
         "css": "/assets/seal_hrms/my-desk/section.css",
@@ -619,6 +635,7 @@ seal_desk_app_sections = [
             "Shift Request",
             "Employee Dependent and Beneficiary",
             "Payout Change Request",
+            "Travel Request",
         ],
         "visible": "seal_hrms.my_desk.section.visible",
         "order": 10,

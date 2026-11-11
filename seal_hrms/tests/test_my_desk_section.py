@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Stelden EA Ltd and contributors
 # For license information, please see license.txt
 
-"""The My HR section's backend (seal_hrms/my_desk/api.py, section.py; MY_DESK_P5_PLAN.md).
+"""The Self Service section's backend (seal_hrms/my_desk/api.py, section.py; MY_DESK_P5_PLAN.md).
 
 Otieno Ochieng is a programme officer at the test company; Njeri Mwangi a colleague; Achieng
 Odhiambo approves leave. Pinned: every list and record is the person's own (Njeri never sees

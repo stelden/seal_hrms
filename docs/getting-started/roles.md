@@ -9,6 +9,7 @@ sources:
 - seal_hrms/seal_hrms/task_assignment_access.py
 - seal_hrms/seal_hrms/toil/access.py
 - seal_hrms/seal_hrms/timesheets/approval.py
+- seal_hrms/seal_hrms/travel.py
 ---
 
 **Who can see and decide handovers, time off claims and timesheets follows the leave approver, not only the role.**
@@ -21,11 +22,11 @@ An approver who is not the person's leave approver cannot decide their claim, an
 
 | Role | What they can do |
 |:---|:---|
-| **Employee** or **Employee Self Service** | Prepare their own handover, claim time off in lieu, send their timesheets for approval, ask to change where their pay goes. |
+| **Employee** or **Employee Self Service** | Prepare their own handover, claim time off in lieu, send their timesheets for approval, ask to change where their pay goes, ask to travel. They see only their own travel requests. |
 | Named stand-in | Read the handover that names them, accept or decline it, and leave notes while covering. |
 | **Leave Approver** | Decide time off claims and read the handovers for leave they approve; approve timesheets where the company says so. |
 | **HR User** | See and change every handover and claim; read the policies and the HR reports. |
-| **Line Manager** | Given to everyone with people reporting to them, and taken away when nobody does (unless it was given by hand or by a role profile). It allows nothing by itself: it decides who gets the [Line Manager page](../self-service/line-manager.md) on My Desk. |
+| **Line Manager** | Given to everyone with people reporting to them, and taken away when nobody does (unless it was given by hand or by a role profile). It decides who gets the [Line Manager page](../self-service/line-manager.md) on My Desk, and lets them approve or reject the [travel requests](../self-service/travel-request.md) of the people who report directly to them, and nobody else's. |
 | **HR Manager** | As **HR User**, and create and change the Task Assignment Policy and the Working Time Policy; approve or reject [payout change requests](../self-service/payout-change-request.md), except their own. |
 
 An HR officer who is also an employee is, by Frappe HR's default, limited to records linked to their own employee record: turn off **Create User Permission** on their employee record so they can decide other people's requests.

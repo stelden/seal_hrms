@@ -88,8 +88,46 @@ def phone_app_needs_my_desk():
 		severity=Severity.ADVISORY,
 		title=_("Staff cannot get the phone app: install My Desk"),
 		detail=_(
-			"My HR on the phone, approvals and HR notices reach staff through the My Desk app. Install My Desk "
+			"Self Service on the phone, approvals and HR notices reach staff through the My Desk app. Install My Desk "
 			"(seal_desk) on this site so staff can use them."
 		),
 		state=State.MISSING,
+	)
+
+
+@health_check(label="Phone screens: confirm it is you", category="Configuration", forms=("SEAL HRMS Settings",))
+def sensitive_screens_without_a_check():
+	"""Payslips or payout details are set to ask "is it still you?", but this site cannot ask yet."""
+	from seal_hrms.seal_hrms import sensitive
+
+	screens = sensitive.unprotected()
+	if not screens:
+		return []
+	names = {sensitive.PAYSLIPS: _("payslips"), sensitive.PAYOUT_DETAILS: _("payout details")}
+	return Finding(
+		severity=Severity.DEGRADED,
+		title=_("Phone screens open without asking who is holding the phone"),
+		detail=_(
+			"These are set to ask first, but this site cannot ask yet: {0}. Anyone holding a signed-in phone can "
+			"read them. Update SEAL Common to a release with step-up (1.35.0 or later)."
+		).format(", ".join(names[s] for s in screens)),
+		state=State.MISCONFIGURED,
+		link="/app/seal-hrms-settings",
+	)
+
+
+@health_check(label="Travel requests", category="Configuration")
+def travel_requests_cannot_move():
+	"""Staff cannot send travel requests, or managers cannot decide them (seal_hrms.seal_hrms.travel)."""
+	from seal_hrms.seal_hrms import travel
+
+	found = travel.problems()
+	if not found:
+		return []
+	return Finding(
+		severity=Severity.ADVISORY,
+		title=_("Travel requests cannot be sent or decided"),
+		detail=" ".join(found) + " " + _("Run a migrate to set them up, or give the access in Role Permissions Manager."),
+		state=State.MISCONFIGURED,
+		link="/app/workflow?document_type=Travel%20Request",
 	)

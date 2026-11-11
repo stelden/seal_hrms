@@ -11,6 +11,14 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.27.0 (2026-11-11)
+
+- **Changed:** the phone section **My HR** is now **Self Service**, the same name as the desk page it matches; see [Self Service on the phone](self-service/my-hr-on-the-phone.md). The desk tile is still **My HR**.
+- **Fixed:** before you send a leave application, time off claim, timesheet, expense claim or shift request, the phone now says who **will** approve it ("Achieng Odhiambo will approve it."); it used to read as if it were already approved.
+- **New:** payslips and where you are paid ask for your fingerprint or password first, so nobody can read them off an unlocked phone. HR chooses which screens ask, and for how long a check lasts, in [SEAL HRMS Settings](self-service/setup/seal-hrms-settings.md).
+- **New:** [Travel requests](self-service/travel-request.md) on the phone and the desk: ask to travel for work, and your line manager approves it.
+- **Changed:** amounts on a new advance request show the company's currency, as expense claims already did.
+
 ## 1.26.0 (2026-11-11)
 
 - **New:** a **Line Manager** page for My Desk: approvals, who in your team is away this week, cover, timesheets and time off waiting for you, and quick links to your team's records. It goes to everyone with people reporting to them; see [Line Manager page](self-service/line-manager.md).

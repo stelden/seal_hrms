@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Stelden EA Ltd and contributors
 # For license information, please see license.txt
 
-"""What the My HR section of the My Desk phone app calls (HR_ON_MY_DESK.md §3, MY_DESK_P5_PLAN.md §3).
+"""What the Self Service section of the My Desk phone app calls (HR_ON_MY_DESK.md §3, MY_DESK_P5_PLAN.md §3).
 
 Every endpoint answers for the person signed in. Nothing takes a `user`, and nothing that
 writes takes an `employee`: the person's own Employee record, its company and its approvers
@@ -27,6 +27,8 @@ import json
 import frappe
 from frappe import _
 from frappe.utils import add_days, cint, flt, get_datetime, getdate, now_datetime, nowdate, strip_html, today
+
+from seal_hrms.seal_hrms import sensitive
 
 LIST_LIMIT = 50
 
@@ -117,7 +119,7 @@ def _department_approver(employee: str, field: str, parentfield: str) -> str | N
 
 @frappe.whitelist(methods=["GET"])
 def home() -> dict:
-	"""My HR's first screen: who, balances, what is in flight, and whether check-in is offered."""
+	"""Self Service's first screen: who, balances, what is in flight, and whether check-in is offered."""
 	from seal_hrms.my_desk.figures import balances
 	from seal_hrms.seal_hrms.self_service_status import self_service
 
@@ -436,6 +438,8 @@ def handover_record(name: str) -> dict:
 @frappe.whitelist(methods=["GET"])
 def toil_list() -> dict:
 	"""The person's claims, what is left and lapsing, and how their company takes claims."""
+	from hrms.hr.doctype.leave_application.leave_application import get_employee_leave_approver
+
 	from seal_hrms.my_desk.figures import _toil_policy, lapsing
 
 	person = me()
@@ -457,6 +461,8 @@ def toil_list() -> dict:
 	return {
 		"employee": person.name,
 		"eligible": bool(policy),
+		# Who a claim sent now goes to (the claim names its leave approver when it is saved).
+		"approver_name": _full_name(get_employee_leave_approver(person.name)),
 		"leave_type": policy.leave_type if policy else None,
 		"mode": policy.prior_authorisation if policy else None,
 		"from_attendance": bool(policy and policy.evidence_attendance),
@@ -606,7 +612,16 @@ def timesheet_week(week_start: str | None = None) -> dict:
 			"can_claim": bool(candidates(doc)) if doc.docstatus == 1 else False,
 		}
 	activity_types = frappe.get_list("Activity Type", filters={"disabled": 0}, pluck="name", order_by="name asc", limit_page_length=200)
-	return {**context, "timesheet": sheet, "activity_types": activity_types, "approval": bool(context.get("weekly")) and not approval.site_workflow()}
+	approves = bool(context.get("weekly")) and not approval.site_workflow()
+	# Who the week goes to: the one it was sent to, else whoever the company's rule names now.
+	approver = (sheet and doc.get("custom_approver")) or (approval.approver_for(person.name, person.company) if approves else None)
+	return {
+		**context,
+		"timesheet": sheet,
+		"activity_types": activity_types,
+		"approval": approves,
+		"approver_name": _full_name(approver),
+	}
 
 
 @frappe.whitelist(methods=["GET"])
@@ -833,7 +848,9 @@ def advance_record(name: str) -> dict:
 
 @frappe.whitelist(methods=["GET"])
 def payslips() -> list[dict]:
+	"""The person's own submitted payslips. Asks "is it still you?" first where the site says so."""
 	person = me()
+	sensitive.require(sensitive.PAYSLIPS)
 	return _own_list(
 		"Salary Slip",
 		person.name,
@@ -846,6 +863,8 @@ def payslips() -> list[dict]:
 
 @frappe.whitelist(methods=["GET"])
 def payslip_record(name: str) -> dict:
+	"""One payslip the person may read. Asks "is it still you?" first where the site says so."""
+	sensitive.require(sensitive.PAYSLIPS)
 	doc = _record("Salary Slip", name)
 	return {
 		"name": doc.name,
@@ -876,9 +895,180 @@ def payslip_pdf(name: str) -> None:
 	"""The slip as a PDF, as the person, in the site's default print format for Salary Slip. Never cached."""
 	from frappe.utils.print_format import download_pdf
 
+	sensitive.require(sensitive.PAYSLIPS)
 	doc = _record("Salary Slip", name)
 	doc.check_permission("print")
 	download_pdf("Salary Slip", doc.name, format=payslip_print_format())
+
+
+# ---------------------------------------------------------------- travel (Keith, 2026-11-11)
+
+#: Frappe HR's own options for these fields, as the person sees them
+TRAVEL_TYPES = ("Domestic", "International")
+TRAVEL_FUNDING = ("Require Full Funding", "Fully Sponsored", "Partially Sponsored, Require Partial Funding")
+TRAVEL_MODES = ("Flight", "Train", "Taxi", "Rented Car")
+#: what the phone writes on each itinerary row and each costing row; nothing else is taken
+ITINERARY_FIELDS = ("travel_from", "travel_to", "mode_of_travel", "departure_date", "arrival_date", "lodging_required", "other_details")
+COSTING_FIELDS = ("expense_type", "total_amount", "comments")
+
+
+def _travel_state(doc) -> str:
+	"""Where a request is: its workflow state, else Frappe's own docstatus in words."""
+	from seal_hrms.seal_hrms.travel import STATE_FIELD
+
+	state = doc.get(STATE_FIELD) if doc.meta.has_field(STATE_FIELD) else None
+	return state or ("Draft", "Submitted", "Cancelled")[cint(doc.docstatus)]
+
+
+@frappe.whitelist(methods=["GET"])
+def travel_list() -> list[dict]:
+	"""The person's own travel requests, newest first, each with where and when it goes."""
+	from seal_hrms.seal_hrms.travel import STATE_FIELD
+
+	person = me()
+	wanted = ["name", "purpose_of_travel", "travel_type", "docstatus", "creation"]
+	if frappe.get_meta("Travel Request").has_field(STATE_FIELD):
+		wanted.append(STATE_FIELD)
+	rows = _own_list("Travel Request", person.name, wanted, filters={"docstatus": ["<", 2]}, order_by="creation desc")
+	# The itinerary of the requests just listed (and so readable): the first leg says where and when.
+	legs = {}
+	if rows:
+		for leg in frappe.get_all(
+			"Travel Itinerary",
+			filters={"parenttype": "Travel Request", "parent": ["in", [r.name for r in rows]]},
+			fields=["parent", "travel_from", "travel_to", "departure_date"],
+			order_by="idx asc",
+		):
+			legs.setdefault(leg.parent, leg)
+	for row in rows:
+		leg = legs.get(row.name)
+		row["state"] = row.pop(STATE_FIELD, None) or ("Draft", "Submitted", "Cancelled")[cint(row.docstatus)]
+		row["travel_to"] = leg.travel_to if leg else None
+		row["travel_from"] = leg.travel_from if leg else None
+		row["departure_date"] = leg.departure_date if leg else None
+	return rows
+
+
+@frappe.whitelist(methods=["GET"])
+def travel_options() -> dict:
+	"""What the travel request form offers, the currency of its costs, and who will decide it."""
+	from seal_hrms.seal_hrms.travel import manager_user_of
+
+	person = me()
+	return {
+		# get_all, not get_list (SEAL_DEV_RULES §2.8, inverted on purpose): staff may not read these
+		# lists of names on every site, and only the names leave.
+		"purposes": frappe.get_all("Purpose of Travel", pluck="name", order_by="name asc", limit_page_length=200),
+		"expense_types": frappe.get_all("Expense Claim Type", pluck="name", order_by="name asc", limit_page_length=200),
+		"travel_types": list(TRAVEL_TYPES),
+		"funding": list(TRAVEL_FUNDING),
+		"modes": list(TRAVEL_MODES),
+		"currency": _currency(person.company),
+		"approver_name": _full_name(manager_user_of(person.name)),
+	}
+
+
+def _rows(value, fields: tuple[str, ...]) -> list[dict]:
+	rows = _payload(value) or []
+	if not isinstance(rows, list):
+		frappe.throw(_("The rows were not understood. Try again."))
+	return [{f: row.get(f) for f in fields if row.get(f) not in (None, "")} for row in rows if isinstance(row, dict)]
+
+
+@frappe.whitelist(methods=["POST"])
+def request_travel(
+	travel_type: str,
+	purpose_of_travel: str,
+	itinerary,
+	costings=None,
+	travel_funding: str | None = None,
+	description: str | None = None,
+	send: int = 0,
+) -> dict:
+	"""A new travel request for the person, in their company (from their record, never the default
+	company), saved as a Draft and, with `send`, sent to their line manager by the workflow."""
+	person = me()
+	legs = [r for r in _rows(itinerary, ITINERARY_FIELDS) if r.get("travel_from") or r.get("travel_to")]
+	if not legs:
+		frappe.throw(_("Add at least one journey: where from and where to."))
+	doc = frappe.new_doc("Travel Request")
+	doc.update(
+		{
+			"employee": person.name,
+			"company": person.company,
+			"travel_type": travel_type,
+			"purpose_of_travel": purpose_of_travel,
+			"travel_funding": travel_funding,
+			"description": description,
+		}
+	)
+	for leg in legs:
+		leg["lodging_required"] = cint(leg.get("lodging_required"))
+		doc.append("itinerary", leg)
+	for cost in _rows(costings, COSTING_FIELDS):
+		if cost.get("expense_type") or flt(cost.get("total_amount")):
+			cost["total_amount"] = flt(cost.get("total_amount"))
+			doc.append("costings", cost)
+	doc.insert()
+	state = _travel_state(doc)
+	if cint(send):
+		state = _send_travel(doc)
+	return {"name": doc.name, "state": state}
+
+
+def _send_travel(doc) -> str:
+	from frappe.model.workflow import apply_workflow, get_workflow_name
+
+	from seal_hrms.seal_hrms.travel import SEND, STATE_FIELD
+
+	if not get_workflow_name("Travel Request"):
+		frappe.throw(_("Travel requests cannot be sent on this site yet. Ask HR."))
+	return apply_workflow(doc, SEND).get(STATE_FIELD)
+
+
+@frappe.whitelist(methods=["POST"])
+def travel_action(name: str, action: str) -> str:
+	"""Send the person's own draft request to their line manager. Decisions are made from Approvals."""
+	from seal_hrms.seal_hrms.travel import SEND
+
+	if action != SEND:
+		frappe.throw(_("Decide travel requests from Approvals."))
+	doc = frappe.get_doc("Travel Request", name)
+	if not _mine(doc):
+		frappe.throw(_("You can only send your own travel requests."), frappe.PermissionError)
+	return _send_travel(doc)
+
+
+@frappe.whitelist(methods=["GET"])
+def travel_record(name: str) -> dict:
+	"""One travel request the person may read: their own, or (for their line manager) a report's."""
+	from frappe.model.workflow import get_transitions
+
+	from seal_hrms.seal_hrms.travel import SEND, manager_user_of
+
+	doc = _record("Travel Request", name)
+	mine = _mine(doc)
+	try:
+		steps = [t.action for t in get_transitions(doc)] if doc.docstatus == 0 else []
+	except Exception:
+		frappe.clear_last_message()
+		steps = []
+	return {
+		"name": doc.name,
+		"employee_name": doc.employee_name,
+		"state": _travel_state(doc),
+		"docstatus": doc.docstatus,
+		"travel_type": doc.travel_type,
+		"purpose_of_travel": doc.purpose_of_travel,
+		"travel_funding": doc.travel_funding,
+		"description": doc.description,
+		"currency": _currency(doc.company) if doc.company else None,
+		"approver_name": _full_name(manager_user_of(doc.employee)),
+		"itinerary": [{f: row.get(f) for f in ITINERARY_FIELDS} for row in doc.itinerary],
+		"costings": [{f: row.get(f) for f in COSTING_FIELDS} for row in doc.costings],
+		"mine": mine,
+		"can_send": mine and SEND in steps,
+	}
 
 
 # ---------------------------------------------------------------- check-in (PWA-5)
@@ -1021,9 +1211,26 @@ def mask(value: str | None) -> str | None:
 	return "•••• " + text[-4:] if len(text) > 4 else "•" * len(text)
 
 
+@frappe.whitelist(methods=["POST"])
+def confirm_screen(screen: str) -> dict:
+	"""Whether a sensitive screen may open now; refuses with VerificationNeeded when it must ask first.
+
+	The phone calls it before opening a payslip's PDF in the browser, where a refusal could not be
+	answered, so the person confirms in the app first.
+	"""
+	if screen not in sensitive.SWITCHES:
+		frappe.throw(_("There is no such screen."))
+	sensitive.require(screen)
+	return {"ok": True}
+
+
 @frappe.whitelist(methods=["GET"])
 def my_details() -> dict:
-	"""The person's own details, contact, dependants and beneficiaries, and where they are paid (masked)."""
+	"""The person's own details, contact, dependants and beneficiaries, and where they are paid (masked).
+
+	Where they are paid, and their requests to change it, are left out (`payout_locked`) until the
+	session is freshly checked, where the site asks for that; the rest of the screen still shows.
+	"""
 	from seal_hrms.seal_hrms.payout_change import DOCTYPE, OPEN, current_details
 
 	person = me()
@@ -1047,21 +1254,26 @@ def my_details() -> dict:
 	pending = None
 	if frappe.db.table_exists(DOCTYPE):
 		pending = frappe.db.get_value(DOCTYPE, {"employee": person.name, "status": ["in", list(OPEN)]}, ["name", "status", "change"], as_dict=True)
+	locked = not sensitive.is_fresh(sensitive.PAYOUT_DETAILS)
 	return {
 		"employee": {**person, **emp, "custom_contact": None},
 		"mobile_no": mask(now.mobile_no),
 		"has_contact": bool(emp.custom_contact),
 		"dependants": dependants,
-		"payout": {
+		"payout_locked": locked,
+		"payout": None
+		if locked
+		else {
 			"bank": now.bank,
 			"account_name": now.account_name,
 			"account_no": mask(now.bank_account_no),
 			"mobile_no": mask(now.mobile_no),
 		},
-		"payout_request": pending,
-		"payout_requests": _own_list(DOCTYPE, person.name, ["name", "status", "change", "creation"], order_by="creation desc", limit=10)
-		if frappe.db.table_exists(DOCTYPE)
-		else [],
+		# Whether one is waiting stays visible (it stops a second request); what it asks for does not.
+		"payout_request": {"name": pending.name, "status": pending.status, "change": None if locked else pending.change} if pending else None,
+		"payout_requests": []
+		if locked or not frappe.db.table_exists(DOCTYPE)
+		else _own_list(DOCTYPE, person.name, ["name", "status", "change", "creation"], order_by="creation desc", limit=10),
 	}
 
 
@@ -1134,6 +1346,7 @@ def payout_request_record(name: str) -> dict:
 	"""One payout change request, with every account and number masked."""
 	from seal_hrms.seal_hrms.payout_change import DOCTYPE
 
+	sensitive.require(sensitive.PAYOUT_DETAILS)
 	doc = _record(DOCTYPE, name)
 	return {
 		"name": doc.name,

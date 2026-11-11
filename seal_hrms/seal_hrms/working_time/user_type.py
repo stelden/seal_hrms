@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Stelden EA Ltd and contributors
 # For license information, please see license.txt
 
-"""Let Employee Self Service users open what Self Service and My HR need.
+"""Let Employee Self Service users open what Self Service (desk and phone) needs.
 
 Users of Frappe HR's "Employee Self Service" User Type (mhc.local has six) can
 open only the doctypes listed on it. Frappe HR adds its own the same way
@@ -18,7 +18,7 @@ import frappe
 
 USER_TYPE = "Employee Self Service"
 #: What staff on this user type need beyond Frappe HR's own list: their time off claims, and
-#: what the My HR section of the My Desk phone app reads or writes (MY_DESK_P5_PLAN.md §7).
+#: what the Self Service section of the My Desk phone app reads or writes (MY_DESK_P5_PLAN.md §7).
 #: A DocType already listed is given only the rights it lacks; nothing is ever taken away.
 DOCTYPES = {
 	"Time Off in Lieu Claim": ("read", "write", "create", "delete"),
@@ -28,6 +28,8 @@ DOCTYPES = {
 	"Leave Allocation": ("read",),
 	"Employee Dependent and Beneficiary": ("read",),
 	"Activity Type": ("read",),
+	# Frappe HR lists it already; kept here so a site whose list lost it gets it back (Keith, 2026-11-11).
+	"Travel Request": ("read", "write", "create", "delete"),
 }
 SAVEPOINT = "seal_hrms_ess_claims"
 

@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { handoverStep, mergeFill, payoutMissing } from "./forms";
+import { handoverStep, mergeFill, payoutMissing, travelRows } from "./forms";
 
 describe("leave handover step", () => {
 	it("shows only when the company's rule covers the leave, and requires a stand-in only under a Require rule", () => {
@@ -43,5 +43,15 @@ describe("payout change", () => {
 	it("needs only the number for mobile money", () => {
 		expect(payoutMissing({ change: "Mobile Money", mobile_no: " " })).toEqual(["mobile_no"]);
 		expect(payoutMissing({ change: "Mobile Money", mobile_no: "254712345678" })).toEqual([]);
+	});
+});
+
+describe("travelRows", () => {
+	it("keeps journeys with a place and costs with a kind or an amount", () => {
+		const leg = { travel_from: "Nairobi", travel_to: "Kisumu", mode_of_travel: "", departure_date: "", arrival_date: "", lodging_required: false };
+		const empty = { ...leg, travel_from: " ", travel_to: "" };
+		const rows = travelRows([leg, empty], [{ expense_type: "", total_amount: null, comments: "" }, { expense_type: "", total_amount: 1500, comments: "" }]);
+		expect(rows.itinerary).toEqual([leg]);
+		expect(rows.costings).toEqual([{ expense_type: "", total_amount: 1500, comments: "" }]);
 	});
 });

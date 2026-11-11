@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 /**
- * The My HR section of the My Desk phone app (HR_ON_MY_DESK §3; SECTIONS_CONTRACT §2): every self-service
+ * The Self Service section of the My Desk phone app (HR_ON_MY_DESK §3; SECTIONS_CONTRACT §2): every self-service
  * screen, under /my-desk/apps/my-hr. The shell loads this module at run time and lends React, the router,
  * the SDK and the library; the hook `seal_desk_app_sections` (seal_hrms/hooks.py) points at its build.
  */
@@ -20,6 +20,7 @@ import { MyDetails, PayoutForm, PayoutRecord } from "./pages/Me";
 import { AdvanceForm, AdvanceList, AdvanceRecord, ExpenseForm, ExpenseList, ExpenseRecord, PayList, PayRecord } from "./pages/Money";
 import { TimesheetList, TimesheetRecord, TimesheetWeek } from "./pages/Timesheet";
 import { ToilForm, ToilList, ToilRecord } from "./pages/Toil";
+import { TravelForm, TravelList, TravelRecord } from "./pages/Travel";
 
 export const ROUTES = [
 	{ path: "leave", element: <LeaveList /> },
@@ -51,6 +52,9 @@ export const ROUTES = [
 	{ path: "me", element: <MyDetails /> },
 	{ path: "me/payout/new", element: <PayoutForm /> },
 	{ path: "me/payout/:name", element: <PayoutRecord /> },
+	{ path: "travel", element: <TravelList /> },
+	{ path: "travel/new", element: <TravelForm /> },
+	{ path: "travel/:name", element: <TravelRecord /> },
 ];
 
 export default defineSection({

@@ -17,8 +17,9 @@ Profiles (its D116), so "has direct reports" is kept as a role, **Line Manager**
     given by hand or by a Role Profile is never in the ledger, so it is never taken away;
     nor is one the person's Role Profile now carries.
 
-The role grants nothing by itself (no DocType permissions, no desk access): it only says who
-the page is for. The page itself is the site's to publish (seal_desk D104); the first time
+The role has no desk access. It says who the page is for and, since 1.27.0, carries one set of
+rights a site is given once (`travel.ensure_permissions`): deciding the travel requests of the
+people who report directly to the holder, scoped by `travel.has_permission`. The page itself is the site's to publish (seal_desk D104); the first time
 it is on a site with nobody chosen for it, this app offers it to the role (`offer_page`).
 
 Everything shown on the page is worked out with the viewer's own permissions. "Their team"

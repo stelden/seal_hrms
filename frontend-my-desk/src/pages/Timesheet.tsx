@@ -38,6 +38,7 @@ import {
 import { ChevronLeft, ChevronRight, Clock, Copy, Plus, Trash2 } from "@stelden/seal-frontend/icons";
 
 import { M } from "../lib/api";
+import { willApprove } from "../lib/approver";
 import { nameFrom, P } from "../lib/paths";
 import { clearDraft, readDraft, savedDay, useDraft } from "../lib/drafts";
 import { useGo } from "../lib/shell";
@@ -98,6 +99,8 @@ interface WeekAnswer {
 	previous_entries: WeekEntry[];
 	activity_types: string[];
 	approval: boolean;
+	/** Who will approve the week when it is sent (or who it was sent to). */
+	approver_name?: string | null;
 	timesheet: null | {
 		name: string;
 		docstatus: number;
@@ -252,6 +255,7 @@ export function TimesheetWeek() {
 						</Alert>
 					)}
 					{!data.weekly && <Alert tone="info">{__("Your company does not keep weekly timesheets. Fill timesheets in on a computer.")}</Alert>}
+					{editable && data.approval && <Alert tone={data.approver_name ? "info" : "warning"}>{willApprove(data.approver_name)}</Alert>}
 					{data.timesheet?.state === "Returned" && data.timesheet.return_reason && (
 						<Alert tone="warning" title={__("Returned to You")}>
 							{data.timesheet.return_reason}

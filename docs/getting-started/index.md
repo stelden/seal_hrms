@@ -20,4 +20,4 @@ Staff open **My HR** on the Apps screen, which opens the **Self Service** page. 
 - [Emails and the time off workflow](emails-and-workflow.md)
 - [SEAL HRMS on My Desk](../self-service/my-desk.md)
 - [Line Manager page](../self-service/line-manager.md)
-- [My HR on the phone](../self-service/my-hr-on-the-phone.md)
+- [Self Service on the phone](../self-service/my-hr-on-the-phone.md)

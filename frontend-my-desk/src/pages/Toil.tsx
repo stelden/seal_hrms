@@ -32,6 +32,7 @@ import {
 import { Hourglass, Plus } from "@stelden/seal-frontend/icons";
 
 import { M } from "../lib/api";
+import { willApprove } from "../lib/approver";
 import { mergeFill, type ToilLine } from "../lib/forms";
 import { nameFrom, P } from "../lib/paths";
 import { useGo } from "../lib/shell";
@@ -41,6 +42,8 @@ import { addDays, localToday } from "../lib/week";
 interface ToilListAnswer {
 	employee: string;
 	eligible: boolean;
+	/** Who will approve a claim the person sends. */
+	approver_name?: string | null;
 	leave_type: string | null;
 	mode: string | null;
 	from_attendance: boolean;
@@ -170,6 +173,7 @@ export function ToilForm() {
 				) : undefined
 			}
 		>
+			{info.data && <Alert tone={info.data.approver_name ? "info" : "warning"}>{willApprove(info.data.approver_name)}</Alert>}
 			{fillNote && <Alert tone="info">{fillNote}</Alert>}
 			<SealForm form={form} onSubmit={submit}>
 				<RowsInput

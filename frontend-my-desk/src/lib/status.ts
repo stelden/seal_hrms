@@ -13,6 +13,7 @@ export const toneOf = toneMap(
 		"Waiting for Authorisation": "warning",
 		"Waiting for Approval": "warning",
 		"Waiting for HR": "warning",
+		"Pending Approval": "warning",
 		Pending: "warning",
 		Authorised: "info",
 		Accepted: "success",

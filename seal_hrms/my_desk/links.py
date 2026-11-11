@@ -22,7 +22,7 @@ MY_DESK = "/my-desk"
 MY_HR = "/my-desk/apps/my-hr"
 SELF_SERVICE = "/desk/self-service"
 
-#: Frappe HR's list routes → (DocType, the My HR screen for a new one, or None).
+#: Frappe HR's list routes → (DocType, the Self Service screen for a new one, or None).
 COLLECTIONS = {
 	"leave-applications": ("Leave Application", "leave/new"),
 	"expense-claims": ("Expense Claim", "expenses/new"),
@@ -59,9 +59,9 @@ def _desk_slug(doctype: str) -> str:
 def target(path: str | None, has_my_desk: bool) -> str:
 	"""The address a Frappe HR link `path` (what followed `/hrms`) opens on this site.
 
-	With My Desk: a record opens at `/my-desk/r/<DocType>/<name>` (the My HR section draws it,
+	With My Desk: a record opens at `/my-desk/r/<DocType>/<name>` (the Self Service section draws it,
 	else the shell's own view), a list at `/my-desk/l/<DocType>`, "new" in the section's own
-	form, and the rest at the matching My Desk screen or My HR's home. Without it: a record opens
+	form, and the rest at the matching My Desk screen or Self Service's home. Without it: a record opens
 	its desk form (P5-7), anything else Self Service.
 	"""
 	parts = [p for p in (path or "").split("?")[0].split("#")[0].strip("/").split("/") if p]

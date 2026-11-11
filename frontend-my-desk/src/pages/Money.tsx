@@ -16,10 +16,13 @@ import { Alert, Button, DescriptionList, DetailPage, EmptyState, FormPage, List,
 import { Download, HandCoins, Plus, Receipt, Wallet } from "@stelden/seal-frontend/icons";
 
 import { M, payslipPdfUrl } from "../lib/api";
+import { willApprove } from "../lib/approver";
+import { ConfirmToSee, useConfirmToSee } from "../lib/Confirm";
 import { savedDay, useDraft } from "../lib/drafts";
 import { nameFrom, P } from "../lib/paths";
 import { useGo } from "../lib/shell";
 import { Status } from "../lib/Status";
+import { VerificationCancelled, withVerification } from "../lib/verify";
 import { localToday } from "../lib/week";
 
 // ---------------------------------------------------------------- expense claims
@@ -139,7 +142,7 @@ export function ExpenseForm() {
 					{__("You started this claim on {0}. Add the receipts again before you send it.", [formatDate(savedDay(restoredAt))])}
 				</Alert>
 			)}
-			{options.data && !options.data.approver_name && <Alert tone="warning">{__("Nobody approves your expense claims yet. Ask HR to set an expense approver.")}</Alert>}
+			{options.data && <Alert tone={options.data.approver_name ? "info" : "warning"}>{willApprove(options.data.approver_name)}</Alert>}
 			<SealForm form={form} onSubmit={submit}>
 				<RowsInput
 					name="lines"
@@ -356,9 +359,12 @@ interface SlipRow {
 export function PayList() {
 	const go = useGo();
 	const { data, isLoading, error, mutate, hasLoaded } = useGet<SlipRow[]>(M.payslips);
+	const gate = useConfirmToSee(error, mutate);
 	return (
-		<ListPage title={__("Payslips")} onBack={() => go("")} loading={isLoading} error={error} onRetry={mutate}>
-			{hasLoaded && !data?.length ? (
+		<ListPage title={__("Payslips")} onBack={() => go("")} loading={isLoading} error={gate.error} onRetry={mutate}>
+			{gate.needed ? (
+				<ConfirmToSee what={__("Your payslips show once you confirm it is you.")} busy={gate.busy} onConfirm={gate.confirm} />
+			) : hasLoaded && !data?.length ? (
 				<EmptyState icon={<Wallet />} title={__("No payslips yet")} description={__("Your payslips show here once payroll is run.")} />
 			) : (
 				<List divided>
@@ -388,21 +394,42 @@ export function PayRecord() {
 	const go = useGo();
 	const name = nameFrom(useParams().name);
 	const { data, isLoading, error, mutate } = useGet<SlipAnswer>(M.payslipRecord, { name });
+	const gate = useConfirmToSee(error, mutate);
+	const shell = useShell();
+	const notify = useNotify();
+	const confirm = usePost<{ ok: boolean }>(M.confirmScreen);
+	// The PDF opens in the browser, where a "confirm it is you" refusal could not be answered: confirm here
+	// first (the server checks again when the PDF is asked for).
+	const openPdf = async () => {
+		try {
+			await withVerification(() => confirm.run({ screen: "payslips" }), shell.verify);
+		} catch (e) {
+			if (!(e instanceof VerificationCancelled)) notify.error(__("The payslip could not be opened. Try again."));
+			return;
+		}
+		const url = payslipPdfUrl(name);
+		const tab = window.open(url, "_blank");
+		if (tab) tab.opener = null;
+		else window.location.assign(url);
+	};
 	return (
 		<DetailPage
 			title={data ? __("{0} to {1}", [formatDate(data.start_date), formatDate(data.end_date)]) : __("Payslip")}
 			subtitle={data?.employee_name}
 			onBack={() => go(P.pay)}
 			actions={
-				<Button href={payslipPdfUrl(name)} target="_blank" rel="noopener">
-					<Download />
-					{__("Open Payslip")}
-				</Button>
+				data ? (
+					<Button loading={confirm.loading} onClick={openPdf}>
+						<Download />
+						{__("Open Payslip")}
+					</Button>
+				) : undefined
 			}
 			loading={isLoading}
-			error={error}
+			error={gate.error}
 			onRetry={mutate}
 		>
+			{gate.needed && <ConfirmToSee what={__("This payslip shows once you confirm it is you.")} busy={gate.busy} onConfirm={gate.confirm} />}
 			{data && (
 				<div className="flex flex-col gap-6">
 					<DescriptionList

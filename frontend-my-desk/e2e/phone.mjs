@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 /**
- * The My HR section in a browser at a phone's size (390×844), without seal_desk's shell (MY_DESK_P5_PLAN
+ * The Self Service section in a browser at a phone's size (390×844), without seal_desk's shell (MY_DESK_P5_PLAN
  * §8): the test host (e2e/host, built to e2e/.host) lends React and the library through an import map as
  * the shell does, and loads the committed bundle (../seal_hrms/public/my-desk). A stub of the site
  * answers the section's endpoints with Otieno Ochieng's records and keeps what was posted.
@@ -148,7 +148,7 @@ try {
 	await step("home shows balances and every area", async () => {
 		await page.goto(`${site.origin}/my-desk/apps/my-hr`);
 		await until(page, "the home screen", () => document.body.innerText.includes("Annual Leave left"));
-		for (const text of ["14 days", "Claims in approval", "Apply for Leave", "Everything in My HR", "Payslips"]) {
+		for (const text of ["14 days", "Claims in approval", "Apply for Leave", "Everything in Self Service", "Payslips"]) {
 			if (!(await page.getByText(text).first().isVisible())) throw new Error(`"${text}" not shown`);
 		}
 		await fits();

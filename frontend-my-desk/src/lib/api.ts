@@ -50,6 +50,12 @@ export const M = {
 	requestPayoutChange: `${API}request_payout_change`,
 	setPayoutEvidence: `${API}set_payout_evidence`,
 	payoutRequestRecord: `${API}payout_request_record`,
+	confirmScreen: `${API}confirm_screen`,
+	travelList: `${API}travel_list`,
+	travelOptions: `${API}travel_options`,
+	travelRecord: `${API}travel_record`,
+	requestTravel: `${API}request_travel`,
+	travelAction: `${API}travel_action`,
 	// seal_hrms' own endpoints, the same the desk calls.
 	respond: "seal_hrms.seal_hrms.task_assignment_actions.respond",
 	respondAuthority: "seal_hrms.seal_hrms.task_assignment_actions.respond_authority",

@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Stelden EA Ltd and contributors
 # For license information, please see license.txt
-"""Serve dev.local to the My HR walk from ONE process, ONE connection and ONE transaction.
+"""Serve dev.local to the Self Service walk from ONE process, ONE connection and ONE transaction.
 
 Copied from seal_desk's P3 harness (``.worktrees/p3-app/seal_desk/e2e/phone/harness.py``) and
 extended, never edited there: the walk needs seal_desk's real shell, so this serves the worktree

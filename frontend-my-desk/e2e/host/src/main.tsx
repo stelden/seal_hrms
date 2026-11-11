@@ -18,7 +18,7 @@ import { House, LayoutGrid } from "@stelden/seal-frontend/icons";
 const BASE = "/my-desk/apps/my-hr";
 const ENTRY = {
 	key: "seal_hrms.my_hr",
-	label: "My HR",
+	label: "Self Service",
 	module: "/assets/seal_hrms/my-desk/section.js",
 	css: "/assets/seal_hrms/my-desk/section.css",
 	stamp: "/assets/seal_hrms/my-desk/section.json",

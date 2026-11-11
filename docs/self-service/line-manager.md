@@ -28,7 +28,7 @@ A manager's HR work is spread across leave, expense claims, timesheets and time 
 | **My Tasks** | Your open tasks. |
 | Menu **Team** | **My Team** (the people who report to you), leave applications, expense claims, timesheets, time off claims and handovers. |
 
-**Who gets it.** Everyone whose employee record has at least one active employee reporting to them (**Reports To**) and who signs in to the desk. They are given the **Line Manager** role automatically: when an employee record changes, and once a day. When nobody reports to them any more, the role is taken away again, unless someone gave it by hand or through a role profile.
+**Who gets it.** Everyone whose employee record has at least one active employee reporting to them (**Reports To**) and who signs in to the desk. They are given the **Line Manager** role automatically: when an employee record changes, and once a day. When nobody reports to them any more, the role is taken away again, unless someone gave it by hand or through a role profile. The role also lets them approve or reject the [travel requests](travel-request.md) of the people who report directly to them.
 
 **Setting it up.** The page arrives as a draft offered to the Line Manager role. A Desk Manager opens **Desk Page** "Line Manager", checks who gets it, changes the priority or what people may change if needed, and publishes it. To change its parts, duplicate it.
 

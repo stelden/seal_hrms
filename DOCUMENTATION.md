@@ -556,15 +556,16 @@ The Self Service sidebar's **Compensatory Leave Request** link is replaced by
 **Time Off in Lieu** on every site (decided 2026-11-09). Compensatory Leave
 Request still works from its own list for other leave types.
 
-### My HR on the phone (1.24.0)
+### Self Service on the phone (1.24.0; "My HR" until 1.27.0)
 
-The **My HR** section of the My Desk phone app (`frontend-my-desk/`, built into `seal_hrms/public/my-desk/` and
+The **Self Service** section of the My Desk phone app (captioned "My HR" until 1.27.0; its key `seal_hrms.my_hr` and
+route `/my-desk/apps/my-hr` are unchanged, so links, push targets and kept drafts still work) (`frontend-my-desk/`, built into `seal_hrms/public/my-desk/` and
 committed; HR_ON_MY_DESK §3). seal_desk's shell loads it at run time where seal_desk is installed
 (`hooks.seal_desk_app_sections`, `seal_hrms.my_hr`, shown to anyone whose login is linked to an active Employee:
 `my_desk/section.visible`). It claims Leave Application, Leave Allocation, Task Assignment, Time Off in Lieu Claim,
 Timesheet, Expense Claim, Employee Advance, Salary Slip, Employee, Employee Checkin, Attendance Request, Shift
-Request, Employee Dependent and Beneficiary and Payout Change Request: those records open in its screens anywhere
-in the app (`/my-desk/r/<DocType>/<name>`).
+Request, Employee Dependent and Beneficiary, Payout Change Request and (1.27.0) Travel Request: those records open
+in its screens anywhere in the app (`/my-desk/r/<DocType>/<name>`). The desk tile keeps its own name, **My HR**.
 
 - **Screens**: home (balances, in progress, quick actions); leave (apply, with the handover in the same step when
   the company's handover rule covers the leave: stand-in, work and approvals to hand over, sent to the stand-in at
@@ -611,6 +612,43 @@ installed; `seal_hrms/my_desk/push.py` imports neither.
   row's account and cost centre as Frappe HR's form does.
 - **Browser walk** in seal_desk's real shell: `e2e/playwright.phone.config.ts`, `e2e/phone/` (harness copied from
   seal_desk P3; serves dev.local in one rolled-back transaction).
+
+### Screens that ask first, approvers named, travel requests (1.27.0)
+
+From Keith's emulator walk of the phone section (2026-11-11).
+
+- **Who will approve**, said before anything is sent, the same way on every form (`frontend-my-desk/src/lib/approver.ts`):
+  "7 days. Achieng Odhiambo will approve it." (leave), "Achieng Odhiambo will approve it." (time off, timesheet week,
+  expense claim, shift request, travel request), or "Nobody approves this yet. Ask HR to set your approver." The
+  server adds `approver_name` to `toil_list` (the leave approver a claim goes to) and `timesheet_week` (the approver it
+  was sent to, else `timesheets.approval.approver_for`).
+- **Currency**: every amount label and figure takes the person's company's currency (`api._currency`) or the record's
+  own `currency`; nothing is fixed. A new advance's Amount now shows it too. dev.local's `_Test Company` keeps INR,
+  which is what "Amount (INR)" showed.
+- **Screens that ask "is it still you?"** (`seal_hrms/sensitive.py`): `payslips`, `payslip_record`, `payslip_pdf`
+  and `payout_request_record` refuse with seal_common's `VerificationNeeded` unless the session was checked within
+  the window; `my_details` holds back `payout` and `payout_requests` (`payout_locked: true`) instead of refusing, so
+  the rest of the screen shows; `confirm_screen(screen)` (POST) lets the phone confirm before opening a payslip PDF
+  in the browser. The phone asks once on arrival (`src/lib/Confirm.tsx`), then offers **Confirm**. Which screens ask
+  and how long a check lasts: **SEAL HRMS Settings → Confirm It Is You** (`confirm_before_payslips`,
+  `confirm_before_payout_details`, both on by default; `confirm_window_minutes`, 5, held to 1–60). A switch never saved
+  reads as its default; patch `v1_27.seed_sensitive_screen_defaults` (and `after_sync`) writes the defaults so the
+  form shows them. Where the site cannot ask (no seal_common step-up) the screens show and App Health
+  `sensitive_screens_without_a_check` says so, on the settings form too (banner, SEAL_DEV_RULES §1.18).
+- **Travel requests** (`seal_hrms/travel.py`; Frappe HR's Travel Request, unchanged): after migrate (and on install)
+  `ensure_setup` creates, once and only where missing, the Frappe Workflow "Travel Request" (`workflow_state`: Draft →
+  Pending Approval → Approved/Rejected, both submitted; Approved → Cancelled by HR; send by Employee, Employee Self
+  Service, HR; decide by Line Manager, HR User, HR Manager; email alerts on), Custom DocPerms (Employee: read, write,
+  create, delete, print; Line Manager: read, write, submit, print) and a Property Setter making the request's
+  Employee field ignore User Permissions. A site that already has a travel workflow keeps it. Scoping is
+  `has_permission` + `query_conditions`: a user reaching travel requests only as Employee, Employee Self Service or
+  Line Manager sees their own and their direct reports' (`Employee.reports_to`), a manager may read, write and submit a
+  report's; anyone with another role that reads them (HR) is not narrowed. `validate` refuses a decision by the person
+  travelling. Phone endpoints `travel_list`, `travel_options`, `request_travel` (company from the employee; journeys
+  and costs as rows; `send=1` sends it), `travel_record`, `travel_action` (send only: decisions are made from
+  Approvals, where seal_desk lists the workflow's waiting requests by the manager's own permissions). The Employee
+  Self Service user type lists Travel Request; a waiting request's notice is an approval for the manager
+  (`push.waiting_for`). App Health `travel_requests_cannot_move`.
 
 ### Payout Change Request (1.23.0)
 
@@ -693,10 +731,14 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_payout_change_req
 bench --site dev.local run-tests --module seal_hrms.tests.test_line_manager
 bench --site dev.local run-tests --module seal_hrms.tests.test_phone_app_health
 bench --site dev.local run-tests --module seal_hrms.tests.test_notification_logs
+bench --site dev.local run-tests --module seal_hrms.tests.test_sensitive_screens
+bench --site dev.local run-tests --module seal_hrms.tests.test_travel_request
 ```
 
 Before a site is migrated, `test_payout_change_request` borrows its DocType into a temporary table
-(`tests/_borrowed_doctype.py`); from a worktree, `.worktrees/p4-hr/run_wt_tests.py` runs modules
+(`tests/_borrowed_doctype.py`), and `test_travel_request` borrows Travel Request's workflow state column the same way;
+the 1.27.0 modules use their own cast (`tests/_phone_cast.py`) so they do not wait on the phone walk's harness, which
+holds the older tests' people in one open transaction while it runs; from a worktree, `.worktrees/p4-hr/run_wt_tests.py` runs modules
 against dev.local with the worktree's code (and seal_desk's P3 worktree) first on the path.
 
 `02-handover.spec.ts` walks a real handover in two logins: HR prepares and
@@ -712,6 +754,14 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-11** — 1.27.0. **From Keith's emulator walk of the phone section**: forms say who **will** approve a
+  request before it is sent (it read as already approved); amounts confirmed to follow the company's currency (new
+  advance label too); the phone section is captioned **Self Service** (key and route unchanged; the desk tile stays
+  My HR); payslips and payout details ask "is it still you?" first, set in SEAL HRMS Settings (new section, App
+  Health check, settings banner, seeding patch); **travel requests** on the phone with a shipped Frappe Workflow,
+  Employee and Line Manager permissions, own-and-team scoping, and a refusal of self-decision. Needs migrate (settings
+  fields, patch, the travel workflow and permissions) and a web restart; the phone bundle rebuilt.
 
 - **2026-11-11** — 1.26.0. **Keith's answers to the phone app's open decisions**: approving a payout change is the
   governed change under seal_governance (`mdc_bypass`, with a comment on the Employee); payout notices go to the HR

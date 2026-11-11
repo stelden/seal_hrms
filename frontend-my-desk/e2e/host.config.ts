@@ -3,7 +3,7 @@
 
 // A stand-in for seal_desk's shell, for browser checks while the shell is being built: lends React and
 // the library through an import map exactly as the shell does (frappePortal lend), and loads the built
-// My HR section from /assets/seal_hrms/my-desk/ (MY_DESK_P5_PLAN §8; the library's consumer check).
+// Self Service section from /assets/seal_hrms/my-desk/ (MY_DESK_P5_PLAN §8; the library's consumer check).
 import react from "@vitejs/plugin-react";
 import { frappePortal } from "@stelden/seal-frontend/vite";
 import { defineConfig, mergeConfig } from "vite";
