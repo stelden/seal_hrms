@@ -324,6 +324,12 @@ doc_events = {
     "Compensatory Leave Request": {
         # Before Frappe HR's own checks, so people are pointed at the claim first.
         "before_validate": "seal_hrms.seal_hrms.toil.guards.compensatory_request",
+        # A new request is assigned to the employee's leave approver; approving submits it
+        # (seal_hrms/seal_hrms/compensatory_leave.py). All stand down under a site Workflow.
+        "after_insert": "seal_hrms.seal_hrms.compensatory_leave.after_insert",
+        "before_submit": "seal_hrms.seal_hrms.compensatory_leave.before_submit",
+        "on_submit": "seal_hrms.seal_hrms.compensatory_leave.on_submit",
+        "on_trash": "seal_hrms.seal_hrms.compensatory_leave.on_trash",
     },
     "Overtime Slip": {
         "before_validate": "seal_hrms.seal_hrms.toil.guards.drop_banked_dates",
@@ -607,6 +613,14 @@ seal_desk_approval_sources = [
         "act": "seal_hrms.my_desk.approvals.act_on_timesheet",
         "watch": ["Timesheet", "Task Assignment"],
     },
+    {
+        "key": "seal_hrms.compensatory_leave",
+        "label": "Compensatory leave",
+        "doctypes": ["Compensatory Leave Request"],
+        "provider": "seal_hrms.desk.providers.compensatory_approvals",
+        "act": "seal_hrms.my_desk.approvals.act_on_compensatory",
+        "watch": ["Compensatory Leave Request", "ToDo", "Task Assignment"],
+    },
 ]
 
 # The Self Service section of the My Desk phone app (HR_ON_MY_DESK.md §3, SECTIONS_CONTRACT.md §1):
@@ -636,6 +650,7 @@ seal_desk_app_sections = [
             "Employee Dependent and Beneficiary",
             "Payout Change Request",
             "Travel Request",
+            "Compensatory Leave Request",
         ],
         "visible": "seal_hrms.my_desk.section.visible",
         "order": 10,

@@ -30,6 +30,8 @@ DOCTYPES = {
 	"Activity Type": ("read",),
 	# Frappe HR lists it already; kept here so a site whose list lost it gets it back (Keith, 2026-11-11).
 	"Travel Request": ("read", "write", "create", "delete"),
+	# Likewise listed by Frappe HR; the phone's compensatory leave requests need it (1.28.0).
+	"Compensatory Leave Request": ("read", "write", "create", "delete"),
 }
 SAVEPOINT = "seal_hrms_ess_claims"
 

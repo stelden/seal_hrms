@@ -3,13 +3,15 @@
 
 """HR approvals that are not plain Frappe Workflow steps, for My Desk's Approvals inbox.
 
-Four kinds (HR_ON_MY_DESK.md §2.1, SECTIONS_CONTRACT.md §4):
+Five kinds (HR_ON_MY_DESK.md §2.1, SECTIONS_CONTRACT.md §4):
 
   * leave, decided by the employee's leave approver (Frappe HR: no workflow);
   * expense claims, decided by the expense approver (likewise);
   * time off in lieu claims (a Frappe Workflow, but only the named approver or
     their stand-in may decide, which the workflow cannot say);
-  * timesheets, where the company asks for approval (`timesheets.approval`).
+  * timesheets, where the company asks for approval (`timesheets.approval`);
+  * compensatory leave requests, decided by the employee's leave approver, to whom
+    a new request is assigned (`seal_hrms.compensatory_leave`).
 
 Each lists what waits for the person **and** for anyone whose approvals they hold
 while that person is on leave (`acting`), never the person's own requests. Items are
@@ -21,7 +23,7 @@ is still waiting, that a refusal has a reason and that a money decision had a fr
 check, then takes the same server path the desk form takes, so Frappe HR's own rules
 and ours (self-approval, cover before approval, stand-ins) all run again.
 
-Leave and expense claims stand down where the site runs its own Frappe Workflow on
+Leave, expense claims and compensatory leave requests stand down where the site runs its own Frappe Workflow on
 them: that workflow's steps are then the approval, and seal_desk lists them itself.
 """
 
@@ -317,3 +319,90 @@ def act_on_timesheet(name: str, action: str, reason: str | None = None) -> dict:
 		return _done(_("Timesheet approved."))
 	approval.return_timesheet(name, reason)
 	return _done(_("Timesheet returned."))
+
+
+# ---------------------------------------------------------------- compensatory leave requests
+
+
+def _work_days(row) -> str:
+	from frappe.utils import date_diff
+
+	days = date_diff(row.work_end_date, row.work_from_date) + 1 - (0.5 if row.half_day else 0)
+	return f"{flt(days):g}"
+
+
+def compensatory_items(user: str) -> list[frappe._dict]:
+	"""Compensatory leave requests assigned to `user` as leave approver, or to someone they approve for."""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+
+	if not frappe.db.table_exists(cl.DOCTYPE) or cl.has_workflow():
+		return []
+	me = _own_employee(user)
+	waiting = {}
+	for todo in frappe.get_all(
+		"ToDo",
+		filters=[["reference_type", "=", cl.DOCTYPE], ["status", "=", "Open"], ["allocated_to", "in", approvers_for(user, cl.AUTHORITY)]],
+		fields=["reference_name", "allocated_to"],
+		order_by="creation asc",
+	):
+		# The person's own assignment first: then the item is theirs, not held for someone else.
+		if todo.reference_name not in waiting or todo.allocated_to == user:
+			waiting[todo.reference_name] = todo.allocated_to
+	if not waiting:
+		return []
+	out = []
+	for row in frappe.get_all(
+		cl.DOCTYPE,
+		filters=[["name", "in", list(waiting)], ["docstatus", "=", 0]],
+		fields=["name", "employee", "employee_name", "leave_type", "work_from_date", "work_end_date", "half_day", "creation"],
+		order_by="creation asc",
+	):
+		if me and row.employee == me:
+			continue
+		out.append(_item(
+			cl.DOCTYPE, row.name,
+			_("Compensatory leave for {0}").format(row.employee_name),
+			_("{0}: {1} days worked, {2} to {3}").format(
+				_(row.leave_type or ""), _work_days(row), formatdate(row.work_from_date), formatdate(row.work_end_date)
+			),
+			sender=user_for_employee(row.employee), since=row.creation,
+			on_behalf_of=_on_behalf(waiting[row.name], user),
+			actions=[_action(APPROVE), _action(REJECT)],
+		))
+	return out
+
+
+@frappe.whitelist(methods=["POST"])
+def act_on_compensatory(name: str, action: str, reason: str | None = None) -> dict:
+	"""Approve or reject a compensatory leave request from the Approvals inbox, as the session user.
+
+	Approving submits it, which adds the days to the leave type (Frappe HR); rejecting takes it off
+	the approver's list with the reason as a comment, and tells the employee.
+	"""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+	from seal_hrms.seal_hrms import notify
+
+	user = frappe.session.user
+	_require(action in (APPROVE, REJECT), _("A compensatory leave request can only be approved or rejected here."))
+	_require(not cl.has_workflow(), _("Compensatory leave on this site moves by its approval steps. Open the request."))
+	doc = _load(cl.DOCTYPE, name)
+	named = cl.waiting_with(doc.name)
+	_require(doc.docstatus == 0 and named, _("This request is no longer waiting for a decision."))
+	_require(user_for_employee(doc.employee) != user, _("This is your own request. Someone else must decide it."), frappe.PermissionError)
+	_require(
+		any(_may_decide(n, cl.AUTHORITY, user) for n in named),
+		_("Only {0}, or whoever approves in their place, can decide this request.").format(frappe.utils.get_fullname(named[0])),
+		frappe.PermissionError,
+	)
+	reason = _reason(action, reason)
+	employee_user = user_for_employee(doc.employee)
+	if action == APPROVE:
+		doc.submit()  # as the person: the approver's share lets them; Frappe HR adds the days
+		if reason:
+			doc.add_comment("Comment", reason)
+		notify.log(employee_user, _("Your compensatory leave request was approved"), cl.DOCTYPE, doc.name)
+		return _done(_("Compensatory leave approved."))
+	doc.add_comment("Comment", reason)
+	cl.reject(doc)
+	notify.log(employee_user, _("Your compensatory leave request was not approved"), cl.DOCTYPE, doc.name)
+	return _done(_("Compensatory leave rejected."))

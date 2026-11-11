@@ -59,8 +59,19 @@ describe("routes", () => {
 	});
 
 	it("give each area its list, and the forms the home screen opens", () => {
-		for (const path of [P.leave, P.leaveNew, P.cover, P.toil, P.toilNew, P.timesheet, P.week("2026-11-09"), P.expenses, P.expenseNew, P.advances, P.pay, P.checkIn, P.attendance, P.shifts, P.me, P.payoutNew]) {
+		for (const path of [P.leave, P.leaveNew, P.cover, P.toil, P.toilNew, P.timesheet, P.week("2026-11-09"), P.expenses, P.expenseNew, P.advances, P.pay, P.checkIn, P.attendance, P.shifts, P.me, P.payoutNew, P.compensatory, P.compensatoryNew]) {
 			expect(routed(path), path).toBe(true);
 		}
+	});
+});
+
+// Frappe HR's phone links go to /my-hr-go, which answers from seal_hrms/my_desk/links.py.
+const LINKS = readFileSync(resolve(process.cwd(), "../seal_hrms/my_desk/links.py"), "utf8");
+
+describe("Frappe HR's links", () => {
+	it("open a form of the section for every \"new\" they name", () => {
+		const forms = [...LINKS.matchAll(/\("[^"]+", "([a-z-]+\/new)"\)/g)].map((m) => m[1]);
+		expect(forms).toContain("compensatory-leave/new");
+		for (const path of forms) expect(routed(path), path).toBe(true);
 	});
 });

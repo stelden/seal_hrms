@@ -13,6 +13,7 @@ import { defineSection } from "@stelden/seal-frontend/section";
 
 import { RECORDS } from "./lib/paths";
 import { AttendanceForm, AttendanceList, CheckIn, RequestRecord, ShiftForm, ShiftList } from "./pages/Attendance";
+import { CompensatoryForm, CompensatoryList, CompensatoryRecord } from "./pages/Compensatory";
 import { CoverList, HandoverRecord } from "./pages/Cover";
 import { MyHrHome } from "./pages/Home";
 import { LeaveForm, LeaveList, LeaveRecord } from "./pages/Leave";
@@ -55,6 +56,9 @@ export const ROUTES = [
 	{ path: "travel", element: <TravelList /> },
 	{ path: "travel/new", element: <TravelForm /> },
 	{ path: "travel/:name", element: <TravelRecord /> },
+	{ path: "compensatory-leave", element: <CompensatoryList /> },
+	{ path: "compensatory-leave/new", element: <CompensatoryForm /> },
+	{ path: "compensatory-leave/:name", element: <CompensatoryRecord /> },
 ];
 
 export default defineSection({

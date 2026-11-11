@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { handoverStep, mergeFill, payoutMissing, travelRows } from "./forms";
+import { handoverStep, mergeFill, payoutMissing, travelRows, workDays } from "./forms";
 
 describe("leave handover step", () => {
 	it("shows only when the company's rule covers the leave, and requires a stand-in only under a Require rule", () => {
@@ -53,5 +53,18 @@ describe("travelRows", () => {
 		const rows = travelRows([leg, empty], [{ expense_type: "", total_amount: null, comments: "" }, { expense_type: "", total_amount: 1500, comments: "" }]);
 		expect(rows.itinerary).toEqual([leg]);
 		expect(rows.costings).toEqual([{ expense_type: "", total_amount: 1500, comments: "" }]);
+	});
+});
+
+describe("workDays", () => {
+	it("counts every day worked, less half for a half day", () => {
+		expect(workDays("2026-10-20", "2026-10-20", false)).toBe(1);
+		expect(workDays("2026-12-25", "2026-12-26", false)).toBe(2);
+		expect(workDays("2026-12-25", "2026-12-26", true)).toBe(1.5);
+	});
+
+	it("says nothing until the dates make sense", () => {
+		expect(workDays("", "", false)).toBeNull();
+		expect(workDays("2026-10-21", "2026-10-20", false)).toBeNull();
 	});
 });

@@ -31,9 +31,9 @@ COLLECTIONS = {
 	"shift-requests": ("Shift Request", "shifts/new"),
 	"shift-assignments": ("Shift Assignment", None),
 	"salary-slips": ("Salary Slip", None),
-	# Frappe HR 16.53 added these to its phone app. No Self Service form: time off in lieu is
-	# claimed with a Time Off in Lieu Claim (toil/guards.py), so "new" opens the list.
-	"compensatory-leave-requests": ("Compensatory Leave Request", None),
+	# Frappe HR 16.53 added these to its phone app; Self Service has its own form since 1.28.0
+	# (it offers only the compensatory leave types time off in lieu does not bank, CL-1).
+	"compensatory-leave-requests": ("Compensatory Leave Request", "compensatory-leave/new"),
 }
 
 #: Frappe HR's other screens → the My Desk screen that does the same job.

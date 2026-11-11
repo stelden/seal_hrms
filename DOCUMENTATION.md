@@ -564,7 +564,7 @@ committed; HR_ON_MY_DESK §3). seal_desk's shell loads it at run time where seal
 (`hooks.seal_desk_app_sections`, `seal_hrms.my_hr`, shown to anyone whose login is linked to an active Employee:
 `my_desk/section.visible`). It claims Leave Application, Leave Allocation, Task Assignment, Time Off in Lieu Claim,
 Timesheet, Expense Claim, Employee Advance, Salary Slip, Employee, Employee Checkin, Attendance Request, Shift
-Request, Employee Dependent and Beneficiary, Payout Change Request and (1.27.0) Travel Request: those records open
+Request, Employee Dependent and Beneficiary, Payout Change Request, (1.27.0) Travel Request and (1.28.0) Compensatory Leave Request: those records open
 in its screens anywhere in the app (`/my-desk/r/<DocType>/<name>`). The desk tile is **Self Service** too (Keith, 2026-11-11).
 
 - **Screens**: home (balances, in progress, quick actions); leave (apply, with the handover in the same step when
@@ -650,6 +650,33 @@ From Keith's emulator walk of the phone section (2026-11-11).
   Self Service user type lists Travel Request; a waiting request's notice is an approval for the manager
   (`push.waiting_for`). App Health `travel_requests_cannot_move`.
 
+### Compensatory leave requests (1.28.0)
+
+Frappe HR's Compensatory Leave Request (unchanged) on the phone, decided from Approvals
+(`seal_hrms/compensatory_leave.py`; user page `docs/self-service/compensatory-leave-request.md`).
+
+- **One way per leave type (CL-1).** Requests are offered only for compensatory leave types (`is_compensatory`) that
+  no company's Working Time Policy banks time off in lieu into (`offered_leave_types`); `toil.guards` still refuses a
+  request on a TOIL type from anywhere. Where none is left, Self Service shows no Compensatory Leave screen (`home`
+  answers `compensatory: false`) and the form points to Claim Time Off.
+- **Approver (CL-2):** the employee's leave approver, by Frappe HR's `get_employee_leave_approver`.
+- **State (CL-3):** Frappe's own assignment. `after_insert` (any new draft, phone or desk) shares the request with the
+  approver with submit (Frappe HR's `share_doc_with_approver`), assigns it to them (ToDo, notice), and shares it with
+  their stand-in when they are away (`acting.share_new_document`); `pending_leave_approvals` lists it for handovers.
+  Waiting = an open ToDo; Approved = submitted (`on_submit` closes the ToDo, notes a stand-in's approval); Rejected =
+  its ToDo cancelled and none open, the reason the newest comment; Withdraw deletes the draft (`on_trash` cancels the
+  ToDo). No custom field, no migrate.
+- **Approvals source** `seal_hrms.compensatory_leave` (`approvals.compensatory_items`, `act_on_compensatory`): the
+  assigned approver or their stand-in only, never the employee; Approve submits as the approver (Frappe HR adds the
+  days), Reject needs a reason and tells the employee (Notification Log). HR decides on the desk.
+- **A site Workflow on Compensatory Leave Request (CL-4)** makes all of it stand down: nothing is assigned, the source
+  lists nothing, and seal_desk lists the workflow's steps.
+- Phone endpoints `compensatory_list`, `compensatory_options`, `request_compensatory_leave` (employee, and through it
+  company and holiday list, from the session; refuses a type not offered), `compensatory_record`,
+  `compensatory_action` (Withdraw only). `/hrms/compensatory-leave-requests/new` opens the new form. Notices are
+  `hr`, or approvals while waiting for the recipient (`push.waiting_for`). The Employee Self Service user type keeps
+  Compensatory Leave Request listed.
+
 ### Payout Change Request (1.23.0)
 
 Staff ask to be paid into a new bank account or mobile money number; an HR Manager confirms it before
@@ -733,6 +760,7 @@ bench --site dev.local run-tests --module seal_hrms.tests.test_phone_app_health
 bench --site dev.local run-tests --module seal_hrms.tests.test_notification_logs
 bench --site dev.local run-tests --module seal_hrms.tests.test_sensitive_screens
 bench --site dev.local run-tests --module seal_hrms.tests.test_travel_request
+bench --site dev.local run-tests --module seal_hrms.tests.test_compensatory_leave
 ```
 
 Before a site is migrated, `test_payout_change_request` borrows its DocType into a temporary table
@@ -754,6 +782,12 @@ leaves a blank form and no server-side trace.
 ---
 
 ## 7. Changelog
+
+- **2026-11-11** — 1.28.0. **Compensatory leave requests on the phone** (Keith, 2026-11-11): list, new request and
+  record in Self Service; the employee's leave approver is assigned each new request and approves or rejects it from
+  Approvals (new approval source); only compensatory leave types time off in lieu does not bank are offered; Frappe
+  HR's `/hrms/compensatory-leave-requests/new` opens the new form. No migrate needed; a web restart for the hooks;
+  the phone bundle rebuilt.
 
 - **2026-11-11** — 1.27.0. **From Keith's emulator walk of the phone section**: forms say who **will** approve a
   request before it is sent (it read as already approved); amounts confirmed to follow the company's currency (new

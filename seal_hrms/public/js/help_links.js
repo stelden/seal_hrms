@@ -11,6 +11,12 @@ frappe.provide("frappe.help.help_links");
 		frappe.help.help_links[route] = (frappe.help.help_links[route] || []).concat(entries);
 	}
 })({
+	"Form/Compensatory Leave Request": [
+		{
+			"label": "Compensatory Leave Requests",
+			"url": "https://docs.stelden.com/hrms/self-service/compensatory-leave-request"
+		}
+	],
 	"Form/Employee": [
 		{
 			"label": "Employee details",
@@ -39,6 +45,12 @@ frappe.provide("frappe.help.help_links");
 		{
 			"label": "Timesheets",
 			"url": "https://docs.stelden.com/hrms/self-service/timesheets"
+		}
+	],
+	"List/Compensatory Leave Request": [
+		{
+			"label": "Compensatory Leave Requests",
+			"url": "https://docs.stelden.com/hrms/self-service/compensatory-leave-request"
 		}
 	],
 	"List/Employee": [

@@ -23,6 +23,8 @@ export interface Seeded {
 	rest_day: string;
 	working_day: string;
 	travel_purpose: string;
+	compensatory_type: string;
+	public_holiday: string;
 }
 
 /** Otieno's records as the database has them (seed.py state). */
@@ -35,6 +37,7 @@ export interface State {
 	checkins: { name: string; log_type: string; device_id: string }[];
 	payout: { name: string; status: string; change: string; mobile_no: string }[];
 	travel: { name: string; workflow_state: string; docstatus: number; purpose_of_travel: string; company: string }[];
+	compensatory: { name: string; leave_type: string; docstatus: number; work_from_date: string; leave_allocation: string | null; _assign: string | null }[];
 	notifications: { for_user: string; subject: string; document_type: string; document_name: string }[];
 }
 

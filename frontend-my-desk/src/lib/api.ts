@@ -56,6 +56,11 @@ export const M = {
 	travelRecord: `${API}travel_record`,
 	requestTravel: `${API}request_travel`,
 	travelAction: `${API}travel_action`,
+	compensatoryList: `${API}compensatory_list`,
+	compensatoryOptions: `${API}compensatory_options`,
+	compensatoryRecord: `${API}compensatory_record`,
+	requestCompensatoryLeave: `${API}request_compensatory_leave`,
+	compensatoryAction: `${API}compensatory_action`,
 	// seal_hrms' own endpoints, the same the desk calls.
 	respond: "seal_hrms.seal_hrms.task_assignment_actions.respond",
 	respondAuthority: "seal_hrms.seal_hrms.task_assignment_actions.respond_authority",

@@ -121,6 +121,7 @@ def _department_approver(employee: str, field: str, parentfield: str) -> str | N
 def home() -> dict:
 	"""Self Service's first screen: who, balances, what is in flight, and whether check-in is offered."""
 	from seal_hrms.my_desk.figures import balances
+	from seal_hrms.seal_hrms import compensatory_leave
 	from seal_hrms.seal_hrms.self_service_status import self_service
 
 	person = me()
@@ -134,6 +135,9 @@ def home() -> dict:
 			if f.count
 		],
 		"checkin": _checkin_settings(),
+		# Compensatory leave requests are offered only where a compensatory leave type is not banked
+		# as time off in lieu (CL-1); otherwise holiday work is claimed as time off in lieu alone.
+		"compensatory": bool(compensatory_leave.offered_leave_types()),
 	}
 
 
@@ -1068,6 +1072,128 @@ def travel_record(name: str) -> dict:
 		"costings": [{f: row.get(f) for f in COSTING_FIELDS} for row in doc.costings],
 		"mine": mine,
 		"can_send": mine and SEND in steps,
+	}
+
+
+# ---------------------------------------------------------------- compensatory leave (1.28.0)
+
+
+def _work_days(doc) -> float:
+	from frappe.utils import date_diff
+
+	return flt(date_diff(doc.work_end_date, doc.work_from_date) + 1 - (0.5 if cint(doc.half_day) else 0), 1)
+
+
+@frappe.whitelist(methods=["GET"])
+def compensatory_list() -> list[dict]:
+	"""The person's own compensatory leave requests, newest first, each with where it has got to."""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+
+	person = me()
+	rows = _own_list(
+		cl.DOCTYPE,
+		person.name,
+		["name", "leave_type", "work_from_date", "work_end_date", "half_day", "docstatus"],
+		order_by="work_from_date desc",
+	)
+	for row in rows:
+		row["state"] = cl.state_of(row)
+		row["days"] = _work_days(row)
+	return rows
+
+
+@frappe.whitelist(methods=["GET"])
+def compensatory_options() -> dict:
+	"""What the request form offers: the leave types it may earn (never one time off in lieu banks,
+	CL-1), who will approve it, and whether the site decides these by its own workflow."""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+
+	person = me()
+	approver = cl.approver_of(person.name)
+	return {
+		"leave_types": cl.offered_leave_types(),
+		"approver_name": _full_name(approver),
+		"workflow": cl.has_workflow(),
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def request_compensatory_leave(
+	leave_type: str,
+	work_from_date: str,
+	work_end_date: str,
+	reason: str,
+	half_day: int = 0,
+	half_day_date: str | None = None,
+) -> dict:
+	"""Ask for leave in return for days worked on holidays: the person's own request, through their
+	Employee record (and so their company and holiday list, never the login's default), sent at once
+	to their leave approver. Frappe HR checks the days were holidays and that they were present."""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+
+	person = me()
+	if leave_type not in cl.offered_leave_types():
+		frappe.throw(
+			_("{0} cannot be earned with a compensatory leave request. Claim it as time off in lieu, or ask HR.").format(leave_type),
+			title=_("Not Offered"),
+		)
+	doc = frappe.new_doc(cl.DOCTYPE)
+	doc.update(
+		{
+			"employee": person.name,
+			"leave_type": leave_type,
+			"work_from_date": work_from_date,
+			"work_end_date": work_end_date or work_from_date,
+			"half_day": cint(half_day),
+			"half_day_date": (half_day_date or work_from_date) if cint(half_day) else None,
+			"reason": (reason or "").strip(),
+		}
+	)
+	doc.insert()  # after_insert assigns it to the approver (compensatory_leave.send)
+	return {"name": doc.name, "state": cl.state_of(doc)}
+
+
+@frappe.whitelist(methods=["POST"])
+def compensatory_action(name: str, action: str) -> str:
+	"""The person's own request: "Withdraw" deletes it while it is not yet approved. Decisions are made from Approvals."""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+
+	if action != "Withdraw":
+		frappe.throw(_("Decide compensatory leave requests from Approvals."))
+	doc = frappe.get_doc(cl.DOCTYPE, name)
+	if not _mine(doc):
+		frappe.throw(_("You can only withdraw your own requests."), frappe.PermissionError)
+	if doc.docstatus != 0:
+		frappe.throw(_("This request has been approved. Ask HR to cancel it."))
+	frappe.delete_doc(cl.DOCTYPE, doc.name)  # as the person: Frappe HR lets staff delete their own drafts
+	return "Withdrawn"
+
+
+@frappe.whitelist(methods=["GET"])
+def compensatory_record(name: str) -> dict:
+	"""One compensatory leave request the person may read: their own, or one assigned to them to decide."""
+	from seal_hrms.seal_hrms import compensatory_leave as cl
+
+	doc = _record(cl.DOCTYPE, name)
+	mine = _mine(doc)
+	state = cl.state_of(doc)
+	named = cl.waiting_with(doc.name)
+	return {
+		"name": doc.name,
+		"employee_name": doc.employee_name,
+		"leave_type": doc.leave_type,
+		"work_from_date": doc.work_from_date,
+		"work_end_date": doc.work_end_date,
+		"half_day": doc.half_day,
+		"half_day_date": doc.half_day_date,
+		"days": _work_days(doc),
+		"reason": doc.reason,
+		"state": state,
+		"docstatus": doc.docstatus,
+		"approver_name": _full_name(named[0] if named else cl.approver_of(doc.employee)),
+		"note": cl.last_reason(doc.name) if state in (cl.REJECTED, cl.APPROVED) else None,
+		"mine": mine,
+		"can_withdraw": mine and doc.docstatus == 0,
 	}
 
 

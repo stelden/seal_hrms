@@ -11,6 +11,11 @@ sources:
 
 **What changed for users, newest first.** Dates are when each version was committed.
 
+## 1.28.0 (2026-11-11)
+
+- **New:** [Compensatory leave requests](self-service/compensatory-leave-request.md) on the phone: ask for leave in return for working a public holiday or your day off. Your leave approver approves it from Approvals, and the days are added to your leave. Leave types used for time off in lieu are not offered.
+- **Changed:** a link to Frappe HR's own phone app for a new compensatory leave request opens the new request form.
+
 ## 1.27.0 (2026-11-11)
 
 - **Changed:** **My HR** is now **Self Service**: the tile on the Apps screen and the section of the phone app, the same name as the page they open; see [Self Service on the phone](self-service/my-hr-on-the-phone.md).

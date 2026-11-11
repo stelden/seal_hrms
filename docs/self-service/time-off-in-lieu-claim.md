@@ -87,7 +87,7 @@ Time off is taken in full or half days. Leave uses the time that lapses soonest 
 
 HR can cancel an approved claim from **Actions**. If leave already relies on that time and nothing else could cover it, the cancellation is refused until that leave is cancelled.
 
-The time off leave type cannot be allocated, adjusted or paid out by hand, and a **Compensatory Leave Request** on it is refused. An **Overtime Slip** leaves out days sent or approved as time off.
+The time off leave type cannot be allocated, adjusted or paid out by hand, and a **Compensatory Leave Request** on it is refused (requests are for the other compensatory types: see [Compensatory leave requests](compensatory-leave-request.md)). An **Overtime Slip** leaves out days sent or approved as time off.
 
 ## If you see a message
 

@@ -37,10 +37,11 @@ ADVANCE, PAYSLIP = "Employee Advance", "Salary Slip"
 PAYOUT, HANDOVER = "Payout Change Request", "Task Assignment"
 SHIFT, ATTENDANCE = "Shift Request", "Attendance Request"
 TRAVEL = "Travel Request"
+COMPENSATORY = "Compensatory Leave Request"
 
 #: Records whose notices are HR's. The section claims the same types (hooks.py
 #: `seal_desk_app_sections`), so tapping one opens it in Self Service.
-HR_DOCTYPES = frozenset({LEAVE, EXPENSE, CLAIM, TIMESHEET, ADVANCE, PAYSLIP, PAYOUT, HANDOVER, SHIFT, ATTENDANCE, TRAVEL})
+HR_DOCTYPES = frozenset({LEAVE, EXPENSE, CLAIM, TIMESHEET, ADVANCE, PAYSLIP, PAYOUT, HANDOVER, SHIFT, ATTENDANCE, TRAVEL, COMPENSATORY})
 
 #: Notices about these show only their subject on a locked phone: they are about pay.
 SUBJECT_ONLY = frozenset({PAYSLIP, PAYOUT, ADVANCE})
@@ -136,6 +137,17 @@ def waiting_for(user: str, doctype: str, name: str) -> bool:
 		if doc.docstatus != 0 or doc.get(travel.STATE_FIELD) != travel.WAITING or travel.user_of(doc.employee) == user:
 			return False
 		return travel.manager_user_of(doc.employee) == user or not travel.is_narrowed(user)
+
+	if doctype == COMPENSATORY:
+		from seal_hrms.seal_hrms import compensatory_leave as cl
+
+		doc = frappe.db.get_value(COMPENSATORY, name, ["employee", "docstatus"], as_dict=True)
+		if doc.docstatus != 0 or user_for_employee(doc.employee) == user:
+			return False
+		if cl.has_workflow():
+			return True  # the site's own steps decide it (as for leave under a workflow, P6-2)
+		held = approvals.approvers_for(user, cl.AUTHORITY)
+		return any(named in held for named in cl.waiting_with(name))
 
 	# Payslips, advances, attendance requests and handovers ask nothing of the recipient that the
 	# Approvals inbox carries (a handover is answered on Self Service's Cover screen).

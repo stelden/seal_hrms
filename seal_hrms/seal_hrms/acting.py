@@ -411,9 +411,12 @@ def holds_leave_approval(user: str) -> bool:
 
 
 def pending_leave_approvals(user: str) -> list[tuple[str, str]]:
+	"""Open leave, and compensatory leave requests assigned to `user` (their leave approver decides them too)."""
+	from seal_hrms.seal_hrms import compensatory_leave
+
 	return [("Leave Application", n) for n in frappe.get_all(
 		"Leave Application", filters={"leave_approver": user, "docstatus": 0, "status": "Open"}, pluck="name"
-	)]
+	)] + compensatory_leave.pending(user)
 
 
 def holds_expense_approval(user: str) -> bool:

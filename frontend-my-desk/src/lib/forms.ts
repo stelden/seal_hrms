@@ -47,6 +47,20 @@ export function payoutMissing(draft: PayoutDraft): string[] {
 	return draft.evidence ? missing : [...missing, "evidence"];
 }
 
+/**
+ * How many days of leave a compensatory leave request earns, as Frappe HR counts them on approval: every day
+ * from the first to the last worked, less half a day for a half day. Null until both dates make sense.
+ */
+export function workDays(from: string, to: string, halfDay: boolean): number | null {
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to || from)) return null;
+	const start = Date.UTC(+from.slice(0, 4), +from.slice(5, 7) - 1, +from.slice(8, 10));
+	const endText = to || from;
+	const end = Date.UTC(+endText.slice(0, 4), +endText.slice(5, 7) - 1, +endText.slice(8, 10));
+	if (end < start) return null;
+	const days = Math.round((end - start) / 86_400_000) + 1;
+	return halfDay ? days - 0.5 : days;
+}
+
 /** One journey of a travel request as the form holds it. */
 export interface TravelLeg {
 	travel_from: string;

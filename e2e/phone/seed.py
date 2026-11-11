@@ -31,6 +31,8 @@ ACTIVITY = "Community Outreach"
 COMPONENT = "Kilimani Basic Pay"
 STRUCTURE = "Kilimani Programme Staff 2026"
 TRAVEL_PURPOSE = "Field Visit"
+#: A compensatory leave type time off in lieu does not bank, so Self Service offers requests for it (1.28.0).
+COMPENSATORY_TYPE = "Holiday Duty Off"
 
 #: Read by the suite through /__harness/seeded.
 SEEDED: dict = {}
@@ -173,6 +175,9 @@ def _rules(company: str) -> None:
 	travel.ensure_permissions()
 	travel.ensure_workflow()
 	frappe.clear_cache(doctype=travel.DOCTYPE)
+	# Compensatory leave (1.28.0): a type of its own, and Otieno present on the public holiday he worked.
+	if not frappe.db.exists("Leave Type", COMPENSATORY_TYPE):
+		frappe.new_doc("Leave Type").update({"leave_type_name": COMPENSATORY_TYPE, "is_compensatory": 1, "max_leaves_allowed": 10}).insert(ignore_permissions=True)
 	if not frappe.db.exists("Expense Claim Type", EXPENSE_TYPE):
 		account = frappe.db.get_value("Account", {"company": company, "root_type": "Expense", "is_group": 0}, "name")
 		doc = frappe.new_doc("Expense Claim Type")
@@ -241,6 +246,10 @@ def seed() -> None:
 			frappe.defaults.set_user_default("Company", company, user)
 			frappe.defaults.set_user_default(desk_company.USER_DEFAULT, company, user)  # as Settings → Company would
 		slip = _payslip(people["otieno"], company)
+		attendance = frappe.new_doc("Attendance")
+		attendance.update({"employee": people["otieno"], "attendance_date": tf.public_holiday(), "status": "Present", "company": company})
+		attendance.insert(ignore_permissions=True)
+		attendance.submit()
 		push.ensure_keys()
 		# The harness serves the site as localhost:<port>; on a migrated site the keys were made for its
 		# real address and the restored-copy guard (correctly) refuses. Claim them here, in the rolled-back transaction.
@@ -264,6 +273,8 @@ def seed() -> None:
 			"expense_type": EXPENSE_TYPE,
 			"activity": ACTIVITY,
 			"travel_purpose": TRAVEL_PURPOSE,
+			"compensatory_type": COMPENSATORY_TYPE,
+			"public_holiday": tf.public_holiday(),
 			"last_monday": str(last_monday),
 			"rest_day": tf.rest_day(),
 			"working_day": tf.working_day(),
@@ -288,6 +299,7 @@ def state() -> dict:
 		"checkins": pick("Employee Checkin", ["name", "log_type", "device_id"]),
 		"payout": pick("Payout Change Request", ["name", "status", "change", "mobile_no"]),
 		"travel": pick("Travel Request", ["name", "workflow_state", "docstatus", "purpose_of_travel", "company"]),
+		"compensatory": pick("Compensatory Leave Request", ["name", "leave_type", "docstatus", "work_from_date", "leave_allocation", "_assign"]),
 		"notifications": frappe.get_all(
 			"Notification Log",
 			filters={"for_user": ["in", [SEEDED["otieno_user"], SEEDED["achieng_user"], SEEDED["njeri_user"]]], "creation": [">=", SEEDED.get("started", "2000-01-01")]},

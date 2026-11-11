@@ -53,7 +53,7 @@ You cannot approve your own request, even though your own approver is the person
 
 When your colleague returns, the role and the shared documents are taken back. A role you already held is left alone.
 
-The approvals a handover can pass on include leave, expense claims, time off in lieu and timesheets. A head of department can hand over everything they approve for their department in one line, **Approving for my department as Head of Department**.
+The approvals a handover can pass on include leave (with [compensatory leave requests](compensatory-leave-request.md)), expense claims, time off in lieu and timesheets. A head of department can hand over everything they approve for their department in one line, **Approving for my department as Head of Department**.
 
 :::note
 If you go on leave yourself while covering, the approvals do not pass on to your own stand-in.

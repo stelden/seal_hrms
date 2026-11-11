@@ -281,7 +281,7 @@ class TestHookShape(unittest.TestCase):
 
 	def test_each_source_is_well_formed(self):
 		sources = frappe.get_hooks(HOOK, app_name="seal_hrms")
-		self.assertEqual([s["key"] for s in sources], ["seal_hrms.leave", "seal_hrms.expense", "seal_hrms.toil", "seal_hrms.timesheets"])
+		self.assertEqual([s["key"] for s in sources], ["seal_hrms.leave", "seal_hrms.expense", "seal_hrms.toil", "seal_hrms.timesheets", "seal_hrms.compensatory_leave"])
 		for source in sources:
 			self.assertTrue(source["key"].startswith("seal_hrms."))
 			self.assertTrue(source["doctypes"] and all(frappe.db.exists("DocType", d) for d in source["doctypes"]))

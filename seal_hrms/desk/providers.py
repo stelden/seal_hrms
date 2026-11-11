@@ -150,6 +150,13 @@ def timesheet_approvals(ctx):
 	return _approval_items(approvals.timesheet_items(ctx.user))
 
 
+def compensatory_approvals(ctx):
+	"""Approval source `seal_hrms.compensatory_leave`: compensatory leave requests assigned to the person."""
+	from seal_hrms.my_desk import approvals
+
+	return _approval_items(approvals.compensatory_items(ctx.user))
+
+
 def balances(ctx):
 	"""Balances: leave left per type, time off in lieu left and lapsing."""
 	from seal_desk.role_center.schema import CueValue

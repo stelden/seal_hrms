@@ -8,6 +8,7 @@ import { useGet } from "@stelden/seal-frontend";
 import { Badge, Button, DashboardPage, List, ListItem, Section, StatCard, StatGrid, __ } from "@stelden/seal-frontend/ui";
 import {
 	CalendarDays,
+	CalendarPlus,
 	ChevronRight,
 	Clock,
 	FileClock,
@@ -33,6 +34,8 @@ interface HomeAnswer {
 	balances: Array<{ key: string; label: string; value: number }>;
 	in_flight: Array<{ key: string; label: string; count: number; doctype: string }>;
 	checkin: { offered: boolean; location: boolean };
+	/** Compensatory leave types are offered here (not all banked as time off in lieu, CL-1). Absent from older servers. */
+	compensatory?: boolean;
 }
 
 export function MyHrHome() {
@@ -53,6 +56,9 @@ export function MyHrHome() {
 		{ label: __("Travel Requests"), hint: __("Trips for work, approved by your line manager"), path: P.travel, icon: <Plane /> },
 		{ label: __("My Details"), hint: __("Contact, dependants and where you are paid"), path: P.me, icon: <IdCard /> },
 	];
+	if (data?.compensatory) {
+		areas.splice(3, 0, { label: __("Compensatory Leave"), hint: __("Leave in return for working a holiday or day off"), path: P.compensatory, icon: <CalendarPlus /> });
+	}
 	if (data?.checkin.offered) areas.splice(4, 0, { label: __("Check-in"), hint: __("Check in and out from your phone"), path: P.checkIn, icon: <Fingerprint /> });
 
 	return (

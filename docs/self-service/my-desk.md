@@ -23,7 +23,7 @@ Leave, expense claims, time off and timesheets are approved by a named person, n
 
 | On My Desk | What it shows |
 |:---|:---|
-| **Waiting for my approval** and the phone's Approvals | Leave waiting for you as leave approver; expense claims waiting for you as expense approver; time off claims to authorise or approve; timesheets to approve; [travel requests](travel-request.md) from the people who report to you (through the travel workflow). Also those of anyone whose approvals you give while they are away, marked with whom they are for. Never your own. |
+| **Waiting for my approval** and the phone's Approvals | Leave waiting for you as leave approver; expense claims waiting for you as expense approver; time off claims to authorise or approve; timesheets to approve; [compensatory leave requests](compensatory-leave-request.md) assigned to you as leave approver; [travel requests](travel-request.md) from the people who report to you (through the travel workflow). Also those of anyone whose approvals you give while they are away, marked with whom they are for. Never your own. |
 | **Balances** | Leave left for up to four leave types, most used first; time off in lieu left and lapsing in the next 30 days, where your grade banks extra hours. |
 | **Cover** | Who is covering your work and until when, whose work you are covering, and whose approvals you give. |
 | **Time off in lieu waiting for you**, **Timesheets waiting for you** | Claims and timesheets to decide or put right. |
