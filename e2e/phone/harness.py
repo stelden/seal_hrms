@@ -168,6 +168,10 @@ def _init(*args, **kwargs):
 # --- what the suite reads and asks for ------------------------------------------------------
 
 SENT_CODES: list[dict] = []
+#: Browser cookies of a person already signed in this run, so a Playwright worker started after a
+#: failure reuses the session instead of asking for another code (seal_common allows only a few
+#: codes an hour to one number). Copied from seal_desk's phone harness.
+SESSIONS: dict[str, list] = {}
 #: ``/__harness/stale``: the next sensitive action finds no fresh check, as five minutes after
 #: signing in would (seal_common otp.recent); a fresh check (password, passkey) ends it.
 STALE = {"on": False}
@@ -190,6 +194,11 @@ def side_channel(path: str, query: dict, body: dict):
 		return seed.SEEDED
 	if path == "codes":
 		return SENT_CODES
+	if path == "session":
+		if body:
+			SESSIONS[body["user"]] = body["cookies"]
+			return {"ok": True}
+		return {"cookies": SESSIONS.get(query["user"], [])}
 	if path == "stale":
 		STALE["on"] = True
 		return {"ok": True}

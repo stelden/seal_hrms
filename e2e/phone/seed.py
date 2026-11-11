@@ -30,6 +30,7 @@ EXPENSE_TYPE = "Kilimani Field Travel"
 ACTIVITY = "Community Outreach"
 COMPONENT = "Kilimani Basic Pay"
 STRUCTURE = "Kilimani Programme Staff 2026"
+TRAVEL_PURPOSE = "Field Visit"
 
 #: Read by the suite through /__harness/seeded.
 SEEDED: dict = {}
@@ -53,7 +54,46 @@ def borrow_schema() -> set[str]:
 	path = frappe.get_app_path("seal_hrms", "seal_hrms", "doctype", "payout_change_request", "payout_change_request.json")
 	if borrow_doctype(path):
 		made.add("tabPayout Change Request")
+	made |= _borrow_travel_state()
 	return made
+
+
+def _borrow_travel_state() -> set[str]:
+	"""Travel Request's `workflow_state` (1.27.0's shipped Workflow keeps it there), for this run only.
+
+	Migrate would add it as a Custom Field. Here the Custom Field row goes into the transaction and
+	the table is shadowed by a TEMPORARY copy carrying the column, filled with the real rows
+	(as ``seed_desk.shadow_with_new_columns``; creating a temporary table does not commit).
+	"""
+	from frappe.database.mariadb.schema import MariaDBTable
+
+	from seal_hrms.seal_hrms import travel
+
+	if frappe.get_meta(travel.DOCTYPE).has_field(travel.STATE_FIELD):
+		return set()
+	field = frappe.get_doc(
+		{"doctype": "Custom Field", "dt": travel.DOCTYPE, "fieldname": travel.STATE_FIELD, "label": "Workflow State", "fieldtype": "Link",
+		 "options": "Workflow State", "hidden": 1, "allow_on_submit": 1, "no_copy": 1}
+	)
+	field.name = f"{travel.DOCTYPE}-{travel.STATE_FIELD}"
+	field.db_insert()  # the row only: inserting it properly would alter the real table
+	frappe.clear_cache(doctype=travel.DOCTYPE)
+	table = f"tab{travel.DOCTYPE}"
+	rows = frappe.db.sql(f"select * from `{table}`", as_dict=True)
+	captured = []
+	real_ddl = frappe.db.sql_ddl
+	frappe.db.sql_ddl = lambda query, *a, **k: captured.append(query)
+	try:
+		MariaDBTable(travel.DOCTYPE, meta=frappe.get_meta(travel.DOCTYPE, cached=False)).create()
+	finally:
+		frappe.db.sql_ddl = real_ddl
+	ddl = captured[0].replace("create table if not exists", "create temporary table", 1).replace("create table", "create temporary table", 1)
+	assert ddl.lstrip().lower().startswith("create temporary table"), ddl
+	frappe.db._cursor.execute(ddl)
+	for row in rows:
+		names = ", ".join(f"`{k}`" for k in row)
+		frappe.db.sql(f"insert into `{table}` ({names}) values ({', '.join(['%s'] * len(row))})", tuple(row.values()))
+	return {table}
 
 
 # --- people -------------------------------------------------------------------------------
@@ -79,6 +119,22 @@ def _people() -> dict:
 	frappe.db.set_value("Employee", otieno, {"expense_approver": achieng, "cell_number": fx.PHONES["otieno"]})
 	for key, mobile in (("otieno", "0733902614"), ("achieng", "0745130968"), ("njeri", "0711560287")):
 		_sign_in_details(fx.email(key), mobile)
+	# Achieng is also his line manager, who decides his travel (1.27.0, EM-3). Her own Employee keeps
+	# no automatic User Permission, as HR's guide asks of anyone deciding others' requests: with
+	# one, Frappe would hide his leave and claims from her.
+	manager = frappe.db.get_value("Employee", {"user_id": achieng}, "name")
+	if not manager:
+		doc = frappe.new_doc("Employee")
+		company = frappe.db.get_value("Employee", otieno, "company")
+		doc.update({"first_name": "Achieng", "last_name": "Odhiambo", "gender": "Female", "date_of_birth": "1986-04-17", "date_of_joining": "2019-02-01",
+		            "company": company, "user_id": achieng, "create_user_permission": 0, "status": "Active", "cell_number": fx.PHONES["achieng"],
+		            "holiday_list": frappe.db.get_value("Company", company, "default_holiday_list")})
+		doc.insert(ignore_permissions=True)
+		manager = doc.name
+	otieno_doc = frappe.get_doc("Employee", otieno)
+	otieno_doc.reports_to = manager
+	otieno_doc.save(ignore_permissions=True)  # seal_hrms gives Achieng the Line Manager role on this save
+	frappe.db.value_cache.clear()
 	return {"otieno": otieno, "njeri": njeri, "otieno_user": fx.email("otieno"), "achieng_user": achieng, "njeri_user": fx.email("njeri")}
 
 
@@ -109,6 +165,14 @@ def _rules(company: str) -> None:
 	for name in frappe.get_all("Property Setter", filters={"doc_type": "Expense Claim", "field_name": "payable_account", "property": "permlevel", "module": ["is", "not set"]}, pluck="name"):
 		frappe.delete_doc("Property Setter", name, ignore_permissions=True)
 	frappe.clear_cache(doctype="Expense Claim")
+	# Travel requests: purposes, and the shipped Workflow and permissions that migrate would create.
+	from seal_hrms.seal_hrms import travel
+
+	if not frappe.db.exists("Purpose of Travel", TRAVEL_PURPOSE):
+		frappe.new_doc("Purpose of Travel").update({"purpose_of_travel": TRAVEL_PURPOSE}).insert(ignore_permissions=True)
+	travel.ensure_permissions()
+	travel.ensure_workflow()
+	frappe.clear_cache(doctype=travel.DOCTYPE)
 	if not frappe.db.exists("Expense Claim Type", EXPENSE_TYPE):
 		account = frappe.db.get_value("Account", {"company": company, "root_type": "Expense", "is_group": 0}, "name")
 		doc = frappe.new_doc("Expense Claim Type")
@@ -164,6 +228,18 @@ def seed() -> None:
 		people = _people()
 		company = frappe.db.get_value("Employee", people["otieno"], "company")
 		_rules(company)
+		# The Line Manager role exists only once the travel set-up has made it (the patch does on a
+		# site), so Achieng gets it now rather than on Otieno's save above.
+		from seal_hrms.seal_hrms import line_manager
+
+		line_manager.sync_user(people["achieng_user"])
+		# My Desk follows the company each person has chosen (seal_desk D143). dev.local's users carry
+		# whatever default earlier work left them; these three work for Otieno's company.
+		from seal_desk.role_center import company as desk_company
+
+		for user in (people["otieno_user"], people["achieng_user"], people["njeri_user"]):
+			frappe.defaults.set_user_default("Company", company, user)
+			frappe.defaults.set_user_default(desk_company.USER_DEFAULT, company, user)  # as Settings → Company would
 		slip = _payslip(people["otieno"], company)
 		push.ensure_keys()
 	finally:
@@ -183,6 +259,7 @@ def seed() -> None:
 			"leave_type": fx.ensure_leave_type(),
 			"expense_type": EXPENSE_TYPE,
 			"activity": ACTIVITY,
+			"travel_purpose": TRAVEL_PURPOSE,
 			"last_monday": str(last_monday),
 			"rest_day": tf.rest_day(),
 			"working_day": tf.working_day(),
@@ -206,6 +283,7 @@ def state() -> dict:
 		"expenses": pick("Expense Claim", ["name", "approval_status", "docstatus", "total_claimed_amount"]),
 		"checkins": pick("Employee Checkin", ["name", "log_type", "device_id"]),
 		"payout": pick("Payout Change Request", ["name", "status", "change", "mobile_no"]),
+		"travel": pick("Travel Request", ["name", "workflow_state", "docstatus", "purpose_of_travel", "company"]),
 		"notifications": frappe.get_all(
 			"Notification Log",
 			filters={"for_user": ["in", [SEEDED["otieno_user"], SEEDED["achieng_user"], SEEDED["njeri_user"]]], "creation": [">=", SEEDED.get("started", "2000-01-01")]},

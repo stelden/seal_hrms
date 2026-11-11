@@ -64,7 +64,8 @@ test("Otieno does a week of self service on his phone", async ({ page }) => {
 		await page.getByLabel("To Date").fill(siteDate(22));
 		await page.getByLabel("Reason").fill("My daughter's graduation in Kisumu");
 		await page.getByLabel("Reason").blur();
-		await expect(page.getByText(/approved by Achieng Odhiambo/)).toBeVisible();
+		// One wording on every form (EM-11): who will approve it, not "approved by".
+		await expect(page.getByText(/Achieng Odhiambo will approve it\./)).toBeVisible();
 		// The company suggests cover for leave this long: the handover shows beneath the leave.
 		await expect(page.getByText("Your company suggests arranging cover. You can leave this out.")).toBeVisible();
 		await page.getByRole("combobox", { name: "Stand-in" }).click();
@@ -142,10 +143,18 @@ test("Otieno does a week of self service on his phone", async ({ page }) => {
 		await page.getByText(/^Net pay/).first().click();
 		await expect(page.getByText(who.otieno_name).first()).toBeVisible();
 		await expect(page.getByText("Kilimani Basic Pay").first()).toBeVisible();
-		// The PDF is not fetched here: the site renders it by asking itself for the page's styles, and
-		// this one-connection harness serves one request at a time (it would wait on itself).
-		const open = page.getByRole("link", { name: "Open Payslip" }).or(page.getByRole("button", { name: "Open Payslip" })).first();
-		expect(await open.getAttribute("href")).toContain("seal_hrms.my_desk.api.payslip_pdf");
+		// Open Payslip confirms it is him (fresh from signing in: not asked) and opens the PDF in the
+		// browser. The PDF itself is answered here, not by the site: the site renders it by asking
+		// itself for the page's styles, and this one-connection harness would wait on itself.
+		await page.context().route("**/api/method/seal_hrms.my_desk.api.payslip_pdf**", (route) =>
+			route.fulfill({ status: 200, contentType: "application/pdf", body: "%PDF-1.4 stand-in" }),
+		);
+		// A PDF answer is a download in headless Chrome, so the new tab's address is read from its request.
+		const asked = page.context().waitForEvent("request", (r) => r.url().includes("seal_hrms.my_desk.api.payslip_pdf"));
+		await page.getByRole("button", { name: "Open Payslip" }).click();
+		expect(new URL((await asked).url()).searchParams.get("name")).toBe(who.payslip);
+		for (const extra of page.context().pages()) if (extra !== page) await extra.close();
+		await expect(page.getByRole("dialog")).toHaveCount(0);
 		await expectNoSidewaysScroll(page);
 		await shot(page, "08-payslip");
 	});

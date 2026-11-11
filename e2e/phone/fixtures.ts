@@ -22,6 +22,7 @@ export interface Seeded {
 	last_monday: string;
 	rest_day: string;
 	working_day: string;
+	travel_purpose: string;
 }
 
 /** Otieno's records as the database has them (seed.py state). */
@@ -33,6 +34,7 @@ export interface State {
 	expenses: { name: string; approval_status: string; docstatus: number; total_claimed_amount: number }[];
 	checkins: { name: string; log_type: string; device_id: string }[];
 	payout: { name: string; status: string; change: string; mobile_no: string }[];
+	travel: { name: string; workflow_state: string; docstatus: number; purpose_of_travel: string; company: string }[];
 	notifications: { for_user: string; subject: string; document_type: string; document_name: string }[];
 }
 
@@ -62,7 +64,8 @@ export async function latestCode(request: APIRequestContext, after = 0): Promise
 
 export const codeCount = async (request: APIRequestContext) => (await harness<unknown[]>(request, "codes")).length;
 
-const sessions = new Map<string, Awaited<ReturnType<BrowserContext["cookies"]>>>();
+type Cookies = Awaited<ReturnType<BrowserContext["cookies"]>>;
+const sessions = new Map<string, Cookies>();
 
 /**
  * Sign in as a phone would, without the screens (password, then the texted code), through the
@@ -71,14 +74,21 @@ const sessions = new Map<string, Awaited<ReturnType<BrowserContext["cookies"]>>>
  * seal_common allows only a few codes an hour to one number, so each signs in once a run.
  */
 export async function signIn(page: Page, user: string, password: string) {
-	const held = sessions.get(user);
-	if (held) {
+	// This worker's own copy first, then the harness's (a worker started after a failure has none of
+	// its own and must not spend another code).
+	const held = sessions.get(user) ?? (await harness<{ cookies: Cookies }>(page.request, `session?user=${encodeURIComponent(user)}`)).cookies;
+	if (held.length) {
 		await page.context().addCookies(held);
 		const boot = await page.request.get("/api/method/seal_desk.api.phone.boot");
-		if (boot.ok() && (await boot.json()).message?.user?.name === user) return;
+		if (boot.ok() && (await boot.json()).message?.user?.name === user) {
+			sessions.set(user, held);
+			return;
+		}
 	}
 	await signInNow(page, user, password);
-	sessions.set(user, await page.context().cookies());
+	const cookies = await page.context().cookies();
+	sessions.set(user, cookies);
+	await harness(page.request, "session", { user, cookies });
 }
 
 async function signInNow(page: Page, user: string, password: string) {

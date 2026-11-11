@@ -13,6 +13,7 @@ Rows are created and rolled back per test (ToilTestCase); no SMS or email leaves
 """
 
 import json
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -205,6 +206,12 @@ class TestPayoutDetailsAreMasked(SectionTestCase):
 
 	def setUp(self):
 		super().setUp()
+		# Masking is pinned here on a freshly checked session; asking first (1.27.0, "Confirm It
+		# Is You") is test_sensitive_screens'. Without this, My Details holds payout back (None).
+		fresh = SimpleNamespace(is_recent=lambda minutes: True, VerificationNeeded=frappe.PermissionError)
+		p = patch("seal_hrms.seal_hrms.step_up._recent", return_value=fresh)
+		p.start()
+		self.addCleanup(p.stop)
 		bank = "Kilimani Cooperative Bank"
 		if not frappe.db.exists("Bank", bank):
 			frappe.get_doc({"doctype": "Bank", "bank_name": bank}).insert(ignore_permissions=True)
