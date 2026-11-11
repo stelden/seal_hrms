@@ -242,6 +242,10 @@ def seed() -> None:
 			frappe.defaults.set_user_default(desk_company.USER_DEFAULT, company, user)  # as Settings → Company would
 		slip = _payslip(people["otieno"], company)
 		push.ensure_keys()
+		# The harness serves the site as localhost:<port>; on a migrated site the keys were made for its
+		# real address and the restored-copy guard (correctly) refuses. Claim them here, in the rolled-back transaction.
+		if push.is_a_copy():
+			frappe.db.set_single_value(push.SETTINGS, "keys_made_for", push.site_address())
 	finally:
 		frappe.flags.in_test = False
 	frappe.clear_cache()
